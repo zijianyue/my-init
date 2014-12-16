@@ -423,7 +423,7 @@
 	 (define-key helm-gtags-mode-map (kbd "<S-f5>") 'helm-gtags-create-tags)
 	 (define-key helm-gtags-mode-map (kbd "<f5>") 'helm-gtags-update-tags)
 	 (define-key helm-gtags-mode-map (kbd "<f7>") 'helm-gtags-select)
-	 (define-key helm-gtags-mode-map (kbd "C-S-o") 'helm-gtags-select-path)
+	 (define-key helm-gtags-mode-map (kbd "<f6>") 'helm-gtags-select-path)
 	 (define-key helm-gtags-mode-map (kbd "C-]") nil)
 	 (define-key helm-gtags-mode-map (kbd "C-t") nil)
 	 (define-key helm-gtags-mode-map (kbd "C-\\") 'helm-gtags-dwim)
