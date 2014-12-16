@@ -847,7 +847,7 @@ the mru bookmark stack."
 				(comment-intro . c-lineup-comment)
 				(composition-close . 0)
 				(composition-open . 0)
-				(cpp-define-intro c-lineup-cpp-define +)
+				(cpp-define-intro c-lineup-cpp-define 0)
 				(cpp-macro . -1000)
 				(cpp-macro-cont . +)
 				(do-while-closure . 0)
