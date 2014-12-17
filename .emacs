@@ -72,15 +72,15 @@
 (setq ring-bell-function 'ignore)
 
 ;; Load CEDET offical
-;; (load-file "D:/cedet-master/cedet-devel-load.el")
-;; (load-file "D:/cedet-master/contrib/cedet-contrib-load.el")
+(load-file "D:/cedet-master/cedet-devel-load.el")
+(load-file "D:/cedet-master/contrib/cedet-contrib-load.el")
 
 ;; cedet builtin
-(require 'semantic )
-(require 'srecode)
+;; (require 'semantic )
+;; (require 'srecode)
 
 (set-default 'semantic-case-fold t)
-;; (global-set-key (kbd "<apps>") 'eassist-list-methods)
+(global-set-key (kbd "<C-apps>") 'eassist-list-methods)
 
 ;;修改标题栏，显示buffer的名字
 (setq frame-title-format "%b [%+] %f")
@@ -206,7 +206,7 @@
  '(imenu-max-item-length 120)
  '(imenu-max-items 1000)
  '(inhibit-startup-screen t)
- '(jit-lock-defer-time 0.5)
+ '(jit-lock-defer-time 0.25)
  '(large-file-warning-threshold 50000000)
  '(ls-lisp-verbosity nil)
  '(make-backup-files nil)
@@ -303,7 +303,7 @@
 (require 'auto-complete-config)
 (require 'auto-complete-c-headers )
 
-(define-key ac-mode-map  (kbd "M-/") 'auto-complete)
+(define-key ac-mode-map  (kbd "M-RET") 'auto-complete)
 (define-key ac-completing-map  (kbd "/") 'ac-isearch)
 
 (add-to-list 'ac-dictionary-directories (concat site-lisp-dir "\\auto-complete\\auto-complete-master\\dict"))
@@ -415,8 +415,7 @@
 	 ))
 
 (global-set-key (kbd "C-S-v") 'helm-show-kill-ring)
-(global-set-key (kbd "<C-apps>") 'helm-semantic-or-imenu)
-
+(global-set-key (kbd "<M-apps>") 'helm-semantic-or-imenu)
 
 (eval-after-load "helm-gtags"
   '(progn
@@ -744,26 +743,26 @@ the mru bookmark stack."
 (global-set-key (kbd "<C-f11>") 'semantic-ia-fast-jump-back)
 ;;-----------------------------------------------------------hook-----------------------------------------------------------;;
 (c-add-style "gzj"
-			 '("gnu"
-			   (c-basic-offset . 4)     ; Guessed value
+			 '("stroustrup"
+			   (c-basic-offset . 4)		; Guessed value
 			   (c-offsets-alist
-				(arglist-cont . 0)      ; Guessed value
-				(arglist-intro . +)     ; Guessed value
-				(block-close . 0)       ; Guessed value
-				(case-label . +)        ; Guessed value
-				(defun-block-intro . +) ; Guessed value
-				(defun-close . 0)       ; Guessed value
-				(defun-open . 0)        ; Guessed value
-				(else-clause . 0)       ; Guessed value
-				(extern-lang-close . 0) ; Guessed value
-				(inextern-lang . 0)     ; Guessed value
-				(label . 0)             ; Guessed value
-				(statement . 0)         ; Guessed value
+				(arglist-cont . 0)		; Guessed value
+				(arglist-intro . +)		; Guessed value
+				(block-close . 0)		; Guessed value
+				(case-label . +)		; Guessed value
+				(defun-block-intro . +)	; Guessed value
+				(defun-close . 0)		; Guessed value
+				(defun-open . 0)		; Guessed value
+				(else-clause . 0)		; Guessed value
+				(extern-lang-close . 0)	; Guessed value
+				(func-decl-cont . 0)	; Guessed value
+				(inextern-lang . 0)		; Guessed value
+				(label . 0)				; Guessed value
+				(statement . 0)			; Guessed value
 				(statement-block-intro . +) ; Guessed value
-				(statement-case-open . 0)   ; Guessed value
-				(statement-cont . *)    ; Guessed value
-				(substatement-open . 0) ; Guessed value
-				(topmost-intro . 0)     ; Guessed value
+				(statement-case-open . 0) ; Guessed value
+				(substatement-open . 0)	  ; Guessed value
+				(topmost-intro . 0)		  ; Guessed value
 				(topmost-intro-cont . 0) ; Guessed value
 				(access-label . -)
 				(annotation-top-cont . 0)
@@ -783,13 +782,12 @@ the mru bookmark stack."
 				(comment-intro . c-lineup-comment)
 				(composition-close . 0)
 				(composition-open . 0)
-				(cpp-define-intro c-lineup-cpp-define 0)
+				(cpp-define-intro . 0)
 				(cpp-macro . -1000)
 				(cpp-macro-cont . +)
 				(do-while-closure . 0)
 				(extern-lang-open . 0)
 				(friend . 0)
-				(func-decl-cont . +)
 				(inclass . +)
 				(incomposition . +)
 				(inexpr-class . +)
@@ -798,11 +796,11 @@ the mru bookmark stack."
 				(inher-intro . +)
 				(inlambda . c-lineup-inexpr-block)
 				(inline-close . 0)
-				(inline-open . 0)
+				(inline-open . +)
 				(inmodule . +)
 				(innamespace . +)
 				(knr-argdecl . 0)
-				(knr-argdecl-intro . 5)
+				(knr-argdecl-intro . +)
 				(lambda-intro-cont . +)
 				(member-init-cont . c-lineup-multi-inher)
 				(member-init-intro . +)
@@ -814,12 +812,14 @@ the mru bookmark stack."
 				(objc-method-call-cont c-lineup-ObjC-method-call-colons c-lineup-ObjC-method-call +)
 				(objc-method-intro .
 								   [0])
-				(statement-case-intro . 0)
+				(statement-case-intro . +)
+				(statement-cont . +)
 				(stream-op . c-lineup-streamop)
 				(string . -1000)
 				(substatement . +)
 				(substatement-label . 0)
 				(template-args-cont c-lineup-template-args +))))
+
 
 (add-hook 'c-mode-common-hook
 		  (lambda ()
@@ -874,16 +874,16 @@ the mru bookmark stack."
 ;; telnet登录主机后，export LANG=zh_CN.GBK 或 export LC_ALL=en_US.ISO-8859-1 ,export LC_CTYPE=zh_CN.GB2312x
 
 ;; gtags symref 的结果都设置为C语法，主要为了highlight-symbol能正确
-(dolist (hook '(gtags-select-mode-hook semantic-symref-results-mode-hook cscope-list-entry-hook))
+(dolist (hook '(gtags-select-mode-hook helm-update-hook semantic-symref-results-mode-hook cscope-list-entry-hook))
   (add-hook hook
 			(lambda()
 			  (setq truncate-lines t)
 			  (set-syntax-table c++-mode-syntax-table))))
 
-;; (add-hook 'eassist-mode-hook
-;; 		  (lambda () "DOCSTRING" (interactive)
-;; 			(define-key eassist-mode-map (kbd "<apps>") 'eassist-escape)
-;; 			))
+(add-hook 'eassist-mode-hook
+		  (lambda () "DOCSTRING" (interactive)
+			(define-key eassist-mode-map (kbd "<apps>") 'eassist-escape)
+			))
 
 (add-hook 'after-change-major-mode-hook 'remove-dos-eol)
 
