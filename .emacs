@@ -67,7 +67,7 @@
 						 ("melpa" . "http://melpa.milkbox.net/packages/")
 						 ("melpa-stable" . "http://melpa-stable.milkbox.net/packages/")))
 ;; mini buffer 的大小保持不变
-(setq resize-mini-windows nil)
+;; (setq resize-mini-windows nil)
 ;; 没有提示音,也不闪屏
 (setq ring-bell-function 'ignore)
 
@@ -89,8 +89,8 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 
 ;; 向前跳到单词开始
-(require 'misc )
-(fset 'forward-word 'forward-to-word)
+;; (require 'misc )
+;; (fset 'forward-word 'forward-to-word)
 
 ;; vc编译设置(2005)
 (setenv "VSINSTALLDIR" "C:\\Program Files (x86)\\Microsoft Visual Studio 8")
@@ -185,14 +185,15 @@
  '(global-auto-revert-mode t)
  '(global-cedet-m3-minor-mode t)
  '(global-ede-mode t)
- '(global-hl-line-mode t)
- '(global-hl-line-sticky-flag t)
  '(global-semantic-decoration-mode t)
  '(global-semantic-mru-bookmark-mode t)
  '(global-semantic-stickyfunc-mode t)
  '(global-srecode-minor-mode t)
  '(gtags-disable-pushy-mouse-mapping t)
  '(helm-default-external-file-browser "explorer")
+ '(helm-for-files-preferred-list
+   (quote
+	(helm-source-buffers-list helm-source-recentf helm-source-bookmarks)))
  '(helm-gtags-auto-update t)
  '(helm-gtags-cache-max-result-size 104857600)
  '(helm-gtags-cache-select-result t)
@@ -201,18 +202,18 @@
  '(helm-gtags-maximum-candidates 200)
  '(helm-gtags-suggested-key-mapping t)
  '(helm-gtags-update-interval-second nil)
+ '(helm-truncate-lines t)
  '(horizontal-scroll-bar-mode t)
  '(ido-mode (quote both) nil (ido))
  '(imenu-max-item-length 120)
  '(imenu-max-items 1000)
  '(inhibit-startup-screen t)
- '(jit-lock-defer-time 0.25)
+ '(jit-lock-defer-time 0.5)
  '(large-file-warning-threshold 50000000)
  '(ls-lisp-verbosity nil)
  '(make-backup-files nil)
  '(mode-require-final-newline nil)
  '(mouse-wheel-progressive-speed nil)
- '(mouse-wheel-scroll-amount (quote (3 ((shift) . 1) ((control)))))
  '(password-cache-expiry nil)
  '(pcmpl-gnu-tarfile-regexp "")
  '(recentf-mode t)
@@ -302,7 +303,6 @@
 ;;auto-complete
 (require 'auto-complete-config)
 (require 'auto-complete-c-headers )
-
 (define-key ac-mode-map  (kbd "M-RET") 'auto-complete)
 (define-key ac-completing-map  (kbd "/") 'ac-isearch)
 
@@ -314,8 +314,6 @@
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
   ;; (setq ac-sources (delete 'ac-source-gtags ac-sources))
   (setq ac-sources (append '(ac-source-semantic) ac-sources)) ;autocomplete使用semantic补全. ->
-  ;; (setq ac-sources (append '(ac-source-clang-async) ac-sources))
-  ;; (setq ac-sources (append '(ac-source-clang) ac-sources))
   (setq ac-sources (append '(ac-source-c-headers) ac-sources))
   )
 
@@ -387,15 +385,15 @@
 		 (turn-on-fci-mode)))
 	 ))
 ;; 符号高亮
-(require 'highlight-symbol)
-(global-set-key [f8] 'highlight-symbol-next)
-(global-set-key [(shift f8)] 'highlight-symbol-prev)
-(require 'highlight )
-(global-set-key (kbd "<M-f8>") 'hlt-highlight-symbol) ;m-0会把所有buffer都高亮上
-(global-set-key (kbd "<C-f8>") 'hlt-unhighlight-symbol)
-;; (global-set-key (kbd "<f8>") 'hlt-next-highlight)
-;; (global-set-key (kbd "<S-f8>") 'hlt-previous-highlight)
-(global-set-key (kbd "<C-S-f8>") 'hlt-unhighlight-region)
+;; (require 'highlight-symbol)
+;; (global-set-key [f8] 'highlight-symbol-next)
+;; (global-set-key [(shift f8)] 'highlight-symbol-prev)
+;; (require 'highlight )
+;; (global-set-key (kbd "<M-f8>") 'hlt-highlight-symbol) ;m-0会把所有buffer都高亮上
+;; (global-set-key (kbd "<C-f8>") 'hlt-unhighlight-symbol)
+;; ;; (global-set-key (kbd "<f8>") 'hlt-next-highlight)
+;; ;; (global-set-key (kbd "<S-f8>") 'hlt-previous-highlight)
+;; (global-set-key (kbd "<C-S-f8>") 'hlt-unhighlight-region)
 
 ;; 异步copy rename文件
 (when (require 'dired-aux)
@@ -428,6 +426,7 @@
 	 (define-key helm-gtags-mode-map (kbd "C-\\") 'helm-gtags-dwim)
 	 (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-previous-history)
 	 (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-next-history)
+	 (define-key helm-gtags-mode-map (kbd "C-;") 'helm-gtags-find-tag-other-window)
 	 ))
 
 ;; ac-helm
@@ -491,11 +490,11 @@
   (interactive "*P")
   (let ((file (buffer-name)))
 	(if dired
-		(setq file (dired-get-filename 'no-dir)) ;xp
-	  ;; (setq file (replace-regexp-in-string "/" "\\\\" (dired-get-filename) )) ;win7
+		;; (setq file (dired-get-filename 'no-dir)) ;xp
+	  (setq file (replace-regexp-in-string "/" "\\\\" (dired-get-filename) )) ;win7
 	  ;; (setq file (file-name-nondirectory (buffer-file-name) )) ;xp
 	  (setq file (replace-regexp-in-string "/" "\\\\" (buffer-file-name) ))) ;win7
-	(call-process "explorer" nil 0 nil (concat "/select," file))
+	(call-process-shell-command (concat "explorer" "/select," file))
 	)
   )
 
@@ -827,7 +826,7 @@ the mru bookmark stack."
 			(c-set-style "gzj")      ;定制C/C++缩进风格,到实际工作环境中要用guess style来添加详细的缩进风格
 			(abbrev-mode 0)
 			(my-c-mode-common-hook-if0)
-			(fci-mode 1)
+			;; (fci-mode 1)
 			(setup-program-keybindings)
 			(hs-minor-mode 1)
 			(hide-ifdef-mode 1)
@@ -874,19 +873,22 @@ the mru bookmark stack."
 ;; telnet登录主机后，export LANG=zh_CN.GBK 或 export LC_ALL=en_US.ISO-8859-1 ,export LC_CTYPE=zh_CN.GB2312x
 
 ;; gtags symref 的结果都设置为C语法，主要为了highlight-symbol能正确
-(dolist (hook '(gtags-select-mode-hook helm-update-hook semantic-symref-results-mode-hook cscope-list-entry-hook))
-  (add-hook hook
-			(lambda()
-			  (setq truncate-lines t)
-			  (set-syntax-table c++-mode-syntax-table))))
+(eval-after-load "cc-mode"
+  '(progn
+	 (dolist (hook '(gtags-select-mode-hook semantic-symref-results-mode-hook cscope-list-entry-hook))
+	   (add-hook hook
+				 (lambda()
+				   (setq truncate-lines t)
+				   (set-syntax-table c++-mode-syntax-table))))))
 
 (add-hook 'eassist-mode-hook
 		  (lambda () "DOCSTRING" (interactive)
 			(define-key eassist-mode-map (kbd "<apps>") 'eassist-escape)
 			))
 
-(add-hook 'after-change-major-mode-hook 'remove-dos-eol)
-
+(add-hook 'font-lock-mode-hook
+          (lambda () "DOCSTRING" (interactive)
+            (remove-dos-eol)))
 ;;-----------------------------------------------------------热键-----------------------------------------------------------;;
 
 ;;修改搜索和保存的快捷键
@@ -899,10 +901,10 @@ the mru bookmark stack."
 (define-key isearch-mode-map "\M-o" 'isearch-occur)
 (define-key isearch-mode-map "\M-w" 'isearch-toggle-word)
 ;; 搜索光标下的单词
-;; (require 'hi-lock )
-;; (global-set-key (kbd "<f8>") 'isearch-forward-symbol-at-point)
-;; (global-set-key (kbd "<M-f8>") 'highlight-symbol-at-point) ;高亮光标下的单词
-;; (global-set-key (kbd "<C-f8>") 'unhighlight-regexp)        ;删除高亮，c-0全删
+(require 'hi-lock )
+(global-set-key (kbd "<f8>") 'isearch-forward-symbol-at-point)
+(global-set-key (kbd "<M-f8>") 'highlight-symbol-at-point) ;高亮光标下的单词
+(global-set-key (kbd "<C-f8>") 'unhighlight-regexp)        ;删除高亮，c-0全删
 
 ;;使用find递归查找文件
 (global-set-key (kbd "<M-f7>") 'find-name-dired) ;找文件名
