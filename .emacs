@@ -78,7 +78,11 @@
 ;; cedet builtin
 ;; (require 'semantic )
 ;; (require 'srecode)
-
+;; (setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
+;; let cedet call ctags to find things which cedet can not find
+;; (semantic-load-enable-all-ectags-support)
+(semanticdb-enable-gnu-global-databases 'c-mode)
+(semanticdb-enable-gnu-global-databases 'c++-mode)
 (set-default 'semantic-case-fold t)
 (global-set-key (kbd "<C-apps>") 'eassist-list-methods)
 
@@ -168,12 +172,16 @@
  '(column-number-mode t)
  '(compilation-scroll-output t)
  '(compilation-skip-threshold 2)
+ '(confirm-kill-emacs (quote y-or-n-p))
  '(cua-mode t nil (cua-base))
+ '(delete-by-moving-to-trash t)
  '(dired-dwim-target t)
  '(dired-listing-switches "-alh")
  '(dired-recursive-copies (quote always))
  '(dired-recursive-deletes (quote always))
  '(display-time-mode nil)
+ '(ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
+ '(ediff-split-window-function (quote split-window-horizontally))
  '(electric-indent-mode t)
  '(electric-pair-inhibit-predicate (quote electric-pair-conservative-inhibit))
  '(electric-pair-mode t)
@@ -204,6 +212,7 @@
  '(helm-gtags-update-interval-second nil)
  '(helm-truncate-lines t)
  '(horizontal-scroll-bar-mode t)
+ '(icomplete-show-matches-on-no-input t)
  '(ido-mode (quote both) nil (ido))
  '(imenu-max-item-length 120)
  '(imenu-max-items 1000)
@@ -234,7 +243,7 @@
  '(sln-mode-devenv-2008 "Devenv.com")
  '(tab-width 4)
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
- '(user-full-name "gezijian g00280886"))
+ '(user-full-name "gezijian"))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -267,6 +276,26 @@
 	 (define-key gtags-select-mode-map "q" 'gtags-pop-stack)
 	 ))
 
+;; ggtags
+(autoload 'ggtags-mode "ggtags" "" t)
+(eval-after-load "ggtags"
+  '(progn
+	 (define-key ggtags-mode-map (kbd "M-.") nil)
+	 (define-key ggtags-mode-map (kbd "M-,") nil)
+	 (define-key ggtags-mode-map (kbd "M-]") nil)
+	 (define-key ggtags-mode-map (kbd "C-M-.") nil)
+	 (define-key ggtags-mode-map [S-down-mouse-1] 'ignore)
+	 (define-key ggtags-mode-map [S-down-mouse-3] 'ignore)
+	 (define-key ggtags-mode-map (kbd "<S-mouse-1>") 'ggtags-find-tag-mouse)
+	 (define-key ggtags-mode-map (kbd "<S-mouse-3>") 'ggtags-prev-mark)
+	 (define-key ggtags-mode-map (kbd "<C-S-mouse-3>") 'ggtags-next-mark)
+	 (define-key ggtags-highlight-tag-map [S-down-mouse-1] 'ignore)
+	 (define-key ggtags-highlight-tag-map [S-down-mouse-3] 'ignore)
+	 (define-key ggtags-highlight-tag-map (kbd "<S-mouse-1>") 'ggtags-find-tag-mouse)
+	 (define-key ggtags-highlight-tag-map (kbd "<S-mouse-3>") 'ggtags-prev-mark)
+	 (define-key ggtags-highlight-tag-map (kbd "<C-S-mouse-3>") 'ggtags-next-mark)
+	 )
+  )
 
 ;; 选中单位
 (require 'expand-region)
@@ -290,11 +319,15 @@
   (setq proj (ede-cpp-root-project "code" :file root-file
 								   :include-path '( "/include" "/server" "/upf"
 													"/upf_dubhe/export" "/UPF_SMI/Include" "/service/tg/mm/rm/source/pmm")
-								   :spp-files '( "Service/TG/MM/RM/Source/PMM/RMPmm_Const.h"
-												 "Service/TG/MM/RM/Include/RM_switch.h"
-												 "Service/TG/MM/RM/Include/RM_Debug.h"
-												 "ede_switch.h" ;目前ON OFF宏如果是(1)，无法识别，所以把这个放最后强制将ON定义为1
-												 )))
+								   ;; :spp-files '( "Service/TG/MM/RM/Source/PMM/RMPmm_Const.h"
+								   ;;				 "Service/TG/MM/RM/Include/RM_switch.h"
+								   ;;				 "Service/TG/MM/RM/Include/RM_Debug.h"
+								   ;;				 )
+								   :spp-table '(("IN" . "")
+												("OUT" . "")
+												("ON" . "1")
+												("OFF" . "0"))
+								   ))
   ;; (find-sln root-file)
   ;; (cscope-set-initial-directory (file-name-directory root-file))
   (message "EDE Project Created." ))
@@ -313,8 +346,7 @@
 (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-buffer))
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
   ;; (setq ac-sources (delete 'ac-source-gtags ac-sources))
-  (setq ac-sources (append '(ac-source-semantic) ac-sources)) ;autocomplete使用semantic补全. ->
-  (setq ac-sources (append '(ac-source-c-headers) ac-sources))
+  (setq ac-sources (append '(ac-source-c-headers ac-source-semantic) ac-sources))
   )
 
 ;; company
@@ -391,8 +423,8 @@
 ;; (require 'highlight )
 ;; (global-set-key (kbd "<M-f8>") 'hlt-highlight-symbol) ;m-0会把所有buffer都高亮上
 ;; (global-set-key (kbd "<C-f8>") 'hlt-unhighlight-symbol)
-;; ;; (global-set-key (kbd "<f8>") 'hlt-next-highlight)
-;; ;; (global-set-key (kbd "<S-f8>") 'hlt-previous-highlight)
+;; (global-set-key (kbd "<f8>") 'hlt-next-highlight)
+;; (global-set-key (kbd "<S-f8>") 'hlt-previous-highlight)
 ;; (global-set-key (kbd "<C-S-f8>") 'hlt-unhighlight-region)
 
 ;; 异步copy rename文件
@@ -423,6 +455,7 @@
 	 (define-key helm-gtags-mode-map (kbd "<f6>") 'helm-gtags-select-path)
 	 (define-key helm-gtags-mode-map (kbd "C-]") nil)
 	 (define-key helm-gtags-mode-map (kbd "C-t") nil)
+	 (define-key helm-gtags-mode-map (kbd "M-*") nil)
 	 (define-key helm-gtags-mode-map (kbd "C-\\") 'helm-gtags-dwim)
 	 (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-previous-history)
 	 (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-next-history)
@@ -442,9 +475,9 @@
 (require 'irony-cdb )
 (defun my-irony-mode-hook ()
   (define-key irony-mode-map [remap completion-at-point]
-    'irony-completion-at-point-async)
+	'irony-completion-at-point-async)
   (define-key irony-mode-map [remap complete-symbol]
-    'irony-completion-at-point-async))
+	'irony-completion-at-point-async))
 (add-hook 'irony-mode-hook 'my-irony-mode-hook)
 (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
 (setq w32-pipe-read-delay 0)
@@ -484,6 +517,9 @@
 	   (define-key function-args-mode-map (kbd "M-]") 'fa-abort)
 	   )
 	 ))
+
+;; 打开大文件
+(require 'vlf-integrate)
 ;;-----------------------------------------------------------自定义函数-----------------------------------------------------------;;
 ;; 资源管理器中打开
 (defun open-in-desktop-select (&optional dired)
@@ -491,7 +527,7 @@
   (let ((file (buffer-name)))
 	(if dired
 		;; (setq file (dired-get-filename 'no-dir)) ;xp
-	  (setq file (replace-regexp-in-string "/" "\\\\" (dired-get-filename) )) ;win7
+		(setq file (replace-regexp-in-string "/" "\\\\" (dired-get-filename) )) ;win7
 	  ;; (setq file (file-name-nondirectory (buffer-file-name) )) ;xp
 	  (setq file (replace-regexp-in-string "/" "\\\\" (buffer-file-name) ))) ;win7
 	(call-process-shell-command (concat "explorer" "/select," file))
@@ -731,7 +767,7 @@ the mru bookmark stack."
 (defun semantic-ia-fast-jump-back ()
   (interactive)
   (if (ring-empty-p (oref semantic-mru-bookmark-ring ring))
-      (error "Semantic Bookmark ring is currently empty"))
+	  (error "Semantic Bookmark ring is currently empty"))
   (let* ((ring (oref semantic-mru-bookmark-ring ring))
 		 (alist (semantic-mrub-ring-to-assoc-list ring))
 		 (first (cdr (car alist))))
@@ -834,7 +870,8 @@ the mru bookmark stack."
 			(setq-local ac-auto-start nil)
 			(setq indent-tabs-mode nil)
 			(function-args-mode 1)
-			(irony-mode)
+			;; (irony-mode)
+			(ggtags-mode 1)
 			;; (superword-mode)                ;连字符不分割单词,影响move和edit    相对subword-mode
 			))
 
@@ -847,7 +884,7 @@ the mru bookmark stack."
 (dolist (hook '(c-mode-common-hook lua-mode-hook objc-mode-hook fsvn-browse-mode-hook project-buffer-mode-hook dired-mode-hook))
   (add-hook hook
 			(lambda()
-			  (gtags-mode 1)
+			  ;; (gtags-mode 1)
 			  (helm-gtags-mode 1)
 			  )))
 
@@ -887,8 +924,8 @@ the mru bookmark stack."
 			))
 
 (add-hook 'font-lock-mode-hook
-          (lambda () "DOCSTRING" (interactive)
-            (remove-dos-eol)))
+		  (lambda () "DOCSTRING" (interactive)
+			(remove-dos-eol)))
 ;;-----------------------------------------------------------热键-----------------------------------------------------------;;
 
 ;;修改搜索和保存的快捷键
@@ -901,7 +938,6 @@ the mru bookmark stack."
 (define-key isearch-mode-map "\M-o" 'isearch-occur)
 (define-key isearch-mode-map "\M-w" 'isearch-toggle-word)
 ;; 搜索光标下的单词
-(require 'hi-lock )
 (global-set-key (kbd "<f8>") 'isearch-forward-symbol-at-point)
 (global-set-key (kbd "<M-f8>") 'highlight-symbol-at-point) ;高亮光标下的单词
 (global-set-key (kbd "<C-f8>") 'unhighlight-regexp)        ;删除高亮，c-0全删
@@ -940,3 +976,8 @@ the mru bookmark stack."
 (global-set-key (kbd "<left-margin> <down-mouse-1>") 'mouse-drag-region)
 (global-set-key (kbd "<left-margin> <mouse-1>") 'mouse-set-point)
 (global-set-key (kbd "<left-margin> <drag-mouse-1>") 'mouse-set-region)
+
+
+(eval-after-load "icomplete"
+  '(progn
+	 (define-key icomplete-minibuffer-map (kbd "<return>") 'minibuffer-force-complete-and-exit)))
