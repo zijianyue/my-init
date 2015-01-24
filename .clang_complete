@@ -1,3 +1,4 @@
+-std=c++11
 -ferror-limit=0
 -I/
 -I/Include

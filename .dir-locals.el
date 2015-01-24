@@ -1,4 +1,5 @@
-((nil . ((company-clang-arguments . ("-Ie:/projects/eNavi2_800X480_ChangeUI/"
+((nil . ((company-clang-arguments . ("-std=c++11"
+									 "-Ie:/projects/eNavi2_800X480_ChangeUI/"
 									"-Ie:/projects/eNavi2_800X480_ChangeUI/include/"
 									"-Ie:/projects/eNavi2_800X480_ChangeUI/server/"
 									"-Ie:/projects/eNavi2_800X480_ChangeUI/upf/"
