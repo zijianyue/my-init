@@ -7,6 +7,7 @@
 -I/UPF_Dubhe/Export
 -I/UPF_SMI/Include
 -include/Service/TG/MM/RM/Include/StdAfx.h
+-includeC:/MinGW/include/limits.h
 -DWIN32
 -D_DEBUG
 -D_WINDOWS
