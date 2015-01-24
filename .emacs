@@ -25,6 +25,9 @@
 (setenv "CMAKE" "C:\\Program Files (x86)\\CMake\\bin")
 (setenv "GTAGSBIN" "c:\\gtags\\bin")
 (setenv "PYTHON" "C:\\Python27")
+(setenv "GITBIN" "C:\\Program Files (x86)\\SmartGit\\git\\bin")
+(setenv "CYGWIN" "C:\\cygwin\\bin")
+
 
 (setenv "PATH"
 		(concat
@@ -42,6 +45,10 @@
 		 path-separator
 		 (getenv "PYTHON")
 		 path-separator
+		 (getenv "GITBIN")
+		 path-separator
+		 ;; (getenv "CYGWIN")
+		 ;; path-separator
 		 (getenv "PATH")))
 
 (add-to-list 'exec-path (getenv "MINGW"))
@@ -50,6 +57,9 @@
 (add-to-list 'exec-path (getenv "CMAKE"))
 (add-to-list 'exec-path (getenv "GTAGSBIN"))
 (add-to-list 'exec-path (getenv "PYTHON"))
+(add-to-list 'exec-path (getenv "GITBIN"))
+;; (add-to-list 'exec-path (getenv "CYGWIN"))
+
 
 (defvar site-lisp-dir)
 (if (eq emacs-minor-version 3)
@@ -85,16 +95,14 @@
 (semanticdb-enable-gnu-global-databases 'c++-mode)
 (set-default 'semantic-case-fold t)
 (global-set-key (kbd "<C-apps>") 'eassist-list-methods)
+(setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
+(setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
 
 ;;修改标题栏，显示buffer的名字
 (setq frame-title-format "%b [%+] %f")
 
 ;; 改变 Emacs 固执的要你回答 yes 的行为。按 y 或空格键表示 yes，n 表示 no。
 (fset 'yes-or-no-p 'y-or-n-p)
-
-;; 向前跳到单词开始
-;; (require 'misc )
-;; (fset 'forward-word 'forward-to-word)
 
 ;; vc编译设置(2005)
 (setenv "VSINSTALLDIR" "C:\\Program Files (x86)\\Microsoft Visual Studio 8")
@@ -163,6 +171,7 @@
  ;; If there is more than one, they won't work right.
  '(ac-disable-faces nil)
  '(ac-ignore-case t)
+ '(ac-trigger-key "TAB")
  '(ac-use-menu-map t)
  '(auto-save-default nil)
  '(back-button-mode-lighter "")
@@ -170,6 +179,12 @@
  '(bookmark-save-flag 1)
  '(bookmark-sort-flag nil)
  '(column-number-mode t)
+ '(company-auto-complete t)
+ '(company-backends (quote ((company-clang company-files))))
+ '(company-show-numbers t)
+ '(company-tooltip-align-annotations t)
+ '(company-tooltip-flip-when-above t)
+ '(company-transformers (quote (company-sort-by-occurrence)))
  '(compilation-scroll-output t)
  '(compilation-skip-threshold 2)
  '(confirm-kill-emacs (quote y-or-n-p))
@@ -180,25 +195,27 @@
  '(dired-recursive-copies (quote always))
  '(dired-recursive-deletes (quote always))
  '(display-time-mode nil)
- '(ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
  '(ediff-split-window-function (quote split-window-horizontally))
  '(electric-indent-mode t)
- '(electric-pair-inhibit-predicate (quote electric-pair-conservative-inhibit))
+ '(electric-pair-inhibit-predicate (quote my-electric-pair-conservative-inhibit))
  '(electric-pair-mode t)
+ '(enable-local-variables :all)
  '(eww-search-prefix "http://cn.bing.com/search?q=")
  '(explicit-shell-file-name "bash")
  '(fa-insert-method (quote name-and-parens-and-hint))
  '(fci-eol-char 32)
+ '(flycheck-clang-include-path
+   (quote
+	("C:\\MinGW\\include" "C:\\MinGW\\lib\\gcc\\mingw32\\4.8.1\\include" "C:\\MinGW\\lib\\gcc\\mingw32\\4.8.1\\include\\c++")))
  '(frame-resize-pixelwise t)
+ '(ggtags-highlight-tag-delay 20)
  '(global-auto-revert-mode t)
- '(global-cedet-m3-minor-mode t)
  '(global-ede-mode t)
+ '(global-flycheck-mode t nil (flycheck))
  '(global-semantic-decoration-mode t)
  '(global-semantic-mru-bookmark-mode t)
  '(global-semantic-stickyfunc-mode t)
  '(global-srecode-minor-mode t)
- '(gtags-disable-pushy-mouse-mapping t)
- '(helm-default-external-file-browser "explorer")
  '(helm-for-files-preferred-list
    (quote
 	(helm-source-buffers-list helm-source-recentf helm-source-bookmarks)))
@@ -217,8 +234,10 @@
  '(imenu-max-item-length 120)
  '(imenu-max-items 1000)
  '(inhibit-startup-screen t)
- '(jit-lock-defer-time 0.5)
- '(large-file-warning-threshold 50000000)
+ '(jit-lock-context-time 3)
+ '(jit-lock-contextually nil)
+ '(jit-lock-defer-time 0.25)
+ '(large-file-warning-threshold 20000000)
  '(ls-lisp-verbosity nil)
  '(make-backup-files nil)
  '(mode-require-final-newline nil)
@@ -229,7 +248,7 @@
  '(save-place t nil (saveplace))
  '(semantic-c-dependency-system-include-path
    (quote
-	("C:/Program Files (x86)/Microsoft Visual Studio 8/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/PlatformSDK/Include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/atlmfc/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/SDK/v2.0/include")))
+	("C:/Program Files (x86)/Microsoft Visual Studio 8/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/PlatformSDK/Include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/atlmfc/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/SDK/v2.0/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/atlmfc/include")))
  '(semantic-idle-work-parse-neighboring-files-flag t)
  '(semantic-idle-work-update-headers-flag t)
  '(semantic-imenu-bucketize-file nil)
@@ -243,7 +262,8 @@
  '(sln-mode-devenv-2008 "Devenv.com")
  '(tab-width 4)
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
- '(user-full-name "gezijian"))
+ '(user-full-name "gezijian")
+ '(winner-mode t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -252,30 +272,6 @@
  '(helm-lisp-show-completion ((t (:background "navajo white"))))
  '(helm-selection-line ((t (:background "light steel blue" :underline t)))))
 ;;-----------------------------------------------------------插件-----------------------------------------------------------;;
-;; gtags / GLOBAL
-(autoload 'gtags-mode "gtags" "" t)
-(add-hook 'gtags-select-mode-hook
-		  '(lambda ()
-			 (setq hl-line-face 'underline)
-			 (hl-line-mode 1)
-			 ))
-
-;; (setenv "GTAGSLABEL" "ctags") ;用m-: 执行一下这句话就变成ctags作为backend
-
-(eval-after-load "gtags"
-  '(progn
-	 (define-key gtags-mode-map [S-down-mouse-1] 'ignore)
-	 (define-key gtags-mode-map [S-down-mouse-3] 'ignore)
-	 (define-key gtags-mode-map (kbd "<S-mouse-1>") 'gtags-find-tag-by-event)
-	 (define-key gtags-mode-map (kbd "<S-mouse-3>") 'gtags-pop-stack)
-	 (define-key gtags-mode-map (concat gtags-prefix-key "I") 'gtags-find-with-idutils)
-	 (define-key gtags-select-mode-map [S-down-mouse-1] 'ignore)
-	 (define-key gtags-select-mode-map [S-down-mouse-3] 'ignore)
-	 (define-key gtags-select-mode-map (kbd "<S-mouse-1>") 'gtags-select-tag-by-event)
-	 (define-key gtags-select-mode-map (kbd "<S-mouse-3>") 'gtags-pop-stack)
-	 (define-key gtags-select-mode-map "q" 'gtags-pop-stack)
-	 ))
-
 ;; ggtags
 (autoload 'ggtags-mode "ggtags" "" t)
 (eval-after-load "ggtags"
@@ -294,6 +290,7 @@
 	 (define-key ggtags-highlight-tag-map (kbd "<S-mouse-1>") 'ggtags-find-tag-mouse)
 	 (define-key ggtags-highlight-tag-map (kbd "<S-mouse-3>") 'ggtags-prev-mark)
 	 (define-key ggtags-highlight-tag-map (kbd "<C-S-mouse-3>") 'ggtags-next-mark)
+	 (setq ggtags-mode-line-project-name nil)
 	 )
   )
 
@@ -308,9 +305,15 @@
 
 ;; stl(解析vector map等)
 (setq stl-base-dir "c:/Program Files (x86)/Microsoft Visual Studio 8/VC/include")
+(setq stl-base-dir-12 "c:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include")
+
 (add-to-list 'auto-mode-alist (cons stl-base-dir 'c++-mode))
+(add-to-list 'auto-mode-alist (cons stl-base-dir-12 'c++-mode))
 
 ;; 工程设置
+(ede-cpp-root-project "enavi2" :file "e:/projects/eNavi2_800X480_ChangeUI/GTAGS")
+(ede-cpp-root-project "4c" :file "e:/projects/tempspace/test4c/GTAGS")
+
 (defun create-proj(&optional select)
   (interactive "P")
   (if select
@@ -318,15 +321,16 @@
 	(setq root-file "./GTAGS"))
   (setq proj (ede-cpp-root-project "code" :file root-file
 								   :include-path '( "/include" "/server" "/upf"
-													"/upf_dubhe/export" "/UPF_SMI/Include" "/service/tg/mm/rm/source/pmm")
-								   ;; :spp-files '( "Service/TG/MM/RM/Source/PMM/RMPmm_Const.h"
-								   ;;				 "Service/TG/MM/RM/Include/RM_switch.h"
-								   ;;				 "Service/TG/MM/RM/Include/RM_Debug.h"
-								   ;;				 )
+													"/upf_dubhe/export" "/UPF_SMI/Include")
+								   :spp-files '( "Service/TG/MM/RM/Source/PMM/RMPmm_Const.h"
+								   				 "Service/TG/MM/RM/Include/RM_switch.h"
+								   				 "Service/TG/MM/RM/Include/RM_Debug.h"
+												 "ede_switch.h" ;ON OFF宏写成(1)(0)的话不能识别
+								   				 )
 								   :spp-table '(("IN" . "")
 												("OUT" . "")
-												("ON" . "1")
-												("OFF" . "0"))
+												("INOUT" . "") ;如果在函数参数前加上这样的宏会导致无法识别
+												)
 								   ))
   ;; (find-sln root-file)
   ;; (cscope-set-initial-directory (file-name-directory root-file))
@@ -336,22 +340,56 @@
 ;;auto-complete
 (require 'auto-complete-config)
 (require 'auto-complete-c-headers )
+(require 'ac-irony)
+
 (define-key ac-mode-map  (kbd "M-RET") 'auto-complete)
 (define-key ac-completing-map  (kbd "/") 'ac-isearch)
 
-(add-to-list 'ac-dictionary-directories (concat site-lisp-dir "\\auto-complete\\auto-complete-master\\dict"))
 (ac-config-default)
 (setq ac-modes (append '(objc-mode) ac-modes))
+(defun ac-complete-self-insert (arg)
+  ""
+  (interactive "p")
+  (ac-stop)
+  ;; Insert the key
+  (self-insert-command arg)
+  (cond
+   ((ac-complete-irony-async))
+   ((ac-start)))
+  )
+
+(defun ac-complete-self-insert-and-indent (arg)
+  ""
+  (interactive "p")
+  (ac-stop)
+  ;; Insert the key
+  (self-insert-command arg)
+  (cond
+   ((ac-complete-irony-async))
+   ((ac-start)))
+  (c-indent-line-or-region)
+  )
+;; (define-key ac-mode-map "." 'ac-complete-self-insert)
+;; (define-key ac-mode-map ">" 'ac-complete-self-insert)
+;; (define-key ac-mode-map ":" 'ac-complete-self-insert-and-indent)
 
 (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-buffer))
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
   ;; (setq ac-sources (delete 'ac-source-gtags ac-sources))
-  (setq ac-sources (append '(ac-source-c-headers ac-source-semantic) ac-sources))
+  (setq ac-sources (append '(ac-source-c-headers) ac-sources)) ;ac-source-semantic
+  (setq ac-sources (append '(ac-source-irony) ac-sources))
   )
 
+(define-key irony-mode-map (kbd "M-n") 'ac-complete-irony-async)
+
 ;; company
-;; (require 'company)
-;; (add-hook 'after-init-hook 'global-company-mode)
+(require 'company nil t)
+(require 'company-irony nil t )
+(add-hook 'after-init-hook 'global-company-mode)
+(add-to-list 'company-backends 'company-irony)
+(add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
+(global-set-key (kbd "<C-tab>") 'company-complete)
+(define-key company-active-map (kbd "/") 'company-search-candidates)
 
 ;;yasnippet
 (require 'yasnippet)
@@ -393,6 +431,7 @@
 
 ;; 显示列竖线
 (autoload 'fci-mode "fill-column-indicator" "" t)
+(global-set-key (kbd "C-:") 'fci-mode)
 (setq fci-rule-column 120)
 ;; 避免破坏 auto complete
 (eval-after-load "fill-column-indicator"
@@ -415,7 +454,23 @@
 				  (null popup-instances))
 		 (setq sanityinc/fci-mode-suppressed nil)
 		 (turn-on-fci-mode)))
+
+	 ;; 避免和company冲突
+	 (defvar-local company-fci-mode-on-p nil)
+
+	 (defun company-turn-off-fci (&rest ignore)
+	   (when (boundp 'fci-mode)
+		 (setq company-fci-mode-on-p fci-mode)
+		 (when fci-mode (fci-mode -1))))
+
+	 (defun company-maybe-turn-on-fci (&rest ignore)
+	   (when company-fci-mode-on-p (fci-mode 1)))
+
+	 (add-hook 'company-completion-started-hook 'company-turn-off-fci)
+	 (add-hook 'company-completion-finished-hook 'company-maybe-turn-on-fci)
+	 (add-hook 'company-completion-cancelled-hook 'company-maybe-turn-on-fci)
 	 ))
+
 ;; 符号高亮
 ;; (require 'highlight-symbol)
 ;; (global-set-key [f8] 'highlight-symbol-next)
@@ -459,7 +514,7 @@
 	 (define-key helm-gtags-mode-map (kbd "C-\\") 'helm-gtags-dwim)
 	 (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-previous-history)
 	 (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-next-history)
-	 (define-key helm-gtags-mode-map (kbd "C-;") 'helm-gtags-find-tag-other-window)
+	 (define-key helm-gtags-mode-map (kbd "C-|") 'helm-gtags-find-tag-other-window)
 	 ))
 
 ;; ac-helm
@@ -471,16 +526,29 @@
 (require 'back-button)
 (back-button-mode 1)
 
+;; flycheck
+(require 'flycheck )
+;; (add-hook 'c++-mode-hook (lambda () (setq-local flycheck-clang-language-standard "c++11")))
+;; (add-hook 'c-mode-hook (lambda () (setq-local flycheck-clang-language-standard "c11")))
+
+
 ;; irony-mode
-(require 'irony-cdb )
-(defun my-irony-mode-hook ()
-  (define-key irony-mode-map [remap completion-at-point]
-	'irony-completion-at-point-async)
-  (define-key irony-mode-map [remap complete-symbol]
-	'irony-completion-at-point-async))
-(add-hook 'irony-mode-hook 'my-irony-mode-hook)
-(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-(setq w32-pipe-read-delay 0)
+(require 'irony-cdb nil t)
+(require 'irony-eldoc )
+(require 'flycheck-irony )
+(eval-after-load "irony"
+  '(progn
+	 (defun my-irony-mode-hook ()
+	   (define-key irony-mode-map [remap completion-at-point]
+		 'irony-completion-at-point-async)
+	   (define-key irony-mode-map [remap complete-symbol]
+		 'irony-completion-at-point-async))
+	 (add-hook 'irony-mode-hook 'my-irony-mode-hook)
+	 (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+	 (add-hook 'irony-mode-hook 'irony-eldoc)
+	 (setq w32-pipe-read-delay 0)))
+(eval-after-load 'flycheck
+  '(add-to-list 'flycheck-checkers 'irony))
 
 ;; 行号性能改善
 (require 'nlinum )
@@ -503,7 +571,6 @@
 (eval-after-load "function-args"
   '(progn
 	 (let ((map function-args-mode-map))
-	   (define-key function-args-mode-map (kbd "<C-tab>") 'moo-complete)
 	   (define-key function-args-mode-map (kbd "M-o") nil)
 	   (define-key function-args-mode-map (kbd "M-i") nil)
 	   (define-key function-args-mode-map (kbd "M-n") nil)
@@ -519,7 +586,19 @@
 	 ))
 
 ;; 打开大文件
-(require 'vlf-integrate)
+(require 'vlf-setup)
+
+;; ace
+(require 'ace-window )
+(define-key cua--cua-keys-keymap [(meta v)] nil)
+(global-set-key (kbd "M-v") 'ace-window)
+(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+(define-key global-map (kbd "C-;") 'ace-jump-char-mode)
+
+;; 查看diff
+(require 'diff-hl-margin )
+(require 'diff-hl-dired )
+
 ;;-----------------------------------------------------------自定义函数-----------------------------------------------------------;;
 ;; 资源管理器中打开
 (defun open-in-desktop-select (&optional dired)
@@ -606,7 +685,7 @@ Replaces default behaviour of comment-dwim, when it inserts comment at the end o
 		(next-char (char-to-string (following-char))))
 	(cond ((string-match "[[{(<（]" next-char) (forward-sexp 1))
 		  ((string-match "[\]})>）]" prev-char) (backward-sexp 1))
-		  (t (self-insert-command (or arg 1))))))
+		  )))
 
 ;; 选中括号间的内容
 (defun select-match ()
@@ -615,26 +694,32 @@ Replaces default behaviour of comment-dwim, when it inserts comment at the end o
   (cua-set-mark)
   (his-match-paren 1))
 
-(global-set-key "%" 'his-match-paren)
-(global-set-key (kbd "C-%") 'select-match)
+(global-set-key (kbd "C-'") 'his-match-paren)
+(global-set-key (kbd "C-\"") 'select-match)
 
-;; 复制文件路径
+;; 复制文件路径(支持buffer中和dired中)
 (defun copy-file-name (&optional full)
   "Copy file name of current-buffer.
 If FULL is t, copy full file name."
-  (interactive "*P")
-  (let ((file (file-name-nondirectory (buffer-file-name) )))
-	(if full
-		(setq file (expand-file-name file)))
-	(kill-new (setq file (replace-regexp-in-string "/" "\\\\" file)))
-	(message "File `%s' copied." file)))
+  (interactive "P")
+  (if (eq major-mode 'dired-mode)
+	  (dired-copy-filename-as-kill full)
+	(let ((file (file-name-nondirectory (buffer-file-name) )))
+	  (if full
+		  (setq file (expand-file-name file)))
+	  (if (eq full 0)
+		  (kill-new (setq file (replace-regexp-in-string "/" "\\\\" file)))
+		(kill-new file))
+	  (message "File `%s' copied." file))))
 
-;; dired下m-0 w复制全路径，并且把/换成\
+;; dired下m-0 w复制全路径，并且把/换成\ ,m-1不转换
 (defadvice dired-copy-filename-as-kill(after copy-full-path activate)
   (let ((strmod (current-kill 0)))
 	(if (eq last-command 'kill-region)
 		()
-	  (kill-new (setq strmod (replace-regexp-in-string "/" "\\\\" strmod)))
+	  (if (eq arg 1)
+		  (kill-new (setq strmod (car (dired-get-marked-files))))
+		(kill-new (setq strmod (replace-regexp-in-string "/" "\\\\" strmod))))
 	  (message "%s" strmod))))
 
 (global-set-key (kbd "<M-f3>") 'copy-file-name) ;加上任意的参数就是复制全路径，比如m-0
@@ -763,6 +848,7 @@ the mru bookmark stack."
   (semantic-mrub-push semantic-mru-bookmark-ring
 					  (point)
 					  'mark)
+  (back-button-push-mark-local-and-global (point))
   ad-do-it)
 (defun semantic-ia-fast-jump-back ()
   (interactive)
@@ -776,6 +862,24 @@ the mru bookmark stack."
 	(semantic-mrub-switch-tags first)))
 
 (global-set-key (kbd "<C-f11>") 'semantic-ia-fast-jump-back)
+
+;; electric-pair-mode tweak 单词后的双引号不要pair
+(defun my-electric-pair-conservative-inhibit (char)
+  (or
+   ;; I find it more often preferable not to pair when the
+   ;; same char is next.
+   (eq char (char-after))
+   ;; Don't pair up when we insert the second of "" or of ((.
+   (and (eq char (char-before))
+		(eq char (char-before (1- (point)))))
+   ;; I also find it often preferable not to pair next to a word.
+   (eq (char-syntax (following-char)) ?w)
+   (if (eq char 34)						;34是"
+	   (and (not (backward-char))
+			(if (eq (char-syntax (preceding-char)) ?w)
+				(not (forward-char))
+			  (forward-char))))
+   ))
 ;;-----------------------------------------------------------hook-----------------------------------------------------------;;
 (c-add-style "gzj"
 			 '("stroustrup"
@@ -870,21 +974,23 @@ the mru bookmark stack."
 			(setq-local ac-auto-start nil)
 			(setq indent-tabs-mode nil)
 			(function-args-mode 1)
-			;; (irony-mode)
+			(irony-mode)
 			(ggtags-mode 1)
+			(diff-hl-mode)
+			(eldoc-mode)
 			;; (superword-mode)                ;连字符不分割单词,影响move和edit    相对subword-mode
 			))
 
 (add-hook 'emacs-lisp-mode-hook
 		  (lambda ()
 			(modify-syntax-entry ?- "w")
+			(function-args-mode 1)
 			(setup-program-keybindings)
 			))
 
-(dolist (hook '(c-mode-common-hook lua-mode-hook objc-mode-hook fsvn-browse-mode-hook project-buffer-mode-hook dired-mode-hook))
+(dolist (hook '(c-mode-common-hook lua-mode-hook objc-mode-hook project-buffer-mode-hook dired-mode-hook))
   (add-hook hook
 			(lambda()
-			  ;; (gtags-mode 1)
 			  (helm-gtags-mode 1)
 			  )))
 
@@ -892,9 +998,13 @@ the mru bookmark stack."
 		  (lambda ()
 			(define-key dired-mode-map "b" 'dired-up-directory)
 			(define-key dired-mode-map "e" 'open-in-desktop-select-dired)
+			(define-key dired-mode-map (kbd "<C-f3>") 'open-in-desktop-select-dired)
 			(define-key dired-mode-map "/" 'isearch-forward)
+			(define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
+			(diff-hl-dired-mode)
 			))
 
+;; shell相关设置
 (add-hook 'shell-mode-hook
 		  (lambda () "DOCSTRING" (interactive)
 			;; (set-buffer-process-coding-system 'utf-8 'utf-8) ;防止shell乱码
@@ -905,7 +1015,7 @@ the mru bookmark stack."
 			))
 
 (add-hook 'comint-output-filter-functions 'comint-strip-ctrl-m)
-;; (remove-hook 'comint-output-filter-functions 'comint-postoutput-scroll-to-bottom)
+(remove-hook 'comint-output-filter-functions 'comint-postoutput-scroll-to-bottom)
 
 ;; telnet登录主机后，export LANG=zh_CN.GBK 或 export LC_ALL=en_US.ISO-8859-1 ,export LC_CTYPE=zh_CN.GB2312x
 
@@ -977,7 +1087,9 @@ the mru bookmark stack."
 (global-set-key (kbd "<left-margin> <mouse-1>") 'mouse-set-point)
 (global-set-key (kbd "<left-margin> <drag-mouse-1>") 'mouse-set-region)
 
-
+;; icomplete
 (eval-after-load "icomplete"
   '(progn
 	 (define-key icomplete-minibuffer-map (kbd "<return>") 'minibuffer-force-complete-and-exit)))
+;; set-mark
+(global-set-key (kbd "C-,") 'cua-set-mark)
