@@ -180,7 +180,6 @@
  '(bookmark-sort-flag nil)
  '(column-number-mode t)
  '(company-auto-complete t)
- '(company-backends (quote ((company-clang company-files))))
  '(company-minimum-prefix-length 5)
  '(company-show-numbers t)
  '(company-tooltip-align-annotations t)
@@ -380,7 +379,7 @@
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
   ;; (setq ac-sources (delete 'ac-source-gtags ac-sources))
   (setq ac-sources (append '(ac-source-c-headers) ac-sources))
-  ;; (setq ac-sources (append '(ac-source-irony) ac-sources))
+  (setq ac-sources (append '(ac-source-irony) ac-sources))
   ;; (setq ac-sources (append '(ac-source-semantic) ac-sources))
   )
 
@@ -394,6 +393,7 @@
 (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
 (global-set-key (kbd "<C-tab>") 'company-complete)
 (define-key company-active-map (kbd "/") 'company-search-candidates)
+(define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
 
 ;;yasnippet
 (require 'yasnippet)
