@@ -410,7 +410,8 @@
 	 (define-key project-buffer-mode-map [?r] 'project-buffer-occur);; 要想全局搜索需要加C-u
 	 (define-key project-buffer-mode-map [?m] 'project-buffer-occur-case-sensitive)
 	 ;; (define-key global-map (kbd "<M-f6>") 'project-buffer-mode-p-go-to-attached-project-buffer)
-	 ;; (define-key global-map (kbd "<C-f6>") 'project-buffer-mode-p-run-project-buffer-build-action)))
+	 ;; (define-key global-map (kbd "<C-f6>") 'project-buffer-mode-p-run-project-buffer-build-action)
+	 ))
 
 (global-set-key (kbd "C-c l") 'find-sln)
 
