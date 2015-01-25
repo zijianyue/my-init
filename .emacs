@@ -181,6 +181,7 @@
  '(column-number-mode t)
  '(company-auto-complete t)
  '(company-backends (quote ((company-clang company-files))))
+ '(company-minimum-prefix-length 5)
  '(company-show-numbers t)
  '(company-tooltip-align-annotations t)
  '(company-tooltip-flip-when-above t)
@@ -307,8 +308,10 @@
 (setq stl-base-dir "c:/Program Files (x86)/Microsoft Visual Studio 8/VC/include")
 (setq stl-base-dir-12 "c:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include")
 
+;; 设置成c++文件类型
 (add-to-list 'auto-mode-alist (cons stl-base-dir 'c++-mode))
 (add-to-list 'auto-mode-alist (cons stl-base-dir-12 'c++-mode))
+;; (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 
 ;; 工程设置
 (ede-cpp-root-project "enavi2" :file "e:/projects/eNavi2_800X480_ChangeUI/GTAGS")
@@ -376,8 +379,9 @@
 (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-buffer))
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
   ;; (setq ac-sources (delete 'ac-source-gtags ac-sources))
-  (setq ac-sources (append '(ac-source-c-headers) ac-sources)) ;ac-source-semantic
-  (setq ac-sources (append '(ac-source-irony) ac-sources))
+  (setq ac-sources (append '(ac-source-c-headers) ac-sources))
+  ;; (setq ac-sources (append '(ac-source-irony) ac-sources))
+  ;; (setq ac-sources (append '(ac-source-semantic) ac-sources))
   )
 
 (define-key irony-mode-map (kbd "M-n") 'ac-complete-irony-async)
@@ -405,8 +409,8 @@
 	 (require 'project-buffer-occur)
 	 (define-key project-buffer-mode-map [?r] 'project-buffer-occur);; 要想全局搜索需要加C-u
 	 (define-key project-buffer-mode-map [?m] 'project-buffer-occur-case-sensitive)
-	 (define-key global-map (kbd "<M-f6>") 'project-buffer-mode-p-go-to-attached-project-buffer)
-	 (define-key global-map (kbd "<C-f6>") 'project-buffer-mode-p-run-project-buffer-build-action)))
+	 ;; (define-key global-map (kbd "<M-f6>") 'project-buffer-mode-p-go-to-attached-project-buffer)
+	 ;; (define-key global-map (kbd "<C-f6>") 'project-buffer-mode-p-run-project-buffer-build-action)))
 
 (global-set-key (kbd "C-c l") 'find-sln)
 
@@ -1067,7 +1071,8 @@ the mru bookmark stack."
 (global-set-key (kbd "<M-S-right>") 'windmove-right)
 
 ;; 文件跳转
-(global-set-key (kbd "C-=") 'find-file-at-point) ;ffap
+(global-set-key (kbd "<M-f6>") 'semantic-decoration-include-visit)
+(global-set-key (kbd "<C-f6>") 'find-file-at-point) ;ffap
 (global-set-key (kbd "M-o") 'ff-find-other-file) ;声明和实现之间跳转
 
 ;; rename buffer可用于给shell改名，起多个shell用
@@ -1093,3 +1098,5 @@ the mru bookmark stack."
 	 (define-key icomplete-minibuffer-map (kbd "<return>") 'minibuffer-force-complete-and-exit)))
 ;; set-mark
 (global-set-key (kbd "C-,") 'cua-set-mark)
+;; 清除多余空白
+(global-set-key (kbd "C-=") 'whitespace-cleanup)
