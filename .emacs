@@ -204,9 +204,11 @@
  '(explicit-shell-file-name "bash")
  '(fa-insert-method (quote name-and-parens-and-hint))
  '(fci-eol-char 32)
+ '(flycheck-checker-error-threshold nil)
  '(flycheck-clang-include-path
    (quote
 	("C:\\MinGW\\include" "C:\\MinGW\\lib\\gcc\\mingw32\\4.8.1\\include" "C:\\MinGW\\lib\\gcc\\mingw32\\4.8.1\\include\\c++")))
+ '(flycheck-clang-warnings nil)
  '(frame-resize-pixelwise t)
  '(ggtags-highlight-tag-delay 20)
  '(global-auto-revert-mode t)
