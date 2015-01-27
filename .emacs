@@ -12,6 +12,8 @@
   (set-fontset-font (frame-parameter nil 'font)
 					charset
 					(font-spec :family "宋体" :size 16)))
+
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 ;;-----------------------------------------------------------设置-----------------------------------------------------------;;
 ;; 只有一个实例
 (server-force-delete)
@@ -189,13 +191,13 @@
  '(compilation-skip-threshold 2)
  '(confirm-kill-emacs (quote y-or-n-p))
  '(cua-mode t nil (cua-base))
- '(delete-by-moving-to-trash t)
  '(dired-dwim-target t)
  '(dired-listing-switches "-alh")
  '(dired-recursive-copies (quote always))
  '(dired-recursive-deletes (quote always))
  '(display-time-mode nil)
  '(ediff-split-window-function (quote split-window-horizontally))
+ '(eldoc-idle-delay 1)
  '(electric-indent-mode t)
  '(electric-pair-inhibit-predicate (quote my-electric-pair-conservative-inhibit))
  '(electric-pair-mode t)
@@ -218,6 +220,7 @@
  '(global-semantic-mru-bookmark-mode t)
  '(global-semantic-stickyfunc-mode t)
  '(global-srecode-minor-mode t)
+ '(helm-buffer-max-length nil)
  '(helm-for-files-preferred-list
    (quote
 	(helm-source-buffers-list helm-source-recentf helm-source-bookmarks)))
@@ -250,7 +253,7 @@
  '(save-place t nil (saveplace))
  '(semantic-c-dependency-system-include-path
    (quote
-	("C:/Program Files (x86)/Microsoft Visual Studio 8/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/PlatformSDK/Include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/atlmfc/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/SDK/v2.0/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/atlmfc/include")))
+	("C:/Program Files (x86)/Microsoft Visual Studio 8/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/PlatformSDK/Include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/atlmfc/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/SDK/v2.0/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/atlmfc/include" "C:/cygwin/usr/include" "D:/linux/linux-3.18.3/include/uapi")))
  '(semantic-idle-work-parse-neighboring-files-flag t)
  '(semantic-idle-work-update-headers-flag t)
  '(semantic-imenu-bucketize-file nil)
@@ -262,6 +265,7 @@
  '(show-paren-mode t)
  '(size-indication-mode t)
  '(sln-mode-devenv-2008 "Devenv.com")
+ '(switch-window-shortcut-style (quote (quote qwerty)))
  '(tab-width 4)
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
  '(user-full-name "gezijian")
@@ -508,6 +512,8 @@
 
 (global-set-key (kbd "C-S-v") 'helm-show-kill-ring)
 (global-set-key (kbd "<M-apps>") 'helm-semantic-or-imenu)
+(global-set-key (kbd "C-.") 'helm-buffers-list)
+
 
 (eval-after-load "helm-gtags"
   '(progn
@@ -1094,6 +1100,11 @@ the mru bookmark stack."
 (global-set-key (kbd "<left-margin> <down-mouse-1>") 'mouse-drag-region)
 (global-set-key (kbd "<left-margin> <mouse-1>") 'mouse-set-point)
 (global-set-key (kbd "<left-margin> <drag-mouse-1>") 'mouse-set-region)
+(global-set-key (kbd "<left-fringe> <down-mouse-1>") 'mouse-drag-region)
+(global-set-key (kbd "<left-fringe> <mouse-1>") 'mouse-set-point)
+(global-set-key (kbd "<left-fringe> <drag-mouse-1>") 'mouse-set-region)
+(global-set-key (kbd "<left-margin> <wheel-down>") 'mwheel-scroll)
+(global-set-key (kbd "<left-margin> <wheel-up>") 'mwheel-scroll)
 
 ;; icomplete
 (eval-after-load "icomplete"
