@@ -102,6 +102,7 @@
 
 ;;修改标题栏，显示buffer的名字
 (setq frame-title-format "%b [%+] %f")
+(setq icon-title-format "%b [%+] %f")
 
 ;; 改变 Emacs 固执的要你回答 yes 的行为。按 y 或空格键表示 yes，n 表示 no。
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -185,7 +186,6 @@
  '(company-minimum-prefix-length 5)
  '(company-show-numbers t)
  '(company-tooltip-align-annotations t)
- '(company-tooltip-flip-when-above t)
  '(company-transformers (quote (company-sort-by-occurrence)))
  '(compilation-scroll-output t)
  '(compilation-skip-threshold 2)
@@ -212,7 +212,7 @@
 	("C:\\MinGW\\include" "C:\\MinGW\\lib\\gcc\\mingw32\\4.8.1\\include" "C:\\MinGW\\lib\\gcc\\mingw32\\4.8.1\\include\\c++")))
  '(flycheck-clang-warnings nil)
  '(frame-resize-pixelwise t)
- '(ggtags-highlight-tag-delay 20)
+ '(ggtags-highlight-tag-delay 2.5)
  '(global-auto-revert-mode t)
  '(global-ede-mode t)
  '(global-flycheck-mode t nil (flycheck))
@@ -224,14 +224,12 @@
  '(helm-for-files-preferred-list
    (quote
 	(helm-source-buffers-list helm-source-recentf helm-source-bookmarks)))
- '(helm-gtags-auto-update t)
  '(helm-gtags-cache-max-result-size 104857600)
  '(helm-gtags-cache-select-result t)
  '(helm-gtags-display-style (quote detail))
  '(helm-gtags-ignore-case t)
  '(helm-gtags-maximum-candidates 200)
  '(helm-gtags-suggested-key-mapping t)
- '(helm-gtags-update-interval-second nil)
  '(helm-truncate-lines t)
  '(horizontal-scroll-bar-mode t)
  '(icomplete-show-matches-on-no-input t)
@@ -240,7 +238,6 @@
  '(imenu-max-items 1000)
  '(inhibit-startup-screen t)
  '(jit-lock-context-time 3)
- '(jit-lock-contextually nil)
  '(jit-lock-defer-time 0.25)
  '(large-file-warning-threshold 20000000)
  '(ls-lisp-verbosity nil)
@@ -269,6 +266,7 @@
  '(tab-width 4)
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
  '(user-full-name "gezijian")
+ '(whitespace-line-column 120)
  '(winner-mode t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -296,6 +294,8 @@
 	 (define-key ggtags-highlight-tag-map (kbd "<S-mouse-1>") 'ggtags-find-tag-mouse)
 	 (define-key ggtags-highlight-tag-map (kbd "<S-mouse-3>") 'ggtags-prev-mark)
 	 (define-key ggtags-highlight-tag-map (kbd "<C-S-mouse-3>") 'ggtags-next-mark)
+	 (define-key ggtags-mode-map (kbd "M-?") 'ggtags-show-definition)
+	 (define-key ggtags-highlight-tag-map (kbd "<mouse-2>") 'ggtags-show-definition)
 	 (setq ggtags-mode-line-project-name nil)
 	 )
   )
@@ -351,7 +351,7 @@
 (require 'ac-irony)
 
 (define-key ac-mode-map  (kbd "M-RET") 'auto-complete)
-(define-key ac-completing-map  (kbd "/") 'ac-isearch)
+(define-key ac-completing-map  (kbd "M-s") 'ac-isearch)
 
 (ac-config-default)
 (setq ac-modes (append '(objc-mode) ac-modes))
@@ -385,8 +385,8 @@
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
   ;; (setq ac-sources (delete 'ac-source-gtags ac-sources))
   (setq ac-sources (append '(ac-source-c-headers) ac-sources))
-  (setq ac-sources (append '(ac-source-irony) ac-sources))
-  ;; (setq ac-sources (append '(ac-source-semantic) ac-sources))
+  ;; (setq ac-sources (append '(ac-source-irony) ac-sources))
+  (setq ac-sources (append '(ac-source-semantic) ac-sources))
   )
 
 (define-key irony-mode-map (kbd "M-n") 'ac-complete-irony-async)
@@ -394,12 +394,12 @@
 ;; company
 (require 'company nil t)
 (require 'company-irony nil t )
-(add-hook 'after-init-hook 'global-company-mode)
+;; (add-hook 'after-init-hook 'global-company-mode)
 (add-to-list 'company-backends 'company-irony)
 (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
 (global-set-key (kbd "<C-tab>") 'company-complete)
-(define-key company-active-map (kbd "/") 'company-search-candidates)
 (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
+(define-key company-active-map (kbd "M-s") 'company-filter-candidates)
 
 ;;yasnippet
 (require 'yasnippet)
@@ -977,7 +977,6 @@ the mru bookmark stack."
 		  (lambda ()
 			(modify-syntax-entry ?_ "w")    ;_ 当成单词的一部分
 			(c-set-style "gzj")      ;定制C/C++缩进风格,到实际工作环境中要用guess style来添加详细的缩进风格
-			(abbrev-mode 0)
 			(my-c-mode-common-hook-if0)
 			;; (fci-mode 1)
 			(setup-program-keybindings)
@@ -991,6 +990,8 @@ the mru bookmark stack."
 			(ggtags-mode 1)
 			(diff-hl-mode)
 			(eldoc-mode)
+			(company-mode 1)
+			(remove-function (local 'eldoc-documentation-function) 'ggtags-eldoc-function)
 			;; (superword-mode)                ;连字符不分割单词,影响move和edit    相对subword-mode
 			))
 
@@ -1014,6 +1015,7 @@ the mru bookmark stack."
 			(define-key dired-mode-map (kbd "<C-f3>") 'open-in-desktop-select-dired)
 			(define-key dired-mode-map "/" 'isearch-forward)
 			(define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
+			(define-key dired-mode-map "c" 'create-proj)
 			(diff-hl-dired-mode)
 			))
 
@@ -1025,6 +1027,7 @@ the mru bookmark stack."
 			(define-key comint-mode-map (kbd "M-,") 'comint-next-matching-input-from-input)
 			(define-key comint-mode-map (kbd "<up>") 'comint-previous-input)
 			(define-key comint-mode-map (kbd "<down>") 'comint-next-input)
+			(abbrev-mode 1)
 			))
 
 (add-hook 'comint-output-filter-functions 'comint-strip-ctrl-m)
@@ -1112,5 +1115,11 @@ the mru bookmark stack."
 	 (define-key icomplete-minibuffer-map (kbd "<return>") 'minibuffer-force-complete-and-exit)))
 ;; set-mark
 (global-set-key (kbd "C-,") 'cua-set-mark)
-;; 清除多余空白
-(global-set-key (kbd "C-=") 'whitespace-cleanup)
+;; whitespace
+(global-set-key (kbd "C-=") 'whitespace-mode)
+(global-set-key (kbd "C-+") 'whitespace-cleanup)
+;; abbrev用法
+;; 定义缩写c-x a l 定义当前mode的缩写
+;; 使用缩写用空格expand
+
+
