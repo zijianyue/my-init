@@ -64,7 +64,8 @@
 
 
 (defvar site-lisp-dir)
-(if (eq emacs-minor-version 3)
+(if (and (eq emacs-minor-version 3)
+		 (eq emacs-major-version 24))
 	(setq site-lisp-dir (concat (getenv "emacs_dir") "\\site-lisp"))
   (setq site-lisp-dir (concat (getenv "emacs_dir") "\\share\\emacs\\site-lisp")))
 
@@ -329,7 +330,7 @@
 	(setq root-file "./GTAGS"))
   (setq proj (ede-cpp-root-project "code" :file root-file
 								   :include-path '( "/include" "/server" "/upf"
-													"/upf_dubhe/export" "/UPF_SMI/Include")
+													"/upf_dubhe/export" "/UPF_SMI/Include" "/Service/TG/MM/RM/Source/PMM")
 								   :spp-files '( "Service/TG/MM/RM/Source/PMM/RMPmm_Const.h"
 								   				 "Service/TG/MM/RM/Include/RM_switch.h"
 								   				 "Service/TG/MM/RM/Include/RM_Debug.h"
@@ -394,12 +395,14 @@
 ;; company
 (require 'company nil t)
 (require 'company-irony nil t )
+(require 'company-c-headers nil t )
 ;; (add-hook 'after-init-hook 'global-company-mode)
 (add-to-list 'company-backends 'company-irony)
 (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
 (global-set-key (kbd "<C-tab>") 'company-complete)
 (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
 (define-key company-active-map (kbd "M-s") 'company-filter-candidates)
+(add-to-list 'company-backends 'company-c-headers)
 
 ;;yasnippet
 (require 'yasnippet)
@@ -541,9 +544,6 @@
 
 ;; flycheck
 (require 'flycheck )
-;; (add-hook 'c++-mode-hook (lambda () (setq-local flycheck-clang-language-standard "c++11")))
-;; (add-hook 'c-mode-hook (lambda () (setq-local flycheck-clang-language-standard "c11")))
-
 
 ;; irony-mode
 (require 'irony-cdb nil t)
@@ -984,7 +984,7 @@ the mru bookmark stack."
 			(hide-ifdef-mode 1)
 			;; (highlight-symbol-mode)
 			(setq-local ac-auto-start nil)
-			(setq indent-tabs-mode nil)
+			(setq-local indent-tabs-mode nil)
 			(function-args-mode 1)
 			(irony-mode)
 			(ggtags-mode 1)
