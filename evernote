@@ -1,0 +1,13 @@
+pscp problem when called from bash 
+
+Hi,
+using pscp from "cmd" in Windows woks well but when it is used from bash, host:path is not correctly interpreted, it needs to add an additional / before the path to be well interpreted.
+For example:
+pscp -v myFile mylogin@myHost:/tmp/myDir
+gives messages
+Looking up host "myHost;C"
+ssh_init: Host does not exist
+
+pscp -v myFile mylogin@myHost://tmp/myDir
+works well (with message
+Looking up host "myHost")
