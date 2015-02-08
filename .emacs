@@ -358,7 +358,7 @@
   (message "UnKnown EDE Project Created." ))
 
 (global-set-key (kbd "C-c e") 'create-known-ede-project)
-(global-set-key (kbd "C-c u") 'create-known-ede-project)
+(global-set-key (kbd "C-c u") 'create-uknown-ede-project)
 
 (create-spec-ede-project "e:/projects/tempspace/test4c/GTAGS" nil)
 (create-spec-ede-project "e:/projects/eNavi2_800X480_ChangeUI/GTAGS" t)
