@@ -99,7 +99,7 @@
 (set-default 'semantic-case-fold t)
 (global-set-key (kbd "<C-apps>") 'eassist-list-methods)
 (setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
-(setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
+(setq ede-locate-setup-options (quote (ede-locate-base ede-locate-global ede-locate-idutils)))
 
 ;;修改标题栏，显示buffer的名字
 (setq frame-title-format "%b [%+] %f")
@@ -207,13 +207,12 @@
  '(explicit-shell-file-name "bash")
  '(fa-insert-method (quote name-and-parens-and-hint))
  '(fci-eol-char 32)
- '(flycheck-checker-error-threshold nil)
- '(flycheck-clang-include-path
-   (quote
-	("C:\\MinGW\\include" "C:\\MinGW\\lib\\gcc\\mingw32\\4.8.1\\include" "C:\\MinGW\\lib\\gcc\\mingw32\\4.8.1\\include\\c++")))
- '(flycheck-clang-warnings nil)
+ '(flycheck-check-syntax-automatically (quote (save idle-change mode-enabled)))
+ '(flycheck-emacs-lisp-load-path (quote inherit))
+ '(flycheck-idle-change-delay 1.5)
+ '(flycheck-indication-mode (quote right-fringe))
  '(frame-resize-pixelwise t)
- '(ggtags-highlight-tag-delay 2.5)
+ '(ggtags-highlight-tag-delay 16)
  '(global-auto-revert-mode t)
  '(global-ede-mode t)
  '(global-flycheck-mode t nil (flycheck))
@@ -252,8 +251,6 @@
  '(semantic-c-dependency-system-include-path
    (quote
 	("C:/Program Files (x86)/Microsoft Visual Studio 8/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/PlatformSDK/Include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/atlmfc/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/SDK/v2.0/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/atlmfc/include" "C:/cygwin/usr/include" "D:/linux/linux-3.18.3/include/uapi")))
- '(semantic-idle-work-parse-neighboring-files-flag t)
- '(semantic-idle-work-update-headers-flag t)
  '(semantic-imenu-bucketize-file nil)
  '(semantic-imenu-summary-function (quote semantic-format-tag-abbreviate))
  '(semantic-lex-spp-use-headers-flag t)
@@ -275,7 +272,9 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(helm-lisp-show-completion ((t (:background "navajo white"))))
- '(helm-selection-line ((t (:background "light steel blue" :underline t)))))
+ '(helm-selection-line ((t (:background "light steel blue" :underline t))))
+ '(zjl-hl-local-variable-reference-face ((t (:foreground "dark slate gray"))))
+ '(zjl-hl-member-reference-face ((t (:foreground "dark goldenrod" :slant normal :weight normal)))))
 ;;-----------------------------------------------------------插件-----------------------------------------------------------;;
 ;; ggtags
 (autoload 'ggtags-mode "ggtags" "" t)
@@ -320,31 +319,49 @@
 ;; (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 
 ;; 工程设置
-(ede-cpp-root-project "enavi2" :file "e:/projects/eNavi2_800X480_ChangeUI/GTAGS")
-(ede-cpp-root-project "4c" :file "e:/projects/tempspace/test4c/GTAGS")
+(defun create-spec-ede-project (root-file known)
+  (if known
+	  (ede-cpp-root-project "code" :file root-file
+							:include-path '( "/include" "/server" "/upf"
+											 "/upf_dubhe/export" "/UPF_SMI/Include" "/Service/TG/MM/RM/Source/PMM")
+							:spp-files '( "Service/TG/MM/RM/Source/PMM/RMPmm_Const.h"
+										  "Service/TG/MM/RM/Include/RM_switch.h"
+										  "Service/TG/MM/RM/Include/RM_Debug.h"
+										  "ede_switch.h" ;ON OFF宏写成(1)(0)的话不能识别
+										  )
+							:spp-table '(("IN" . "")
+										 ("OUT" . "")
+										 ("INOUT" . "") ;如果在函数参数前加上这样的宏会导致无法识别
+										 )
+							)
+	(ede-cpp-root-project "code" :file root-file)
+	))
 
-(defun create-proj(&optional select)
+(defun create-known-ede-project(&optional select)
   (interactive "P")
   (if select
 	  (setq root-file (read-file-name "Open a root file in proj: "))
 	(setq root-file "./GTAGS"))
-  (setq proj (ede-cpp-root-project "code" :file root-file
-								   :include-path '( "/include" "/server" "/upf"
-													"/upf_dubhe/export" "/UPF_SMI/Include" "/Service/TG/MM/RM/Source/PMM")
-								   :spp-files '( "Service/TG/MM/RM/Source/PMM/RMPmm_Const.h"
-								   				 "Service/TG/MM/RM/Include/RM_switch.h"
-								   				 "Service/TG/MM/RM/Include/RM_Debug.h"
-												 "ede_switch.h" ;ON OFF宏写成(1)(0)的话不能识别
-								   				 )
-								   :spp-table '(("IN" . "")
-												("OUT" . "")
-												("INOUT" . "") ;如果在函数参数前加上这样的宏会导致无法识别
-												)
-								   ))
+  (create-spec-ede-project root-file t)
   ;; (find-sln root-file)
   ;; (cscope-set-initial-directory (file-name-directory root-file))
-  (message "EDE Project Created." ))
-(global-set-key (kbd "C-c e") 'create-proj)
+  (message "Known EDE Project Created." ))
+
+(defun create-unknown-ede-project(&optional select)
+  (interactive "P")
+  (if select
+	  (setq root-file (read-file-name "Open a root file in proj: "))
+	(setq root-file "./GTAGS"))
+  (create-spec-ede-project root-file nil)
+  ;; (find-sln root-file)
+  ;; (cscope-set-initial-directory (file-name-directory root-file))
+  (message "UnKnown EDE Project Created." ))
+
+(global-set-key (kbd "C-c e") 'create-known-ede-project)
+(global-set-key (kbd "C-c u") 'create-known-ede-project)
+
+(create-spec-ede-project "e:/projects/tempspace/test4c/GTAGS" nil)
+(create-spec-ede-project "e:/projects/eNavi2_800X480_ChangeUI/GTAGS" t)
 
 ;;auto-complete
 (require 'auto-complete-config)
@@ -442,6 +459,10 @@
 
 ;; 更多的语法高亮
 (require 'zjl-c-hl-aggressive )
+;; (require 'semantic/bovine/c nil 'noerror)
+;; (require 'zjl-hl)
+;; (zjl-hl-enable-global 'c-mode)
+;; (zjl-hl-enable-global 'c++-mode)
 
 ;; 显示列竖线
 (autoload 'fci-mode "fill-column-indicator" "" t)
@@ -544,6 +565,7 @@
 
 ;; flycheck
 (require 'flycheck )
+(global-set-key (kbd "M-g l") 'flycheck-list-errors)
 
 ;; irony-mode
 (require 'irony-cdb nil t)
@@ -612,6 +634,9 @@
 (require 'diff-hl-margin )
 (require 'diff-hl-dired )
 
+;; wgrep
+(require 'wgrep)
+(setq wgrep-enable-key "r")
 ;;-----------------------------------------------------------自定义函数-----------------------------------------------------------;;
 ;; 资源管理器中打开
 (defun open-in-desktop-select (&optional dired)
@@ -1015,7 +1040,7 @@ the mru bookmark stack."
 			(define-key dired-mode-map (kbd "<C-f3>") 'open-in-desktop-select-dired)
 			(define-key dired-mode-map "/" 'isearch-forward)
 			(define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
-			(define-key dired-mode-map "c" 'create-proj)
+			(define-key dired-mode-map "c" 'create-known-ede-project)
 			(diff-hl-dired-mode)
 			))
 
@@ -1121,5 +1146,4 @@ the mru bookmark stack."
 ;; abbrev用法
 ;; 定义缩写c-x a l 定义当前mode的缩写
 ;; 使用缩写用空格expand
-
 
