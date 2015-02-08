@@ -184,7 +184,6 @@
  '(bookmark-sort-flag nil)
  '(column-number-mode t)
  '(company-auto-complete t)
- '(company-minimum-prefix-length 5)
  '(company-show-numbers t)
  '(company-tooltip-align-annotations t)
  '(company-transformers (quote (company-sort-by-occurrence)))
@@ -358,7 +357,7 @@
   (message "UnKnown EDE Project Created." ))
 
 (global-set-key (kbd "C-c e") 'create-known-ede-project)
-(global-set-key (kbd "C-c u") 'create-uknown-ede-project)
+(global-set-key (kbd "C-c u") 'create-unknown-ede-project)
 
 (create-spec-ede-project "e:/projects/tempspace/test4c/GTAGS" nil)
 (create-spec-ede-project "e:/projects/eNavi2_800X480_ChangeUI/GTAGS" t)
