@@ -99,7 +99,7 @@
 (set-default 'semantic-case-fold t)
 (global-set-key (kbd "<C-apps>") 'eassist-list-methods)
 (setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
-(setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
+;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
 
 ;;修改标题栏，显示buffer的名字
 (setq frame-title-format "%b [%+] %f")
@@ -184,7 +184,6 @@
  '(bookmark-save-flag 1)
  '(bookmark-sort-flag nil)
  '(column-number-mode t)
- '(company-auto-complete t)
  '(company-show-numbers t)
  '(company-tooltip-align-annotations t)
  '(company-transformers (quote (company-sort-by-occurrence)))
@@ -207,9 +206,8 @@
  '(explicit-shell-file-name "bash")
  '(fa-insert-method (quote name-and-parens-and-hint))
  '(fci-eol-char 32)
- '(flycheck-check-syntax-automatically (quote (save idle-change mode-enabled)))
+ '(flycheck-check-syntax-automatically (quote (save mode-enabled)))
  '(flycheck-emacs-lisp-load-path (quote inherit))
- '(flycheck-idle-change-delay 1.5)
  '(flycheck-indication-mode (quote right-fringe))
  '(frame-resize-pixelwise t)
  '(ggtags-highlight-tag-delay 16)
