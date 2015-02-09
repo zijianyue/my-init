@@ -99,7 +99,7 @@
 (set-default 'semantic-case-fold t)
 (global-set-key (kbd "<C-apps>") 'eassist-list-methods)
 (setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
-(setq ede-locate-setup-options (quote (ede-locate-base ede-locate-global ede-locate-idutils)))
+(setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
 
 ;;修改标题栏，显示buffer的名字
 (setq frame-title-format "%b [%+] %f")
