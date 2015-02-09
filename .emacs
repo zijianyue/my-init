@@ -165,8 +165,9 @@
 (setq compile-command "devenv.com projects.sln /build \"Debug|Win32\"") ;可以传sln 或vcproj编译工程
 ;; tab补全时忽略大小写
 (setq-default completion-ignore-case t)
-
-
+;; DIRED的时间显示格式
+(setq ls-lisp-format-time-list  '("%Y-%m-%d %H:%M" "%Y-%m-%d %H:%M")
+      ls-lisp-use-localized-time-format t)
 ;; 自动添加的设置
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -261,6 +262,7 @@
  '(sln-mode-devenv-2008 "Devenv.com")
  '(switch-window-shortcut-style (quote (quote qwerty)))
  '(tab-width 4)
+ '(undo-outer-limit 20000000)
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
  '(user-full-name "gezijian")
  '(whitespace-line-column 120)
@@ -300,7 +302,7 @@
   )
 
 ;; 选中单位
-(require 'expand-region)
+(autoload 'er/expand-region "expand-region" nil t)
 (global-set-key (kbd "M-s") 'er/expand-region)
 
 ;; undo redo
@@ -331,10 +333,8 @@
 							:spp-table '(("IN" . "")
 										 ("OUT" . "")
 										 ("INOUT" . "") ;如果在函数参数前加上这样的宏会导致无法识别
-										 )
-							)
-	(ede-cpp-root-project "code" :file root-file)
-	))
+										 ))
+	(ede-cpp-root-project "code" :file root-file)))
 
 (defun create-known-ede-project(&optional select)
   (interactive "P")
@@ -409,17 +409,19 @@
 (define-key irony-mode-map (kbd "M-n") 'ac-complete-irony-async)
 
 ;; company
-(require 'company nil t)
-(require 'company-irony nil t )
-(require 'company-c-headers nil t )
-;; (add-hook 'after-init-hook 'global-company-mode)
-(add-to-list 'company-backends 'company-irony)
-(add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
-(global-set-key (kbd "<C-tab>") 'company-complete)
-(define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
-(define-key company-active-map (kbd "M-s") 'company-filter-candidates)
-(add-to-list 'company-backends 'company-c-headers)
-
+(autoload 'company-mode "company" nil t)
+(eval-after-load "company"
+  '(progn
+	 (require 'company-irony nil t )
+	 (require 'company-c-headers nil t )
+	 ;; (add-hook 'after-init-hook 'global-company-mode)
+	 (add-to-list 'company-backends 'company-irony)
+	 (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
+	 (global-set-key (kbd "<C-tab>") 'company-complete)
+	 (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
+	 (define-key company-active-map (kbd "M-s") 'company-filter-candidates)
+	 ;; (add-to-list 'company-backends 'company-c-headers)
+	 ))
 ;;yasnippet
 (require 'yasnippet)
 (setq yas-snippet-dirs (concat site-lisp-dir "\\yasnippet-master\\snippets"))
@@ -457,11 +459,14 @@
 (setq bm-cycle-all-buffers t)
 
 ;; 更多的语法高亮
-(require 'zjl-c-hl-aggressive )
-;; (require 'semantic/bovine/c nil 'noerror)
-;; (require 'zjl-hl)
-;; (zjl-hl-enable-global 'c-mode)
-;; (zjl-hl-enable-global 'c++-mode)
+(eval-after-load "cc-mode"
+  '(progn
+	 (require 'zjl-c-hl-aggressive )
+	 ;; (require 'semantic/bovine/c nil 'noerror)
+	 ;; (require 'zjl-hl)
+	 ;; (zjl-hl-enable-global 'c-mode)
+	 ;; (zjl-hl-enable-global 'c++-mode)
+	 ))
 
 ;; 显示列竖线
 (autoload 'fci-mode "fill-column-indicator" "" t)
@@ -623,10 +628,14 @@
 (require 'vlf-setup)
 
 ;; ace
-(require 'ace-window )
 (define-key cua--cua-keys-keymap [(meta v)] nil)
+(autoload 'ace-window "ace-window" nil t)
+(autoload 'ace-jump-char-mode "ace-jump-mode" nil t)
+
+(eval-after-load "ace-window"
+  '(progn
+	 (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))))
 (global-set-key (kbd "M-v") 'ace-window)
-(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
 (define-key global-map (kbd "C-;") 'ace-jump-char-mode)
 
 ;; 查看diff
@@ -803,79 +812,82 @@ If FULL is t, copy full file name."
   (aset buffer-display-table ?\^M []))
 
 ;; symref加强
-(require 'semantic/symref/list )
+(eval-after-load "cc-mode"
+  '(progn
+	 (require 'semantic/symref/list )
 
-(defun semantic-symref-find-references-by-symbolname (name &optional scope tool-return)
-  ""
-  (interactive "sName: ")
-  (let* ((inst (semantic-symref-instantiate
-				:searchfor name
-				:searchtype 'symbolname
-				:searchscope (or scope 'project)
-				:resulttype 'line))
-		 (result (semantic-symref-get-result inst)))
-	(when tool-return
-	  (set tool-return inst))
-	(prog1
-		(setq semantic-symref-last-result result)
-	  (when (called-interactively-p 'interactive)
-		(semantic-symref-data-debug-last-result))))
-  )
-(defun semantic-symref-tag (&optional text)
-  ""
-  (interactive "*P")
-  (semantic-fetch-tags)
-  (let (symbol prompt input res)
-	(setq symbol (semantic-current-tag))
-	(if (or text (not symbol))
-		(progn
-		  (setq prompt (concat "Find References For: (default " symbol ") "))
-		  (setq input (completing-read prompt 'gtags-completing-gtags
-									   nil nil nil gtags-history-list))
-		  (if (not (equal "" input))
-			  (setq symbol input))))
-	;; Gather results and tags
-	(message "Gathering References...")
-	(setq res (semantic-symref-find-references-by-name (semantic-tag-name symbol)))
-	(semantic-symref-produce-list-on-results res (semantic-tag-name symbol))))
+	 (defun semantic-symref-find-references-by-symbolname (name &optional scope tool-return)
+	   ""
+	   (interactive "sName: ")
+	   (let* ((inst (semantic-symref-instantiate
+					 :searchfor name
+					 :searchtype 'symbolname
+					 :searchscope (or scope 'project)
+					 :resulttype 'line))
+			  (result (semantic-symref-get-result inst)))
+		 (when tool-return
+		   (set tool-return inst))
+		 (prog1
+			 (setq semantic-symref-last-result result)
+		   (when (called-interactively-p 'interactive)
+			 (semantic-symref-data-debug-last-result))))
+	   )
+	 (defun semantic-symref-tag (&optional text)
+	   ""
+	   (interactive "*P")
+	   (semantic-fetch-tags)
+	   (let (symbol prompt input res)
+		 (setq symbol (semantic-current-tag))
+		 (if (or text (not symbol))
+			 (progn
+			   (setq prompt (concat "Find References For: (default " symbol ") "))
+			   (setq input (completing-read prompt 'gtags-completing-gtags
+											nil nil nil gtags-history-list))
+			   (if (not (equal "" input))
+				   (setq symbol input))))
+		 ;; Gather results and tags
+		 (message "Gathering References...")
+		 (setq res (semantic-symref-find-references-by-name (semantic-tag-name symbol)))
+		 (semantic-symref-produce-list-on-results res (semantic-tag-name symbol))))
 
-(defun semantic-symref-just-symbol (&optional text)
-  ""
-  (interactive "*P")
-  (semantic-fetch-tags)
-  (let (symbol prompt input res)
-	(setq symbol (thing-at-point 'symbol))
-	(if (or text (not symbol))
-		(progn
-		  (setq prompt (concat "Find References For: (default " symbol ") "))
-		  (setq input (completing-read prompt 'gtags-completing-gtags
-									   nil nil nil gtags-history-list))
-		  (if (not (equal "" input))
-			  (setq symbol input))))
-	;; Gather results and tags
-	(message "Gathering References...")
-	(setq res (cond
-			   ((semantic-symref-find-references-by-name symbol))
-			   ((semantic-symref-find-references-by-symbolname symbol))))
-	(semantic-symref-produce-list-on-results res symbol)))
+	 (defun semantic-symref-just-symbol (&optional text)
+	   ""
+	   (interactive "*P")
+	   (semantic-fetch-tags)
+	   (let (symbol prompt input res)
+		 (setq symbol (thing-at-point 'symbol))
+		 (if (or text (not symbol))
+			 (progn
+			   (setq prompt (concat "Find References For: (default " symbol ") "))
+			   (setq input (completing-read prompt 'gtags-completing-gtags
+											nil nil nil gtags-history-list))
+			   (if (not (equal "" input))
+				   (setq symbol input))))
+		 ;; Gather results and tags
+		 (message "Gathering References...")
+		 (setq res (cond
+					((semantic-symref-find-references-by-name symbol))
+					((semantic-symref-find-references-by-symbolname symbol))))
+		 (semantic-symref-produce-list-on-results res symbol)))
 
-(defun semantic-symref-anything (&optional text)
-  ""
-  (interactive "*P")
-  (semantic-fetch-tags)
-  (let (symbol prompt input res)
-	(setq symbol (concat "\\<" (thing-at-point 'symbol) "\\>"))
-	(if (or text (equal "\\<\\>" symbol))
-		(progn
-		  (setq prompt (concat "Find References For: (default " symbol ") "))
-		  (setq input (completing-read prompt 'gtags-completing-gtags
-									   nil nil nil gtags-history-list))
-		  (if (not (equal "" input))
-			  (setq symbol input))))
-	;; Gather results and tags
-	(message "Gathering References...")
-	(setq res (semantic-symref-find-text symbol))
-	(semantic-symref-produce-list-on-results res symbol)))
+	 (defun semantic-symref-anything (&optional text)
+	   ""
+	   (interactive "*P")
+	   (semantic-fetch-tags)
+	   (let (symbol prompt input res)
+		 (setq symbol (concat "\\<" (thing-at-point 'symbol) "\\>"))
+		 (if (or text (equal "\\<\\>" symbol))
+			 (progn
+			   (setq prompt (concat "Find References For: (default " symbol ") "))
+			   (setq input (completing-read prompt 'gtags-completing-gtags
+											nil nil nil gtags-history-list))
+			   (if (not (equal "" input))
+				   (setq symbol input))))
+		 ;; Gather results and tags
+		 (message "Gathering References...")
+		 (setq res (semantic-symref-find-text symbol))
+		 (semantic-symref-produce-list-on-results res symbol)))
+	 ))
 
 ;; builtin cedet mru bookmark 加强
 (defadvice push-mark (around semantic-mru-bookmark activate)
@@ -1145,4 +1157,3 @@ the mru bookmark stack."
 ;; abbrev用法
 ;; 定义缩写c-x a l 定义当前mode的缩写
 ;; 使用缩写用空格expand
-
