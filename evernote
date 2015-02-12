@@ -1,3 +1,4 @@
+1.
 pscp problem when called from bash 
 
 Hi,
@@ -11,3 +12,6 @@ ssh_init: Host does not exist
 pscp -v myFile mylogin@myHost://tmp/myDir
 works well (with message
 Looking up host "myHost")
+
+2.
+srecode编辑模式C-c c-c是确认修改生效
