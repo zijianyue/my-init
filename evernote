@@ -15,3 +15,6 @@ Looking up host "myHost")
 
 2.
 srecode编辑模式C-c c-c是确认修改生效
+
+3.
+dired中S即dired-do-symlink可以给exe创建快捷方式（symlink or soft link），并放到指定位置
