@@ -27,7 +27,6 @@
 (setenv "CMAKE" "C:\\Program Files (x86)\\CMake\\bin")
 (setenv "GTAGSBIN" "c:\\gtags\\bin")
 (setenv "PYTHON" "C:\\Python27")
-(setenv "GITBIN" "C:\\Program Files (x86)\\SmartGit\\git\\bin")
 (setenv "CYGWIN" "C:\\cygwin\\bin")
 
 
@@ -47,8 +46,6 @@
 		 path-separator
 		 (getenv "PYTHON")
 		 path-separator
-		 (getenv "GITBIN")
-		 path-separator
 		 ;; (getenv "CYGWIN")
 		 ;; path-separator
 		 (getenv "PATH")))
@@ -59,7 +56,6 @@
 (add-to-list 'exec-path (getenv "CMAKE"))
 (add-to-list 'exec-path (getenv "GTAGSBIN"))
 (add-to-list 'exec-path (getenv "PYTHON"))
-(add-to-list 'exec-path (getenv "GITBIN"))
 ;; (add-to-list 'exec-path (getenv "CYGWIN"))
 
 
@@ -86,7 +82,6 @@
 
 ;; Load CEDET offical
 (load-file "D:/cedet-master/cedet-devel-load.el")
-(load-file "D:/cedet-master/contrib/cedet-contrib-load.el")
 
 ;; cedet builtin
 ;; (require 'semantic )
@@ -97,7 +92,6 @@
 (semanticdb-enable-gnu-global-databases 'c-mode)
 (semanticdb-enable-gnu-global-databases 'c++-mode)
 (set-default 'semantic-case-fold t)
-(global-set-key (kbd "<C-apps>") 'eassist-list-methods)
 (setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
 ;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
 
@@ -184,6 +178,7 @@
  '(bookmark-save-flag 1)
  '(bookmark-sort-flag nil)
  '(column-number-mode t)
+ '(company-minimum-prefix-length 100)
  '(company-show-numbers t)
  '(company-tooltip-align-annotations t)
  '(company-transformers (quote (company-sort-by-occurrence)))
@@ -197,7 +192,7 @@
  '(dired-recursive-deletes (quote always))
  '(display-time-mode nil)
  '(ediff-split-window-function (quote split-window-horizontally))
- '(eldoc-idle-delay 1)
+ '(eldoc-idle-delay 3)
  '(electric-indent-mode t)
  '(electric-pair-inhibit-predicate (quote my-electric-pair-conservative-inhibit))
  '(electric-pair-mode t)
@@ -221,12 +216,11 @@
  '(helm-buffer-max-length nil)
  '(helm-for-files-preferred-list
    (quote
-	(helm-source-buffers-list helm-source-recentf helm-source-bookmarks)))
+	(helm-source-buffers-list helm-source-bookmarks helm-source-recentf)))
  '(helm-gtags-cache-max-result-size 104857600)
  '(helm-gtags-cache-select-result t)
  '(helm-gtags-display-style (quote detail))
  '(helm-gtags-ignore-case t)
- '(helm-gtags-maximum-candidates 200)
  '(helm-gtags-suggested-key-mapping t)
  '(helm-truncate-lines t)
  '(horizontal-scroll-bar-mode t)
@@ -244,7 +238,7 @@
  '(mouse-wheel-progressive-speed nil)
  '(password-cache-expiry nil)
  '(pcmpl-gnu-tarfile-regexp "")
- '(recentf-mode t)
+ '(recentf-auto-cleanup 300)
  '(save-place t nil (saveplace))
  '(semantic-c-dependency-system-include-path
    (quote
@@ -263,7 +257,7 @@
  '(undo-outer-limit 20000000)
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
  '(user-full-name "gezijian")
- '(whitespace-line-column 120)
+ '(whitespace-line-column 121)
  '(winner-mode t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -341,7 +335,6 @@
 	(setq root-file "./GTAGS"))
   (create-spec-ede-project root-file t)
   ;; (find-sln root-file)
-  ;; (cscope-set-initial-directory (file-name-directory root-file))
   (message "Known EDE Project Created." ))
 
 (defun create-unknown-ede-project(&optional select)
@@ -351,7 +344,6 @@
 	(setq root-file "./GTAGS"))
   (create-spec-ede-project root-file nil)
   ;; (find-sln root-file)
-  ;; (cscope-set-initial-directory (file-name-directory root-file))
   (message "UnKnown EDE Project Created." ))
 
 (global-set-key (kbd "C-c e") 'create-known-ede-project)
@@ -396,7 +388,7 @@
 ;; (define-key ac-mode-map ">" 'ac-complete-self-insert)
 ;; (define-key ac-mode-map ":" 'ac-complete-self-insert-and-indent)
 
-(setq-default ac-sources '(ac-source-dictionary ac-source-words-in-buffer))
+(setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
   ;; (setq ac-sources (delete 'ac-source-gtags ac-sources))
   (setq ac-sources (append '(ac-source-c-headers) ac-sources))
@@ -508,38 +500,29 @@
 	 (add-hook 'company-completion-cancelled-hook 'company-maybe-turn-on-fci)
 	 ))
 
-;; 符号高亮
-;; (require 'highlight-symbol)
-;; (global-set-key [f8] 'highlight-symbol-next)
-;; (global-set-key [(shift f8)] 'highlight-symbol-prev)
-;; (require 'highlight )
-;; (global-set-key (kbd "<M-f8>") 'hlt-highlight-symbol) ;m-0会把所有buffer都高亮上
-;; (global-set-key (kbd "<C-f8>") 'hlt-unhighlight-symbol)
-;; (global-set-key (kbd "<f8>") 'hlt-next-highlight)
-;; (global-set-key (kbd "<S-f8>") 'hlt-previous-highlight)
-;; (global-set-key (kbd "<C-S-f8>") 'hlt-unhighlight-region)
-
 ;; 异步copy rename文件
 (when (require 'dired-aux)
   (require 'dired-async))
 
 ;; helm系列
-(require 'helm-config)
-(require 'helm-gtags)
+(autoload 'helm-show-kill-ring "helm-config" nil t)
+(autoload 'helm-semantic-or-imenu "helm-config" nil t)
+(autoload 'helm-for-files "helm-config" nil t)
+(autoload 'helm-buffers-list "helm-config" nil t)
+(autoload 'helm-gtags-mode "helm-gtags" nil t)
 
 (eval-after-load "helm"
   '(progn
-	 (global-set-key (kbd "C-x f") 'helm-command-prefix)
-	 (global-unset-key (kbd "C-x c"))
 	 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebihnd tab to do persistent action
 	 (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
 	 (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
 	 ))
 
 (global-set-key (kbd "C-S-v") 'helm-show-kill-ring)
-(global-set-key (kbd "<M-apps>") 'helm-semantic-or-imenu)
-(global-set-key (kbd "C-.") 'helm-buffers-list)
-
+(global-set-key (kbd "<apps>") 'helm-semantic-or-imenu)
+(global-set-key (kbd "<C-apps>") 'helm-for-files)
+(global-set-key (kbd "<S-apps>") 'helm-resume)
+(global-set-key (kbd "<M-apps>") 'helm-buffers-list)
 
 (eval-after-load "helm-gtags"
   '(progn
@@ -556,11 +539,6 @@
 	 (define-key helm-gtags-mode-map (kbd "C-|") 'helm-gtags-find-tag-other-window)
 	 ))
 
-;; ac-helm
-(autoload 'ac-complete-with-helm "ac-helm" "" t)
-(global-set-key (kbd "M-I") 'ac-complete-with-helm)
-(define-key ac-complete-mode-map (kbd "M-I") 'ac-complete-with-helm)
-
 ;; back button
 (require 'back-button)
 (back-button-mode 1)
@@ -568,11 +546,15 @@
 ;; flycheck
 (require 'flycheck )
 (global-set-key (kbd "M-g l") 'flycheck-list-errors)
+(global-set-key (kbd "<M-f5>") 'flycheck-buffer)
 
 ;; irony-mode
-(require 'irony-cdb nil t)
-(require 'irony-eldoc )
-(require 'flycheck-irony )
+(eval-after-load "cc-mode"
+  '(progn
+	 (require 'irony-cdb nil t)
+	 (require 'irony-eldoc )
+	 (require 'flycheck-irony )))
+
 (eval-after-load "irony"
   '(progn
 	 (defun my-irony-mode-hook ()
@@ -603,25 +585,6 @@
 (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 
-;; func args
-(autoload 'function-args-mode "function-args" "" t)
-(eval-after-load "function-args"
-  '(progn
-	 (let ((map function-args-mode-map))
-	   (define-key function-args-mode-map (kbd "M-o") nil)
-	   (define-key function-args-mode-map (kbd "M-i") nil)
-	   (define-key function-args-mode-map (kbd "M-n") nil)
-	   (define-key function-args-mode-map (kbd "M-h") nil)
-	   (define-key function-args-mode-map (kbd "M-u") nil)
-	   (define-key function-args-mode-map (kbd "M-j") 'fa-jump-maybe)
-	   (define-key function-args-mode-map (kbd "<apps>") 'moo-jump-local)
-	   (define-key function-args-mode-map (kbd "M-N") 'fa-idx-cycle-down)
-	   (define-key function-args-mode-map (kbd "M-P") 'fa-idx-cycle-up)
-	   (define-key function-args-mode-map (kbd "M-[") 'fa-show)
-	   (define-key function-args-mode-map (kbd "M-]") 'fa-abort)
-	   )
-	 ))
-
 ;; 打开大文件
 (require 'vlf-setup)
 
@@ -641,8 +604,11 @@
 (require 'diff-hl-dired )
 
 ;; wgrep
-(require 'wgrep)
+(autoload 'rgrep "wgrep" nil t)
 (setq wgrep-enable-key "r")
+
+;; refactor
+(autoload 'srefactor-refactor-at-point "srefactor" nil t)
 ;;-----------------------------------------------------------自定义函数-----------------------------------------------------------;;
 ;; 资源管理器中打开
 (defun open-in-desktop-select (&optional dired)
@@ -1016,23 +982,21 @@ the mru bookmark stack."
 			(setup-program-keybindings)
 			(hs-minor-mode 1)
 			(hide-ifdef-mode 1)
-			;; (highlight-symbol-mode)
 			(setq-local ac-auto-start nil)
 			(setq-local indent-tabs-mode nil)
-			(function-args-mode 1)
 			(irony-mode)
 			(ggtags-mode 1)
 			(diff-hl-mode)
 			(eldoc-mode)
 			(company-mode 1)
 			(remove-function (local 'eldoc-documentation-function) 'ggtags-eldoc-function)
+			(abbrev-mode 0)
 			;; (superword-mode)                ;连字符不分割单词,影响move和edit    相对subword-mode
 			))
 
 (add-hook 'emacs-lisp-mode-hook
 		  (lambda ()
 			(modify-syntax-entry ?- "w")
-			(function-args-mode 1)
 			(setup-program-keybindings)
 			))
 
@@ -1072,7 +1036,7 @@ the mru bookmark stack."
 ;; gtags symref 的结果都设置为C语法，主要为了highlight-symbol能正确
 (eval-after-load "cc-mode"
   '(progn
-	 (dolist (hook '(gtags-select-mode-hook semantic-symref-results-mode-hook cscope-list-entry-hook))
+	 (dolist (hook '(gtags-select-mode-hook semantic-symref-results-mode-hook))
 	   (add-hook hook
 				 (lambda()
 				   (setq truncate-lines t)
