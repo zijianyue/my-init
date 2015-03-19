@@ -173,13 +173,14 @@
  '(ac-trigger-key "TAB")
  '(ac-use-menu-map t)
  '(auto-save-default nil)
+ '(autopair-blink nil)
+ '(back-button-local-keystrokes nil)
  '(back-button-mode-lighter "")
  '(backward-delete-char-untabify-method nil)
  '(bookmark-save-flag 1)
  '(bookmark-sort-flag nil)
  '(column-number-mode t)
- '(company-minimum-prefix-length 100)
- '(company-show-numbers t)
+ '(company-minimum-prefix-length 7)
  '(company-tooltip-align-annotations t)
  '(company-transformers (quote (company-sort-by-occurrence)))
  '(compilation-scroll-output t)
@@ -192,16 +193,16 @@
  '(dired-recursive-deletes (quote always))
  '(display-time-mode nil)
  '(ediff-split-window-function (quote split-window-horizontally))
- '(eldoc-idle-delay 3)
+ '(eldoc-idle-delay 2)
  '(electric-indent-mode t)
  '(electric-pair-inhibit-predicate (quote my-electric-pair-conservative-inhibit))
- '(electric-pair-mode t)
+ '(electric-pair-mode nil)
  '(enable-local-variables :all)
  '(eww-search-prefix "http://cn.bing.com/search?q=")
  '(explicit-shell-file-name "bash")
  '(fa-insert-method (quote name-and-parens-and-hint))
  '(fci-eol-char 32)
- '(flycheck-check-syntax-automatically (quote (save mode-enabled)))
+ '(flycheck-check-syntax-automatically (quote (mode-enabled)))
  '(flycheck-emacs-lisp-load-path (quote inherit))
  '(flycheck-indication-mode (quote right-fringe))
  '(frame-resize-pixelwise t)
@@ -213,7 +214,7 @@
  '(global-semantic-mru-bookmark-mode t)
  '(global-semantic-stickyfunc-mode t)
  '(global-srecode-minor-mode t)
- '(helm-buffer-max-length nil)
+ '(helm-buffer-max-length 30)
  '(helm-for-files-preferred-list
    (quote
 	(helm-source-buffers-list helm-source-bookmarks helm-source-recentf)))
@@ -229,8 +230,8 @@
  '(imenu-max-item-length 120)
  '(imenu-max-items 1000)
  '(inhibit-startup-screen t)
- '(jit-lock-context-time 3)
- '(jit-lock-defer-time 0.25)
+ '(jit-lock-context-time 1.5)
+ '(jit-lock-defer-time 0.5)
  '(large-file-warning-threshold 20000000)
  '(ls-lisp-verbosity nil)
  '(make-backup-files nil)
@@ -239,6 +240,9 @@
  '(password-cache-expiry nil)
  '(pcmpl-gnu-tarfile-regexp "")
  '(recentf-auto-cleanup 300)
+ '(rm-blacklist
+   (quote
+	(" hl-p" " yas" " hs" " Ifdef" " pair" " HelmGtags" " GG" " company" " ElDoc" " Irony" " AC")))
  '(save-place t nil (saveplace))
  '(semantic-c-dependency-system-include-path
    (quote
@@ -508,7 +512,7 @@
 (autoload 'helm-show-kill-ring "helm-config" nil t)
 (autoload 'helm-semantic-or-imenu "helm-config" nil t)
 (autoload 'helm-for-files "helm-config" nil t)
-(autoload 'helm-buffers-list "helm-config" nil t)
+(autoload 'helm-resume "helm-config" nil t)
 (autoload 'helm-gtags-mode "helm-gtags" nil t)
 
 (eval-after-load "helm"
@@ -522,7 +526,6 @@
 (global-set-key (kbd "<apps>") 'helm-semantic-or-imenu)
 (global-set-key (kbd "<C-apps>") 'helm-for-files)
 (global-set-key (kbd "<S-apps>") 'helm-resume)
-(global-set-key (kbd "<M-apps>") 'helm-buffers-list)
 
 (eval-after-load "helm-gtags"
   '(progn
@@ -601,7 +604,6 @@
 
 ;; 查看diff
 (require 'diff-hl-margin )
-(require 'diff-hl-dired )
 
 ;; wgrep
 (autoload 'rgrep "wgrep" nil t)
@@ -609,6 +611,19 @@
 
 ;; refactor
 (autoload 'srefactor-refactor-at-point "srefactor" nil t)
+(global-set-key (kbd "C-.") 'srefactor-refactor-at-point)
+
+;; 括号
+(require 'autopair)
+(autopair-global-mode)
+
+;; mode line
+(require 'rich-minority)
+(rich-minority-mode 1)
+
+;; purpuse 窗口管理
+;; (require 'purpose)
+;; (purpose-mode)
 ;;-----------------------------------------------------------自定义函数-----------------------------------------------------------;;
 ;; 资源管理器中打开
 (defun open-in-desktop-select (&optional dired)
@@ -763,12 +778,6 @@ If FULL is t, copy full file name."
   )
 
 ;;hide ^M
-(defun hide-dos-eol (args)
-  (interactive "P")
-  (call-interactively 'hlt-highlight-regexp-region)
-  (call-interactively 'hlt-hide-default-face)
-  )
-
 (defun remove-dos-eol ()
   "Do not show ^M in files containing mixed UNIX and DOS line endings."
   (interactive)
@@ -861,8 +870,7 @@ the mru bookmark stack."
   (semantic-mrub-push semantic-mru-bookmark-ring
 					  (point)
 					  'mark)
-  (back-button-push-mark-local-and-global (point))
-  ad-do-it)
+    ad-do-it)
 (defun semantic-ia-fast-jump-back ()
   (interactive)
   (if (ring-empty-p (oref semantic-mru-bookmark-ring ring))
@@ -1025,7 +1033,6 @@ the mru bookmark stack."
 			(define-key comint-mode-map (kbd "M-,") 'comint-next-matching-input-from-input)
 			(define-key comint-mode-map (kbd "<up>") 'comint-previous-input)
 			(define-key comint-mode-map (kbd "<down>") 'comint-next-input)
-			(abbrev-mode 1)
 			))
 
 (add-hook 'comint-output-filter-functions 'comint-strip-ctrl-m)
@@ -1065,6 +1072,7 @@ the mru bookmark stack."
 (global-set-key (kbd "<f8>") 'isearch-forward-symbol-at-point)
 (global-set-key (kbd "<M-f8>") 'highlight-symbol-at-point) ;高亮光标下的单词
 (global-set-key (kbd "<C-f8>") 'unhighlight-regexp)        ;删除高亮，c-0全删
+(global-set-key (kbd "<M-S-f8>") 'highlight-regexp)
 
 ;;使用find递归查找文件
 (global-set-key (kbd "<M-f7>") 'find-name-dired) ;找文件名
@@ -1116,6 +1124,5 @@ the mru bookmark stack."
 ;; whitespace
 (global-set-key (kbd "C-=") 'whitespace-mode)
 (global-set-key (kbd "C-+") 'whitespace-cleanup)
-;; abbrev用法
-;; 定义缩写c-x a l 定义当前mode的缩写
-;; 使用缩写用空格expand
+;; hide/show
+(global-set-key (kbd "M-[") 'hs-toggle-hiding)
