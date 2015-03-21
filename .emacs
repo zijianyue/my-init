@@ -20,7 +20,7 @@
 (server-start)
 
 ;; 环境变量
-(setenv "MSYS" "C:\\MinGW\\msys\\1.0\\bin")
+(setenv "MSYS" "C:\\msys\\bin")
 (setenv "MINGW" "C:\\MinGW\\bin")
 (setenv "PUTTY" "C:\\PuTTY")
 (setenv "LLVM" "C:\\Program Files (x86)\\LLVM\\bin")
@@ -66,7 +66,7 @@
   (setq site-lisp-dir (concat (getenv "emacs_dir") "\\share\\emacs\\site-lisp")))
 
 ;; windows的find跟gnu 的grep有冲突
-(setq find-program "\"C:/mingw/msys/1.0/bin/find.exe\"")
+(setq find-program "\"C:/msys/bin/find.exe\"")
 
 ;; 默认目录
 (setq default-directory "~")
@@ -1048,11 +1048,6 @@ the mru bookmark stack."
 				 (lambda()
 				   (setq truncate-lines t)
 				   (set-syntax-table c++-mode-syntax-table))))))
-
-(add-hook 'eassist-mode-hook
-		  (lambda () "DOCSTRING" (interactive)
-			(define-key eassist-mode-map (kbd "<apps>") 'eassist-escape)
-			))
 
 (add-hook 'font-lock-mode-hook
 		  (lambda () "DOCSTRING" (interactive)
