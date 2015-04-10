@@ -209,11 +209,13 @@
  '(ggtags-highlight-tag-delay 16)
  '(global-auto-revert-mode t)
  '(global-ede-mode t)
- '(global-flycheck-mode t nil (flycheck))
  '(global-semantic-decoration-mode t)
  '(global-semantic-mru-bookmark-mode t)
  '(global-semantic-stickyfunc-mode t)
  '(global-srecode-minor-mode t)
+ '(grep-find-template
+   "\"C:/msys/bin/find.exe\" . <X> -type f <F> -exec grep <C> -nH -F <R> {} \";\"")
+ '(grep-template "grep <X> <C> -nH -F <R> <F>")
  '(helm-buffer-max-length 30)
  '(helm-for-files-preferred-list
    (quote
@@ -279,7 +281,8 @@
   '(progn
 	 (define-key ggtags-mode-map (kbd "M-.") nil)
 	 (define-key ggtags-mode-map (kbd "M-,") nil)
-	 (define-key ggtags-mode-map (kbd "M-]") nil)
+	 (define-key ggtags-mode-map (kbd "M-]") 'ggtags-find-tag-dwim)
+	 (define-key ggtags-mode-map (kbd "C-M-]") 'ggtags-find-reference)
 	 (define-key ggtags-mode-map (kbd "C-M-.") nil)
 	 (define-key ggtags-mode-map [S-down-mouse-1] 'ignore)
 	 (define-key ggtags-mode-map [S-down-mouse-3] 'ignore)
@@ -294,8 +297,7 @@
 	 (define-key ggtags-mode-map (kbd "M-?") 'ggtags-show-definition)
 	 (define-key ggtags-highlight-tag-map (kbd "<mouse-2>") 'ggtags-show-definition)
 	 (setq ggtags-mode-line-project-name nil)
-	 )
-  )
+	 ))
 
 ;; 选中单位
 (autoload 'er/expand-region "expand-region" nil t)
@@ -514,6 +516,7 @@
 (autoload 'helm-for-files "helm-config" nil t)
 (autoload 'helm-resume "helm-config" nil t)
 (autoload 'helm-gtags-mode "helm-gtags" nil t)
+(autoload 'helm-occur "helm-gtags" nil t)
 
 (eval-after-load "helm"
   '(progn
@@ -526,6 +529,7 @@
 (global-set-key (kbd "<apps>") 'helm-semantic-or-imenu)
 (global-set-key (kbd "<C-apps>") 'helm-for-files)
 (global-set-key (kbd "<S-apps>") 'helm-resume)
+(global-set-key (kbd "<M-apps>") 'helm-occur)
 
 (eval-after-load "helm-gtags"
   '(progn
@@ -540,6 +544,8 @@
 	 (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-previous-history)
 	 (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-next-history)
 	 (define-key helm-gtags-mode-map (kbd "C-|") 'helm-gtags-find-tag-other-window)
+	 (define-key helm-gtags-mode-map (kbd "C-M-,") 'helm-gtags-show-stack)
+	 (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "p") 'helm-gtags-find-files)
 	 ))
 
 ;; back button
@@ -550,6 +556,7 @@
 (require 'flycheck )
 (global-set-key (kbd "M-g l") 'flycheck-list-errors)
 (global-set-key (kbd "<M-f5>") 'flycheck-buffer)
+(global-flycheck-mode t)
 
 ;; irony-mode
 (eval-after-load "cc-mode"
@@ -622,7 +629,7 @@
 (rich-minority-mode 1)
 
 ;; purpuse 窗口管理
-;; (require 'purpose)
+(require 'window-purpose)
 ;; (purpose-mode)
 ;;-----------------------------------------------------------自定义函数-----------------------------------------------------------;;
 ;; 资源管理器中打开
@@ -901,6 +908,16 @@ the mru bookmark stack."
 				(not (forward-char))
 			  (forward-char))))
    ))
+
+(defun set-c-word-mode ()
+  ""
+  (interactive)
+  (set-syntax-table c++-mode-syntax-table)
+  (modify-syntax-entry ?_ "w")
+  (message "set-c-word-mode"))
+
+(global-set-key (kbd "C-_") 'set-c-word-mode)
+
 ;;-----------------------------------------------------------hook-----------------------------------------------------------;;
 (c-add-style "gzj"
 			 '("stroustrup"
@@ -995,7 +1012,7 @@ the mru bookmark stack."
 			(irony-mode)
 			(ggtags-mode 1)
 			(diff-hl-mode)
-			(eldoc-mode)
+			(eldoc-mode 0)
 			(company-mode 1)
 			(remove-function (local 'eldoc-documentation-function) 'ggtags-eldoc-function)
 			(abbrev-mode 0)
