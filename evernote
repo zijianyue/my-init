@@ -20,3 +20,11 @@ srecode编辑模式C-c c-c是确认修改生效
 dired中S即dired-do-symlink可以给exe创建快捷方式（symlink or soft link），并放到指定位置。
 安装SmartGit把C:\Program Files\SmartGit\git\bin\git.exe创建symlink到c:\mingw\msys\1.0\bin下，
 这样就相当于msys中有了git命令
+
+4.
+CEDET的修改：4.1 修改cedet-global.el，添加
+ 		      ((eq texttype 'regexp)
+ 		       "g")
++              ((eq texttype 'symbolname)
++               "s")
+            4.2 在ect/srecode中修改c.srt和doc-cpp.srt
