@@ -70,6 +70,10 @@
 
 ;; 默认目录
 (setq default-directory "~")
+
+;; 启动mode
+(setq initial-major-mode 'text-mode)
+
 ;; elpa
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
 						 ("marmalade" . "http://marmalade-repo.org/packages/")
@@ -81,19 +85,37 @@
 (setq ring-bell-function 'ignore)
 
 ;; Load CEDET offical
-(load-file "D:/cedet-master/cedet-devel-load.el")
+(if (and (< emacs-minor-version 5)
+		 (eq emacs-major-version 24))
+	(load-file "D:/cedet-master/cedet-devel-load.el"))
 
-;; cedet builtin
-;; (require 'semantic )
-;; (require 'srecode)
-;; (setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
-;; let cedet call ctags to find things which cedet can not find
-;; (semantic-load-enable-all-ectags-support)
-(semanticdb-enable-gnu-global-databases 'c-mode)
-(semanticdb-enable-gnu-global-databases 'c++-mode)
-(set-default 'semantic-case-fold t)
-(setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
-;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
+(eval-after-load "cc-mode"
+  '(progn  
+	 ;; cedet builtin
+	 (if (and (eq emacs-minor-version 5)
+			  (eq emacs-major-version 24))
+		 (progn
+		   (require 'semantic )
+		   (require 'srecode)
+		   (require 'semantic/decorate )))
+	 
+	 ;; (require 'semantic/mru-bookmark )
+	 (semantic-mode t)
+	 (global-ede-mode t)
+	 (global-semantic-decoration-mode t)
+	 ;; (global-semantic-mru-bookmark-mode t)
+	 (global-semantic-stickyfunc-mode t)
+	 (global-srecode-minor-mode t)
+
+	 ;; (setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
+	 ;; let cedet call ctags to find things which cedet can not find
+	 ;; (semantic-load-enable-all-ectags-support)
+	 (semanticdb-enable-gnu-global-databases 'c-mode)
+	 (semanticdb-enable-gnu-global-databases 'c++-mode)
+	 (set-default 'semantic-case-fold t)
+	 (setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
+	 ;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
+	 ))
 
 ;;修改标题栏，显示buffer的名字
 (setq frame-title-format "%b [%+] %f")
@@ -172,11 +194,13 @@
  '(ac-ignore-case t)
  '(ac-trigger-key "TAB")
  '(ac-use-menu-map t)
+ '(ad-redefinition-action (quote accept))
  '(auto-save-default nil)
  '(autopair-blink nil)
  '(back-button-local-keystrokes nil)
  '(back-button-mode-lighter "")
  '(backward-delete-char-untabify-method nil)
+ '(bm-highlight-style (quote bm-highlight-only-fringe))
  '(bookmark-save-flag 1)
  '(bookmark-sort-flag nil)
  '(column-number-mode t)
@@ -193,26 +217,19 @@
  '(dired-recursive-deletes (quote always))
  '(display-time-mode nil)
  '(ediff-split-window-function (quote split-window-horizontally))
- '(eldoc-idle-delay 2)
  '(electric-indent-mode t)
  '(electric-pair-inhibit-predicate (quote my-electric-pair-conservative-inhibit))
- '(electric-pair-mode nil)
  '(enable-local-variables :all)
  '(eww-search-prefix "http://cn.bing.com/search?q=")
  '(explicit-shell-file-name "bash")
  '(fa-insert-method (quote name-and-parens-and-hint))
  '(fci-eol-char 32)
- '(flycheck-check-syntax-automatically (quote (mode-enabled)))
+ '(flycheck-check-syntax-automatically nil)
  '(flycheck-emacs-lisp-load-path (quote inherit))
  '(flycheck-indication-mode (quote right-fringe))
  '(frame-resize-pixelwise t)
  '(ggtags-highlight-tag-delay 16)
  '(global-auto-revert-mode t)
- '(global-ede-mode t)
- '(global-semantic-decoration-mode t)
- '(global-semantic-mru-bookmark-mode t)
- '(global-semantic-stickyfunc-mode t)
- '(global-srecode-minor-mode t)
  '(grep-find-template
    "\"C:/msys/bin/find.exe\" . <X> -type f <F> -exec grep <C> -nH -F <R> {} \";\"")
  '(grep-template "grep <X> <C> -nH -F <R> <F>")
@@ -252,7 +269,6 @@
  '(semantic-imenu-bucketize-file nil)
  '(semantic-imenu-summary-function (quote semantic-format-tag-abbreviate))
  '(semantic-lex-spp-use-headers-flag t)
- '(semantic-mode t)
  '(semantic-symref-results-summary-function (quote semantic-format-tag-abbreviate))
  '(shell-completion-execonly nil)
  '(show-paren-mode t)
@@ -318,45 +334,48 @@
 ;; (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 
 ;; 工程设置
-(defun create-spec-ede-project (root-file known)
-  (if known
-	  (ede-cpp-root-project "code" :file root-file
-							:include-path '( "/include" "/server" "/upf"
-											 "/upf_dubhe/export" "/UPF_SMI/Include" "/Service/TG/MM/RM/Source/PMM")
-							:spp-files '( "Service/TG/MM/RM/Source/PMM/RMPmm_Const.h"
-										  "Service/TG/MM/RM/Include/RM_switch.h"
-										  "Service/TG/MM/RM/Include/RM_Debug.h"
-										  "ede_switch.h" ;ON OFF宏写成(1)(0)的话不能识别
-										  )
-							:spp-table '(("IN" . "")
-										 ("OUT" . "")
-										 ("INOUT" . "") ;如果在函数参数前加上这样的宏会导致无法识别
-										 ))
-	(ede-cpp-root-project "code" :file root-file)))
+(eval-after-load "ggtags"
+  '(progn
+	 (defun create-spec-ede-project (root-file known)
+	   (if known
+		   (ede-cpp-root-project "code" :file root-file
+								 :include-path '( "/include" "/server" "/upf"
+												  "/upf_dubhe/export" "/UPF_SMI/Include" "/Service/TG/MM/RM/Source/PMM")
+								 :spp-files '( "Service/TG/MM/RM/Source/PMM/RMPmm_Const.h"
+											   "Service/TG/MM/RM/Include/RM_switch.h"
+											   "Service/TG/MM/RM/Include/RM_Debug.h"
+											   "ede_switch.h" ;ON OFF宏写成(1)(0)的话不能识别
+											   )
+								 :spp-table '(("IN" . "")
+											  ("OUT" . "")
+											  ("INOUT" . "") ;如果在函数参数前加上这样的宏会导致无法识别
+											  ))
+		 (ede-cpp-root-project "code" :file root-file)))
 
-(defun create-known-ede-project(&optional select)
-  (interactive "P")
-  (if select
-	  (setq root-file (read-file-name "Open a root file in proj: "))
-	(setq root-file "./GTAGS"))
-  (create-spec-ede-project root-file t)
-  ;; (find-sln root-file)
-  (message "Known EDE Project Created." ))
+	 (defun create-known-ede-project(&optional select)
+	   (interactive "P")
+	   (if select
+		   (setq root-file (read-file-name "Open a root file in proj: "))
+		 (setq root-file "./GTAGS"))
+	   (create-spec-ede-project root-file t)
+	   ;; (find-sln root-file)
+	   (message "Known EDE Project Created." ))
 
-(defun create-unknown-ede-project(&optional select)
-  (interactive "P")
-  (if select
-	  (setq root-file (read-file-name "Open a root file in proj: "))
-	(setq root-file "./GTAGS"))
-  (create-spec-ede-project root-file nil)
-  ;; (find-sln root-file)
-  (message "UnKnown EDE Project Created." ))
+	 (defun create-unknown-ede-project(&optional select)
+	   (interactive "P")
+	   (if select
+		   (setq root-file (read-file-name "Open a root file in proj: "))
+		 (setq root-file "./GTAGS"))
+	   (create-spec-ede-project root-file nil)
+	   ;; (find-sln root-file)
+	   (message "UnKnown EDE Project Created." ))
 
-(global-set-key (kbd "C-c e") 'create-known-ede-project)
-(global-set-key (kbd "C-c u") 'create-unknown-ede-project)
+	 (global-set-key (kbd "C-c e") 'create-known-ede-project)
+	 (global-set-key (kbd "C-c u") 'create-unknown-ede-project)
 
-(create-spec-ede-project "e:/projects/tempspace/test4c/GTAGS" nil)
-(create-spec-ede-project "e:/projects/eNavi2_800X480_ChangeUI/GTAGS" t)
+	 (create-spec-ede-project "e:/projects/tempspace/test4c/GTAGS" nil)
+	 (create-spec-ede-project "e:/projects/eNavi2_800X480_ChangeUI/GTAGS" t)
+	 ))
 
 ;;auto-complete
 (require 'auto-complete-config)
@@ -418,10 +437,18 @@
 	 (define-key company-active-map (kbd "M-s") 'company-filter-candidates)
 	 ;; (add-to-list 'company-backends 'company-c-headers)
 	 ))
+
 ;;yasnippet
-(require 'yasnippet)
+(autoload 'yas-global-mode "yasnippet" nil t)
+(autoload 'yas-minor-mode "yasnippet" nil t)
 (setq yas-snippet-dirs (concat site-lisp-dir "\\yasnippet-master\\snippets"))
-(yas-global-mode 1)
+
+(setq yas-glo-on nil)
+(defun yas-glo-on ()
+  (interactive "P")
+  (unless yas-glo-on (yas-global-mode 1))
+  (setq yas-glo-on t)
+  )
 
 ;; sln解析
 (autoload 'find-sln "sln-mode" nil t)
@@ -549,21 +576,20 @@
 	 ))
 
 ;; back button
-(require 'back-button)
-(back-button-mode 1)
+;; (require 'back-button)
+;; (back-button-mode 1)
 
 ;; flycheck
-(require 'flycheck )
+(autoload 'flycheck-mode "flycheck" nil t)
 (global-set-key (kbd "M-g l") 'flycheck-list-errors)
 (global-set-key (kbd "<M-f5>") 'flycheck-buffer)
-(global-flycheck-mode t)
 
 ;; irony-mode
 (eval-after-load "cc-mode"
   '(progn
 	 (require 'irony-cdb nil t)
 	 (require 'irony-eldoc )
-	 (require 'flycheck-irony )))
+	 ))
 
 (eval-after-load "irony"
   '(progn
@@ -577,7 +603,9 @@
 	 (add-hook 'irony-mode-hook 'irony-eldoc)
 	 (setq w32-pipe-read-delay 0)))
 (eval-after-load 'flycheck
-  '(add-to-list 'flycheck-checkers 'irony))
+  '(progn
+	 (require 'flycheck-irony )
+	 (add-to-list 'flycheck-checkers 'irony)))
 
 ;; 行号性能改善
 (require 'nlinum )
@@ -782,6 +810,7 @@ If FULL is t, copy full file name."
   (local-set-key (kbd "<M-f12>") 'semantic-analyze-proto-impl-toggle)
   (local-set-key (kbd "<M-down>") 'senator-next-tag)
   (local-set-key (kbd "<M-up>") 'senator-previous-tag)
+  (local-set-key (kbd "<C-f9>") 'semantic-pop-tag-mark)
   )
 
 ;;hide ^M
@@ -870,26 +899,64 @@ If FULL is t, copy full file name."
 	 ))
 
 ;; builtin cedet mru bookmark 加强
-(defadvice push-mark (around semantic-mru-bookmark activate)
-  "Push a mark at LOCATION with NOMSG and ACTIVATE passed to `push-mark'.
-If `semantic-mru-bookmark-mode' is active, also push a tag onto
-the mru bookmark stack."
-  (semantic-mrub-push semantic-mru-bookmark-ring
-					  (point)
-					  'mark)
-    ad-do-it)
-(defun semantic-ia-fast-jump-back ()
-  (interactive)
-  (if (ring-empty-p (oref semantic-mru-bookmark-ring ring))
-	  (error "Semantic Bookmark ring is currently empty"))
-  (let* ((ring (oref semantic-mru-bookmark-ring ring))
-		 (alist (semantic-mrub-ring-to-assoc-list ring))
-		 (first (cdr (car alist))))
-	(if (semantic-equivalent-tag-p (oref first tag) (semantic-current-tag))
-		(setq first (cdr (car (cdr alist)))))
-	(semantic-mrub-switch-tags first)))
+(eval-after-load "cc-mode"
+  '(progn
+	 (defvar semantic-tags-location-ring (make-ring 20))
+	 
+	 (defun semantic-pop-tag-mark ()             
+	   "popup the tag save by semantic-goto-definition"   
+	   (interactive)                                                    
+	   (if (ring-empty-p semantic-tags-location-ring)                   
+		   (message "%s" "No more tags available")                      
+		 (let* ((marker (ring-remove semantic-tags-location-ring 0))    
+				(buff (marker-buffer marker))                        
+				(pos (marker-position marker)))                   
+		   (if (not buff)                                               
+			   (message "Buffer has been deleted")                    
+			 (switch-to-buffer buff)                                    
+			 (goto-char pos))                                           
+		   (set-marker marker nil nil))))
+	 
+	 (defadvice semantic-ia-fast-jump (around semantic-ia-fast-jump-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker))
+	   ad-do-it)
 
-(global-set-key (kbd "<C-f11>") 'semantic-ia-fast-jump-back)
+	 (defadvice semantic-complete-jump (around semantic-complete-jump-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker))
+	   ad-do-it)
+
+	 (defadvice semantic-symref-just-symbol (around semantic-symref-just-symbol-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker))
+	   ad-do-it)
+
+	 (defadvice semantic-symref-anything (around semantic-symref-anything-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker))
+	   ad-do-it)
+
+	 (defadvice semantic-symref-tag (around semantic-symref-tag-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker))
+	   ad-do-it)
+
+	 (defadvice helm-gtags-dwim (around helm-gtags-dwim-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker))
+	   ad-do-it)
+
+	 (defadvice helm-gtags-find-rtag (around helm-gtags-find-rtag-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker))
+	   ad-do-it)
+
+	 (defadvice helm-gtags-find-tag (around helm-gtags-find-tag-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker))
+	   ad-do-it)
+	 ))
 
 ;; electric-pair-mode tweak 单词后的双引号不要pair
 (defun my-electric-pair-conservative-inhibit (char)
@@ -912,6 +979,7 @@ the mru bookmark stack."
 (defun set-c-word-mode ()
   ""
   (interactive)
+  (require 'cc-mode)
   (set-syntax-table c++-mode-syntax-table)
   (modify-syntax-entry ?_ "w")
   (message "set-c-word-mode"))
@@ -1016,13 +1084,17 @@ the mru bookmark stack."
 			(company-mode 1)
 			(remove-function (local 'eldoc-documentation-function) 'ggtags-eldoc-function)
 			(abbrev-mode 0)
-			;; (superword-mode)                ;连字符不分割单词,影响move和edit    相对subword-mode
+			(flycheck-mode 1)
+			(yas-glo-on)
+			;; (superword-mode)                ;连字符不分割单词,影响move和edit，但是鼠标双击选择不管用 ，相对subword-mode
 			))
 
 (add-hook 'emacs-lisp-mode-hook
 		  (lambda ()
 			(modify-syntax-entry ?- "w")
 			(setup-program-keybindings)
+			(flycheck-mode 1)
+			(yas-glo-on)
 			))
 
 (dolist (hook '(c-mode-common-hook lua-mode-hook objc-mode-hook project-buffer-mode-hook dired-mode-hook))
@@ -1050,6 +1122,7 @@ the mru bookmark stack."
 			(define-key comint-mode-map (kbd "M-,") 'comint-next-matching-input-from-input)
 			(define-key comint-mode-map (kbd "<up>") 'comint-previous-input)
 			(define-key comint-mode-map (kbd "<down>") 'comint-next-input)
+			(yas-glo-on)
 			))
 
 (add-hook 'comint-output-filter-functions 'comint-strip-ctrl-m)
@@ -1064,7 +1137,9 @@ the mru bookmark stack."
 	   (add-hook hook
 				 (lambda()
 				   (setq truncate-lines t)
-				   (set-syntax-table c++-mode-syntax-table))))))
+				   (set-syntax-table c++-mode-syntax-table)
+				   (modify-syntax-entry ?_ "w")    ;_ 当成单词的一部分
+				   )))))
 
 (add-hook 'font-lock-mode-hook
 		  (lambda () "DOCSTRING" (interactive)
@@ -1138,3 +1213,6 @@ the mru bookmark stack."
 (global-set-key (kbd "C-+") 'whitespace-cleanup)
 ;; hide/show
 (global-set-key (kbd "M-[") 'hs-toggle-hiding)
+;; rgrep
+(global-set-key (kbd "<C-f5>") 'rgrep)
+(global-set-key (kbd "<C-S-f5>") 'lgrep)
