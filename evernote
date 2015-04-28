@@ -28,3 +28,4 @@ CEDET的修改：4.1 修改cedet-global.el，添加
 +              ((eq texttype 'symbolname)
 +               "s")
             4.2 在ect/srecode中修改c.srt和doc-cpp.srt
+            4.3 到.emacs.d下把srecode-map.el删除
