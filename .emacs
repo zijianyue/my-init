@@ -375,6 +375,7 @@
 
 	 (create-spec-ede-project "e:/projects/tempspace/test4c/GTAGS" nil)
 	 (create-spec-ede-project "e:/projects/eNavi2_800X480_ChangeUI/GTAGS" t)
+         (create-spec-ede-project "e:/projects/workspace/Clarion_13MY_Dev_For_MM-master/GTAGS" t)
 	 ))
 
 ;;auto-complete
