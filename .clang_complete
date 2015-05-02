@@ -1,4 +1,5 @@
 -std=c++11
+-Wall
 -nostdinc
 -ferror-limit=0
 -I/
@@ -8,7 +9,7 @@
 -I/UPF_Dubhe/Export
 -I/UPF_SMI/Include
 -Ic:/MinGW/lib/gcc/mingw32/4.8.1/include
--IC:/cygwin/usr/include
+-Ic:/MinGW/lib/gcc/mingw32/4.8.1/include/c++
 -ID:/linux/linux-3.18.3/include/uapi
 -include/Service/TG/MM/RM/Include/StdAfx.h
 -includeC:/MinGW/include/limits.h
