@@ -405,28 +405,30 @@
 
 (ac-config-default)
 (setq ac-modes (append '(objc-mode) ac-modes))
-(defun ac-complete-self-insert (arg)
-  ""
-  (interactive "p")
-  (ac-stop)
-  ;; Insert the key
-  (self-insert-command arg)
-  (cond
-   ((ac-complete-irony-async))
-   ((ac-start)))
-  )
 
-(defun ac-complete-self-insert-and-indent (arg)
-  ""
-  (interactive "p")
-  (ac-stop)
-  ;; Insert the key
-  (self-insert-command arg)
-  (cond
-   ((ac-complete-irony-async))
-   ((ac-start)))
-  (c-indent-line-or-region)
-  )
+;; (defun ac-complete-self-insert (arg)
+;;   ""
+;;   (interactive "p")
+;;   (ac-stop)
+;;   ;; Insert the key
+;;   (self-insert-command arg)
+;;   (cond
+;;    ((ac-complete-irony-async))
+;;    ((ac-start)))
+;;   )
+
+;; (defun ac-complete-self-insert-and-indent (arg)
+;;   ""
+;;   (interactive "p")
+;;   (ac-stop)
+;;   ;; Insert the key
+;;   (self-insert-command arg)
+;;   (cond
+;;    ((ac-complete-irony-async))
+;;    ((ac-start)))
+;;   (c-indent-line-or-region)
+;;   )
+
 ;; (define-key ac-mode-map "." 'ac-complete-self-insert)
 ;; (define-key ac-mode-map ">" 'ac-complete-self-insert)
 ;; (define-key ac-mode-map ":" 'ac-complete-self-insert-and-indent)
@@ -439,7 +441,7 @@
   (setq ac-sources (append '(ac-source-semantic) ac-sources))
   )
 
-(define-key irony-mode-map (kbd "M-p") 'ac-complete-irony-async)
+;; (define-key irony-mode-map (kbd "M-p") 'ac-complete-irony-async)
 
 ;; company
 (autoload 'company-mode "company" nil t)
@@ -655,8 +657,12 @@
 (eval-after-load "ace-window"
   '(progn
 	 (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))))
+
+(eval-after-load "ace-jump-mode"
+  '(progn
+	 (setq ace-jump-mode-move-keys (loop for i from ?a to ?z collect i))))
+
 (global-set-key (kbd "M-v") 'ace-window)
-(setq ace-jump-mode-move-keys (loop for i from ?a to ?z collect i))
 (define-key global-map (kbd "M-n") 'ace-jump-word-mode)
 
 
