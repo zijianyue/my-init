@@ -117,6 +117,22 @@
 	 ;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
 	 ))
 
+(eval-after-load "lisp-mode"
+  '(progn
+	 ;; cedet builtin
+	 (if (and (< emacs-minor-version 5)
+			  (eq emacs-major-version 24))
+		 (progn
+		   (require 'semantic )
+		   (require 'semantic/decorate )
+		   ;; (require 'semantic/mru-bookmark )
+		   (semantic-mode t)
+		   (global-semantic-decoration-mode t)
+		   ;; (global-semantic-mru-bookmark-mode t)
+		   (global-semantic-stickyfunc-mode t)
+		   ))))
+
+
 ;;修改标题栏，显示buffer的名字
 (setq frame-title-format "%b [%+] %f")
 (setq icon-title-format "%b [%+] %f")
@@ -233,7 +249,7 @@
  '(grep-find-template
    "\"C:/msys/bin/find.exe\" . <X> -type f <F> -exec grep <C> -nH -F <R> {} \";\"")
  '(grep-template "grep <X> <C> -nH -F <R> <F>")
- '(helm-buffer-max-length 30)
+ '(helm-buffer-max-length 40)
  '(helm-for-files-preferred-list
    (quote
 	(helm-source-buffers-list helm-source-bookmarks helm-source-recentf)))
@@ -312,6 +328,7 @@
 	 (define-key ggtags-highlight-tag-map (kbd "<C-S-mouse-3>") 'ggtags-next-mark)
 	 (define-key ggtags-mode-map (kbd "M-?") 'ggtags-show-definition)
 	 (define-key ggtags-highlight-tag-map (kbd "<mouse-2>") 'ggtags-show-definition)
+	 (define-key ggtags-mode-map (kbd "C-c p") 'ggtags-find-file)
 	 (setq ggtags-mode-line-project-name nil)
 	 ))
 
@@ -380,8 +397,8 @@
 
 ;;auto-complete
 (require 'auto-complete-config)
-(require 'auto-complete-c-headers )
-(require 'ac-irony)
+;; (require 'auto-complete-c-headers )
+;; (require 'ac-irony)
 
 (define-key ac-mode-map  (kbd "M-RET") 'auto-complete)
 (define-key ac-completing-map  (kbd "M-s") 'ac-isearch)
@@ -422,7 +439,7 @@
   (setq ac-sources (append '(ac-source-semantic) ac-sources))
   )
 
-(define-key irony-mode-map (kbd "M-n") 'ac-complete-irony-async)
+(define-key irony-mode-map (kbd "M-p") 'ac-complete-irony-async)
 
 ;; company
 (autoload 'company-mode "company" nil t)
@@ -545,6 +562,9 @@
 (autoload 'helm-resume "helm-config" nil t)
 (autoload 'helm-gtags-mode "helm-gtags" nil t)
 (autoload 'helm-occur "helm-gtags" nil t)
+(autoload 'helm-swoop "helm-swoop" nil t)
+(autoload 'helm-ag-this-file "helm-ag" nil t)
+
 
 (eval-after-load "helm"
   '(progn
@@ -557,7 +577,7 @@
 (global-set-key (kbd "<apps>") 'helm-semantic-or-imenu)
 (global-set-key (kbd "<C-apps>") 'helm-for-files)
 (global-set-key (kbd "<S-apps>") 'helm-resume)
-(global-set-key (kbd "<M-apps>") 'helm-occur)
+(global-set-key (kbd "<M-apps>") 'helm-swoop)
 
 (eval-after-load "helm-gtags"
   '(progn
@@ -573,7 +593,7 @@
 	 (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-next-history)
 	 (define-key helm-gtags-mode-map (kbd "C-|") 'helm-gtags-find-tag-other-window)
 	 (define-key helm-gtags-mode-map (kbd "C-M-,") 'helm-gtags-show-stack)
-	 (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "p") 'helm-gtags-find-files)
+	 (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "a") 'helm-gtags-find-files)
 	 ))
 
 ;; back button
@@ -630,19 +650,26 @@
 ;; ace
 (define-key cua--cua-keys-keymap [(meta v)] nil)
 (autoload 'ace-window "ace-window" nil t)
-(autoload 'ace-jump-char-mode "ace-jump-mode" nil t)
+(autoload 'ace-jump-word-mode "ace-jump-mode" nil t)
 
 (eval-after-load "ace-window"
   '(progn
 	 (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))))
 (global-set-key (kbd "M-v") 'ace-window)
-(define-key global-map (kbd "C-;") 'ace-jump-char-mode)
+(setq ace-jump-mode-move-keys (loop for i from ?a to ?z collect i))
+(define-key global-map (kbd "M-n") 'ace-jump-word-mode)
+
 
 ;; 查看diff
-(require 'diff-hl-margin )
+(autoload 'diff-hl-dired-mode "diff-hl-margin" nil t)
+(autoload 'turn-on-diff-hl-mode "diff-hl-margin" nil t)
+
+(add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
+(add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode)
 
 ;; wgrep
-(autoload 'rgrep "wgrep" nil t)
+(autoload 'wgrep-setup "wgrep")
+(add-hook 'grep-setup-hook 'wgrep-setup)
 (setq wgrep-enable-key "r")
 
 ;; refactor
@@ -658,8 +685,14 @@
 (rich-minority-mode 1)
 
 ;; purpuse 窗口管理
-(require 'window-purpose)
-;; (purpose-mode)
+(autoload 'purpose-mode "window-purpose" nil t)
+(global-set-key (kbd "<C-f10>") 'purpose-mode)
+
+;; fast silver searcher
+(autoload 'ag "ag" nil t)
+(global-set-key (kbd "<C-f9>") 'ag)
+(autoload 'wgrep-ag-setup "wgrep-ag")
+(add-hook 'ag-mode-hook 'wgrep-ag-setup)
 ;;-----------------------------------------------------------自定义函数-----------------------------------------------------------;;
 ;; 资源管理器中打开
 (defun open-in-desktop-select (&optional dired)
@@ -811,7 +844,7 @@ If FULL is t, copy full file name."
   (local-set-key (kbd "<M-f12>") 'semantic-analyze-proto-impl-toggle)
   (local-set-key (kbd "<M-down>") 'senator-next-tag)
   (local-set-key (kbd "<M-up>") 'senator-previous-tag)
-  (local-set-key (kbd "<C-f9>") 'semantic-pop-tag-mark)
+  (local-set-key (kbd "<C-f11>") 'semantic-pop-tag-mark)
   )
 
 ;;hide ^M
@@ -900,7 +933,7 @@ If FULL is t, copy full file name."
 	 ))
 
 ;; builtin cedet mru bookmark 加强
-(eval-after-load "cc-mode"
+(eval-after-load "semantic"
   '(progn
 	 (defvar semantic-tags-location-ring (make-ring 20))
 	 
@@ -957,33 +990,55 @@ If FULL is t, copy full file name."
 	   ""
 	   (ring-insert semantic-tags-location-ring (point-marker))
 	   ad-do-it)
+
+	 (defadvice helm-gtags-select (around helm-gtags-select-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker))
+	   ad-do-it)
+
+	 (defadvice helm-gtags-select-path (around helm-gtags-select-path-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker))
+	   ad-do-it)
+
+	 (defadvice semantic-decoration-include-visit (around semantic-decoration-include-visit-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker))
+	   ad-do-it)
+
+	 (defadvice ag (around ag-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker))
+	   ad-do-it)
+	 
+	 (defadvice rgrep (around rgrep-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker))
+	   ad-do-it)
 	 ))
 
 ;; electric-pair-mode tweak 单词后的双引号不要pair
-(defun my-electric-pair-conservative-inhibit (char)
-  (or
-   ;; I find it more often preferable not to pair when the
-   ;; same char is next.
-   (eq char (char-after))
-   ;; Don't pair up when we insert the second of "" or of ((.
-   (and (eq char (char-before))
-		(eq char (char-before (1- (point)))))
-   ;; I also find it often preferable not to pair next to a word.
-   (eq (char-syntax (following-char)) ?w)
-   (if (eq char 34)						;34是"
-	   (and (not (backward-char))
-			(if (eq (char-syntax (preceding-char)) ?w)
-				(not (forward-char))
-			  (forward-char))))
-   ))
+;; (defun my-electric-pair-conservative-inhibit (char)
+;;   (or
+;;    ;; I find it more often preferable not to pair when the
+;;    ;; same char is next.
+;;    (eq char (char-after))
+;;    ;; Don't pair up when we insert the second of "" or of ((.
+;;    (and (eq char (char-before))
+;; 		(eq char (char-before (1- (point)))))
+;;    ;; I also find it often preferable not to pair next to a word.
+;;    (eq (char-syntax (following-char)) ?w)
+;;    (if (eq char 34)						;34是"
+;; 	   (and (not (backward-char))
+;; 			(if (eq (char-syntax (preceding-char)) ?w)
+;; 				(not (forward-char))
+;; 			  (forward-char))))
+;;    ))
 
 (defun set-c-word-mode ()
   ""
   (interactive)
-  (require 'cc-mode)
-  (set-syntax-table c++-mode-syntax-table)
-  (modify-syntax-entry ?_ "w")
-  (message "set-c-word-mode"))
+  (modify-syntax-entry ?_ "w"))
 
 (global-set-key (kbd "C-_") 'set-c-word-mode)
 
@@ -1080,7 +1135,6 @@ If FULL is t, copy full file name."
 			(setq-local indent-tabs-mode nil)
 			(irony-mode)
 			(ggtags-mode 1)
-			(diff-hl-mode)
 			(eldoc-mode 0)
 			(company-mode 1)
 			(remove-function (local 'eldoc-documentation-function) 'ggtags-eldoc-function)
@@ -1211,7 +1265,7 @@ If FULL is t, copy full file name."
 (global-set-key (kbd "C-,") 'cua-set-mark)
 ;; whitespace
 (global-set-key (kbd "C-=") 'whitespace-mode)
-(global-set-key (kbd "C-+") 'whitespace-cleanup)
+(global-set-key (kbd "C-+") 'whitespace-cleanup-region)
 ;; hide/show
 (global-set-key (kbd "M-[") 'hs-toggle-hiding)
 ;; rgrep
