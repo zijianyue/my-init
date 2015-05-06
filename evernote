@@ -50,3 +50,4 @@ nlinum.el的修改
 												width
 											  nlinum--width))
                         (cdr (window-margins)))))
+7.comment-box功能
