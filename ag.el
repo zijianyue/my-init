@@ -342,7 +342,7 @@ roots."
   (interactive)
   (let ((ag (get-buffer-process (current-buffer))))
     (and ag (eq (process-status ag) 'run)
-         (eq (process-filter ag) (function find-dired-filter))
+         ;; (eq (process-filter ag) (function find-dired-filter))
          (condition-case nil
              (delete-process ag)
            (error nil)))))
