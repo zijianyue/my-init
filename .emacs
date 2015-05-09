@@ -212,7 +212,6 @@
  '(ac-trigger-key "TAB")
  '(ac-use-menu-map t)
  '(ad-redefinition-action (quote accept))
- '(ag-highlight-search t)
  '(auto-save-default nil)
  '(autopair-blink nil)
  '(back-button-local-keystrokes nil)
@@ -700,15 +699,32 @@
 
 ;; fast silver searcher
 (autoload 'ag "ag" nil t)
+(autoload 'ag-this-file "ag" nil t)
 (autoload 'ag-dired "ag" nil t)
 (autoload 'ag-dired-regexp "ag" nil t)
 
+(global-set-key (kbd "<f9>") 'ag-this-file)
 (global-set-key (kbd "<C-f9>") 'ag)
 (global-set-key (kbd "<S-f9>") 'ag-dired)
 (global-set-key (kbd "<C-S-f9>") 'ag-dired-regexp)
+(global-set-key (kbd "<C-M-f9>") 'ag-kill-buffers)
 
 (autoload 'wgrep-ag-setup "wgrep-ag")
 (add-hook 'ag-mode-hook 'wgrep-ag-setup)
+
+(eval-after-load "ag"
+  '(progn
+	 (defun ag-this-file (string file-regex directory)
+	   ""
+	   (interactive (list (grep-read-regexp)
+						  (setq file-regex (list :file-regex
+												(concat (file-name-nondirectory (buffer-file-name) ) "$")))
+						  (setq directory default-directory)))
+	   (setq arg-bak ag-arguments)
+	   (add-to-list 'ag-arguments "-u")
+	   (apply #'ag/search string directory file-regex)
+	   (setq ag-arguments arg-bak)
+	   )))
 ;;-----------------------------------------------------------自定义函数-----------------------------------------------------------;;
 ;; 资源管理器中打开
 (defun open-in-desktop-select (&optional dired)
@@ -948,90 +964,97 @@ If FULL is t, copy full file name."
 		 (semantic-symref-produce-list-on-results res symbol)))
 	 ))
 
-;; builtin cedet mru bookmark 加强
-(eval-after-load "semantic"
-  '(progn
-	 (defvar semantic-tags-location-ring (make-ring 20))
-	 
-	 (defun semantic-pop-tag-mark ()             
-	   "popup the tag save by semantic-goto-definition"   
-	   (interactive)                                                    
-	   (if (ring-empty-p semantic-tags-location-ring)                   
-		   (message "%s" "No more tags available")                      
-		 (let* ((marker (ring-remove semantic-tags-location-ring 0))    
-				(buff (marker-buffer marker))                        
-				(pos (marker-position marker)))                   
-		   (if (not buff)                                               
-			   (message "Buffer has been deleted")                    
-			 (switch-to-buffer buff)                                    
-			 (goto-char pos))                                           
-		   (set-marker marker nil nil))))
-	 
-	 (defadvice semantic-ia-fast-jump (around semantic-ia-fast-jump-mru activate)
-	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker))
-	   ad-do-it)
+;; 自定义的mru
+(defvar semantic-tags-location-ring (make-ring 30))
 
-	 (defadvice semantic-complete-jump (around semantic-complete-jump-mru activate)
-	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker))
-	   ad-do-it)
+(defun semantic-pop-tag-mark ()             
+  "popup the tag save by semantic-goto-definition"   
+  (interactive)                                                    
+  (if (ring-empty-p semantic-tags-location-ring)                   
+	  (message "%s" "No more tags available")                      
+	(let* ((marker (ring-remove semantic-tags-location-ring 0))    
+		   (buff (marker-buffer marker))                        
+		   (pos (marker-position marker)))                   
+	  (if (not buff)                                               
+		  (message "Buffer has been deleted")                    
+		(switch-to-buffer buff)                                    
+		(goto-char pos))                                           
+	  (set-marker marker nil nil))))
 
-	 (defadvice semantic-symref-just-symbol (around semantic-symref-just-symbol-mru activate)
-	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker))
-	   ad-do-it)
+(defadvice semantic-ia-fast-jump (around semantic-ia-fast-jump-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
 
-	 (defadvice semantic-symref-anything (around semantic-symref-anything-mru activate)
-	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker))
-	   ad-do-it)
+(defadvice semantic-complete-jump (around semantic-complete-jump-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
 
-	 (defadvice semantic-symref-tag (around semantic-symref-tag-mru activate)
-	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker))
-	   ad-do-it)
+(defadvice semantic-symref-just-symbol (around semantic-symref-just-symbol-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
 
-	 (defadvice helm-gtags-dwim (around helm-gtags-dwim-mru activate)
-	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker))
-	   ad-do-it)
+(defadvice semantic-symref-anything (around semantic-symref-anything-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
 
-	 (defadvice helm-gtags-find-rtag (around helm-gtags-find-rtag-mru activate)
-	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker))
-	   ad-do-it)
+(defadvice semantic-symref-tag (around semantic-symref-tag-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
 
-	 (defadvice helm-gtags-find-tag (around helm-gtags-find-tag-mru activate)
-	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker))
-	   ad-do-it)
+(defadvice helm-gtags-dwim (around helm-gtags-dwim-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
 
-	 (defadvice helm-gtags-select (around helm-gtags-select-mru activate)
-	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker))
-	   ad-do-it)
+(defadvice helm-gtags-find-rtag (around helm-gtags-find-rtag-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
 
-	 (defadvice helm-gtags-select-path (around helm-gtags-select-path-mru activate)
-	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker))
-	   ad-do-it)
+(defadvice helm-gtags-find-tag (around helm-gtags-find-tag-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
 
-	 (defadvice semantic-decoration-include-visit (around semantic-decoration-include-visit-mru activate)
-	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker))
-	   ad-do-it)
+(defadvice helm-gtags-select (around helm-gtags-select-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
 
-	 (defadvice ag (around ag-mru activate)
-	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker))
-	   ad-do-it)
-	 
-	 (defadvice rgrep (around rgrep-mru activate)
-	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker))
-	   ad-do-it)
-	 ))
+(defadvice helm-gtags-select-path (around helm-gtags-select-path-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
+
+(defadvice semantic-decoration-include-visit (around semantic-decoration-include-visit-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
+
+(defadvice ag (around ag-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
+
+(defadvice ag-this-file (around ag-this-file-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
+
+(defadvice occur (around occur-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
+
+(defadvice rgrep (around rgrep-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
 
 ;; electric-pair-mode tweak 单词后的双引号不要pair
 ;; (defun my-electric-pair-conservative-inhibit (char)
@@ -1238,7 +1261,7 @@ If FULL is t, copy full file name."
 (global-set-key (kbd "<C-M-f7>") 'kill-find)
 
 ;; 窗口管理
-(global-set-key (kbd "<f9>") 'other-window)
+;; (global-set-key (kbd "<f9>") 'other-window)
 (global-set-key (kbd "<M-f9>") 'delete-window)
 (global-set-key (kbd "<M-f4>") 'kill-this-buffer)
 (global-set-key (kbd "<M-S-down>") 'windmove-down)
@@ -1287,3 +1310,5 @@ If FULL is t, copy full file name."
 ;; rgrep
 (global-set-key (kbd "<C-f5>") 'rgrep)
 (global-set-key (kbd "<C-S-f5>") 'lgrep)
+;; diff
+(global-set-key (kbd "C-;") 'ediff-buffers)
