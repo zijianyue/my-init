@@ -274,6 +274,7 @@
  '(make-backup-files nil)
  '(mode-require-final-newline nil)
  '(mouse-wheel-progressive-speed nil)
+ '(occur-mode-hook (quote (turn-on-font-lock next-error-follow-minor-mode)))
  '(password-cache-expiry nil)
  '(pcmpl-gnu-tarfile-regexp "")
  '(recentf-auto-cleanup 300)
@@ -394,7 +395,7 @@
 
 	 (create-spec-ede-project "e:/projects/tempspace/test4c/GTAGS" nil)
 	 (create-spec-ede-project "e:/projects/eNavi2_800X480_ChangeUI/GTAGS" t)
-         (create-spec-ede-project "e:/projects/workspace/Clarion_13MY_Dev_For_MM-master/GTAGS" t)
+	 (create-spec-ede-project "e:/projects/Clarion_13MY_Dev_For_MM/GTAGS" t)
 	 ))
 
 ;;auto-complete
@@ -699,12 +700,14 @@
 
 ;; fast silver searcher
 (autoload 'ag "ag" nil t)
+(autoload 'ag-project "ag" nil t)
 (autoload 'ag-this-file "ag" nil t)
 (autoload 'ag-dired "ag" nil t)
 (autoload 'ag-dired-regexp "ag" nil t)
 
 (global-set-key (kbd "<f9>") 'ag-this-file)
 (global-set-key (kbd "<C-f9>") 'ag)
+(global-set-key (kbd "<M-S-f9>") 'ag-project)
 (global-set-key (kbd "<S-f9>") 'ag-dired)
 (global-set-key (kbd "<C-S-f9>") 'ag-dired-regexp)
 (global-set-key (kbd "<C-M-f9>") 'ag-kill-buffers)
@@ -941,8 +944,8 @@ If FULL is t, copy full file name."
 		 ;; Gather results and tags
 		 (message "Gathering References...")
 		 (setq res (cond
-					((semantic-symref-find-references-by-name symbol))
-					((semantic-symref-find-references-by-symbolname symbol))))
+					((semantic-symref-find-references-by-symbolname symbol))
+					((semantic-symref-find-references-by-name symbol))))
 		 (semantic-symref-produce-list-on-results res symbol)))
 
 	 (defun semantic-symref-anything (&optional text)
