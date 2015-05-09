@@ -944,8 +944,8 @@ If FULL is t, copy full file name."
 		 ;; Gather results and tags
 		 (message "Gathering References...")
 		 (setq res (cond
-					((semantic-symref-find-references-by-symbolname symbol))
-					((semantic-symref-find-references-by-name symbol))))
+					((semantic-symref-find-references-by-name symbol))
+					((semantic-symref-find-references-by-symbolname symbol))))
 		 (semantic-symref-produce-list-on-results res symbol)))
 
 	 (defun semantic-symref-anything (&optional text)
