@@ -106,6 +106,7 @@
 	 ;; (global-semantic-mru-bookmark-mode t)
 	 (global-semantic-stickyfunc-mode t)
 	 (global-srecode-minor-mode t)
+	 (global-semantic-highlight-edits-mode t)
 
 	 ;; (setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
 	 ;; let cedet call ctags to find things which cedet can not find
@@ -211,6 +212,7 @@
  '(ac-trigger-key "TAB")
  '(ac-use-menu-map t)
  '(ad-redefinition-action (quote accept))
+ '(ag-highlight-search t)
  '(auto-save-default nil)
  '(autopair-blink nil)
  '(back-button-local-keystrokes nil)
@@ -248,6 +250,8 @@
  '(grep-find-template
    "\"C:/msys/bin/find.exe\" . <X> -type f <F> -exec grep <C> -nH -F <R> {} \";\"")
  '(grep-template "grep <X> <C> -nH -F <R> <F>")
+ '(helm-ag-base-command "ag --nocolor --nogroup -S -Q ")
+ '(helm-ag-fuzzy-match t)
  '(helm-buffer-max-length 40)
  '(helm-for-files-preferred-list
    (quote
@@ -578,7 +582,8 @@
 (global-set-key (kbd "<apps>") 'helm-semantic-or-imenu)
 (global-set-key (kbd "<C-apps>") 'helm-for-files)
 (global-set-key (kbd "<S-apps>") 'helm-resume)
-(global-set-key (kbd "<M-apps>") 'helm-swoop)
+(global-set-key (kbd "<M-apps>") 'helm-ag-this-file)
+(global-set-key (kbd "M-p") 'helm-swoop)
 
 (eval-after-load "helm-gtags"
   '(progn
@@ -651,7 +656,7 @@
 ;; ace
 (define-key cua--cua-keys-keymap [(meta v)] nil)
 (autoload 'ace-window "ace-window" nil t)
-(autoload 'ace-jump-word-mode "ace-jump-mode" nil t)
+(autoload 'ace-jump-char-mode "ace-jump-mode" nil t)
 
 (eval-after-load "ace-window"
   '(progn
@@ -662,7 +667,7 @@
 	 (setq ace-jump-mode-move-keys (loop for i from ?a to ?z collect i))))
 
 (global-set-key (kbd "M-v") 'ace-window)
-(define-key global-map (kbd "M-n") 'ace-jump-word-mode)
+(define-key global-map (kbd "M-n") 'ace-jump-char-mode)
 
 
 ;; 查看diff
