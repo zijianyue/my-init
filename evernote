@@ -51,3 +51,4 @@ nlinum.el的修改
 											  nlinum--width))
                         (cdr (window-margins)))))
 7.comment-box功能
+8.<M-home>和<M-end>可以将其他窗口的光标移到开始或结尾
