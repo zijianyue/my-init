@@ -216,7 +216,6 @@
  '(back-button-local-keystrokes nil)
  '(back-button-mode-lighter "")
  '(backward-delete-char-untabify-method nil)
- '(bm-highlight-style (quote bm-highlight-only-fringe))
  '(bookmark-save-flag 1)
  '(bookmark-sort-flag nil)
  '(column-number-mode t)
@@ -436,7 +435,7 @@
 (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
   ;; (setq ac-sources (delete 'ac-source-gtags ac-sources))
-  (setq ac-sources (append '(ac-source-c-headers) ac-sources))
+  ;; (setq ac-sources (append '(ac-source-c-headers) ac-sources))
   ;; (setq ac-sources (append '(ac-source-irony) ac-sources))
   (setq ac-sources (append '(ac-source-semantic) ac-sources))
   )
@@ -595,7 +594,7 @@
 	 (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-next-history)
 	 (define-key helm-gtags-mode-map (kbd "C-|") 'helm-gtags-find-tag-other-window)
 	 (define-key helm-gtags-mode-map (kbd "C-M-,") 'helm-gtags-show-stack)
-	 (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "a") 'helm-gtags-find-files)
+	 (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "v") 'helm-gtags-find-files)
 	 ))
 
 ;; back button
@@ -696,7 +695,13 @@
 
 ;; fast silver searcher
 (autoload 'ag "ag" nil t)
+(autoload 'ag-dired "ag" nil t)
+(autoload 'ag-dired-regexp "ag" nil t)
+
 (global-set-key (kbd "<C-f9>") 'ag)
+(global-set-key (kbd "<S-f9>") 'ag-dired)
+(global-set-key (kbd "<C-S-f9>") 'ag-dired-regexp)
+
 (autoload 'wgrep-ag-setup "wgrep-ag")
 (add-hook 'ag-mode-hook 'wgrep-ag-setup)
 ;;-----------------------------------------------------------自定义函数-----------------------------------------------------------;;
