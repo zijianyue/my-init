@@ -20,7 +20,8 @@
 (server-start)
 
 ;; 环境变量
-(setenv "MSYS" "C:\\msys\\bin")
+;; (setenv "MSYS" "C:\\msys\\bin")
+(setenv "MSYS" "C:\\MinGW\\msys\\1.0\\bin")
 (setenv "MINGW" "C:\\MinGW\\bin")
 (setenv "PUTTY" "C:\\PuTTY")
 (setenv "LLVM" "C:\\Program Files (x86)\\LLVM\\bin")
@@ -28,6 +29,7 @@
 (setenv "GTAGSBIN" "c:\\gtags\\bin")
 (setenv "PYTHON" "C:\\Python27")
 (setenv "CYGWIN" "C:\\cygwin\\bin")
+(setenv "GITBIN" "C:\\PortableGit-1.9.5-preview20150319\\bin")
 
 
 (setenv "PATH"
@@ -46,6 +48,8 @@
 		 path-separator
 		 (getenv "PYTHON")
 		 path-separator
+		 (getenv "GITBIN")
+		 path-separator
 		 ;; (getenv "CYGWIN")
 		 ;; path-separator
 		 (getenv "PATH")))
@@ -56,6 +60,7 @@
 (add-to-list 'exec-path (getenv "CMAKE"))
 (add-to-list 'exec-path (getenv "GTAGSBIN"))
 (add-to-list 'exec-path (getenv "PYTHON"))
+(add-to-list 'exec-path (getenv "GITBIN"))
 ;; (add-to-list 'exec-path (getenv "CYGWIN"))
 
 
@@ -66,8 +71,8 @@
   (setq site-lisp-dir (concat (getenv "emacs_dir") "\\share\\emacs\\site-lisp")))
 
 ;; windows的find跟gnu 的grep有冲突
-(setq find-program "\"C:/msys/bin/find.exe\"")
-
+(setq find-program (concat "\"" (getenv "MSYS") "\\find.exe\""))
+(setq grep-program "grep -nH -F")		;按普通字符串搜索
 ;; 默认目录
 (setq default-directory "~")
 
@@ -246,8 +251,6 @@
  '(frame-resize-pixelwise t)
  '(ggtags-highlight-tag-delay 16)
  '(global-auto-revert-mode t)
- '(grep-find-template
-   "\"C:/msys/bin/find.exe\" . <X> -type f <F> -exec grep <C> -nH -F <R> {} \";\"")
  '(grep-template "grep <X> <C> -nH -F <R> <F>")
  '(helm-ag-base-command "ag --nocolor --nogroup -S -Q ")
  '(helm-ag-fuzzy-match t)
@@ -699,17 +702,17 @@
 (global-set-key (kbd "<C-f10>") 'purpose-mode)
 
 ;; fast silver searcher
-(autoload 'ag "ag" nil t)
-(autoload 'ag-project "ag" nil t)
+(autoload 'my-ag "ag" nil t)
+(autoload 'my-ag-project "ag" nil t)
 (autoload 'ag-this-file "ag" nil t)
 (autoload 'ag-dired "ag" nil t)
 (autoload 'ag-dired-regexp "ag" nil t)
 
 (global-set-key (kbd "<f9>") 'ag-this-file)
-(global-set-key (kbd "<C-f9>") 'ag)
-(global-set-key (kbd "<M-S-f9>") 'ag-project)
-(global-set-key (kbd "<S-f9>") 'ag-dired)
-(global-set-key (kbd "<C-S-f9>") 'ag-dired-regexp)
+(global-set-key (kbd "<C-f9>") 'my-ag)
+(global-set-key (kbd "<C-S-f9>") 'my-ag-project)
+(global-set-key (kbd "<S-f9>") 'ag-dired-regexp)
+(global-set-key (kbd "<M-S-f9>") 'ag-project-dired-regexp)
 (global-set-key (kbd "<C-M-f9>") 'ag-kill-buffers)
 
 (autoload 'wgrep-ag-setup "wgrep-ag")
@@ -717,6 +720,17 @@
 
 (eval-after-load "ag"
   '(progn
+	 (defun my-ag (string directory)
+	   ""
+	   (interactive (list (grep-read-regexp)
+						  (read-directory-name "Directory: ")))
+	   (ag/search string directory))
+
+	 (defun my-ag-project (string)
+	   ""
+	   (interactive (list (grep-read-regexp)))
+	   (ag/search string (ag/project-root default-directory)))
+	 
 	 (defun ag-this-file (string file-regex directory)
 	   ""
 	   (interactive (list (grep-read-regexp)
