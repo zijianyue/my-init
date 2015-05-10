@@ -20,8 +20,8 @@
 (server-start)
 
 ;; 环境变量
-;; (setenv "MSYS" "C:\\msys\\bin")
-(setenv "MSYS" "C:\\MinGW\\msys\\1.0\\bin")
+(setenv "MSYS" "C:\\msys\\bin")
+;; (setenv "MSYS" "C:\\MinGW\\msys\\1.0\\bin")
 (setenv "MINGW" "C:\\MinGW\\bin")
 (setenv "PUTTY" "C:\\PuTTY")
 (setenv "LLVM" "C:\\Program Files (x86)\\LLVM\\bin")
@@ -29,7 +29,6 @@
 (setenv "GTAGSBIN" "c:\\gtags\\bin")
 (setenv "PYTHON" "C:\\Python27")
 (setenv "CYGWIN" "C:\\cygwin\\bin")
-(setenv "GITBIN" "C:\\PortableGit-1.9.5-preview20150319\\bin")
 
 
 (setenv "PATH"
@@ -48,8 +47,6 @@
 		 path-separator
 		 (getenv "PYTHON")
 		 path-separator
-		 (getenv "GITBIN")
-		 path-separator
 		 ;; (getenv "CYGWIN")
 		 ;; path-separator
 		 (getenv "PATH")))
@@ -60,7 +57,6 @@
 (add-to-list 'exec-path (getenv "CMAKE"))
 (add-to-list 'exec-path (getenv "GTAGSBIN"))
 (add-to-list 'exec-path (getenv "PYTHON"))
-(add-to-list 'exec-path (getenv "GITBIN"))
 ;; (add-to-list 'exec-path (getenv "CYGWIN"))
 
 
@@ -301,6 +297,7 @@
  '(undo-outer-limit 20000000)
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
  '(user-full-name "gezijian")
+ '(vc-svn-program "C:\\Program Files\\TortoiseSVN\\bin\\svn")
  '(whitespace-line-column 121)
  '(winner-mode t))
 (custom-set-faces
