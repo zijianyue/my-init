@@ -280,7 +280,7 @@
  '(occur-mode-hook (quote (turn-on-font-lock next-error-follow-minor-mode)))
  '(password-cache-expiry nil)
  '(pcmpl-gnu-tarfile-regexp "")
- '(recentf-auto-cleanup 300)
+ '(recentf-auto-cleanup 600)
  '(rm-blacklist
    (quote
 	(" hl-p" " yas" " hs" " Ifdef" " pair" " HelmGtags" " GG" " company" " ElDoc" " Irony" " AC")))
@@ -402,52 +402,28 @@
 	 ))
 
 ;;auto-complete
-(require 'auto-complete-config)
-;; (require 'auto-complete-c-headers )
-;; (require 'ac-irony)
+(eval-after-load "prog-mode"
+  '(progn
+	 (require 'auto-complete-config)
+	 ;; (require 'auto-complete-c-headers )
+	 ;; (require 'ac-irony)
 
-(define-key ac-mode-map  (kbd "M-RET") 'auto-complete)
-(define-key ac-completing-map  (kbd "M-s") 'ac-isearch)
+	 (define-key ac-mode-map  (kbd "M-RET") 'auto-complete)
+	 (define-key ac-completing-map  (kbd "M-s") 'ac-isearch)
 
-(ac-config-default)
-(setq ac-modes (append '(objc-mode) ac-modes))
+	 (ac-config-default)
+	 (setq ac-modes (append '(objc-mode) ac-modes))
 
-;; (defun ac-complete-self-insert (arg)
-;;   ""
-;;   (interactive "p")
-;;   (ac-stop)
-;;   ;; Insert the key
-;;   (self-insert-command arg)
-;;   (cond
-;;    ((ac-complete-irony-async))
-;;    ((ac-start)))
-;;   )
+	 (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
+	 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
+	   ;; (setq ac-sources (delete 'ac-source-gtags ac-sources))
+	   ;; (setq ac-sources (append '(ac-source-c-headers) ac-sources))
+	   ;; (setq ac-sources (append '(ac-source-irony) ac-sources))
+	   (setq ac-sources (append '(ac-source-semantic) ac-sources))
+	   )
 
-;; (defun ac-complete-self-insert-and-indent (arg)
-;;   ""
-;;   (interactive "p")
-;;   (ac-stop)
-;;   ;; Insert the key
-;;   (self-insert-command arg)
-;;   (cond
-;;    ((ac-complete-irony-async))
-;;    ((ac-start)))
-;;   (c-indent-line-or-region)
-;;   )
-
-;; (define-key ac-mode-map "." 'ac-complete-self-insert)
-;; (define-key ac-mode-map ">" 'ac-complete-self-insert)
-;; (define-key ac-mode-map ":" 'ac-complete-self-insert-and-indent)
-
-(setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
-(defadvice ac-cc-mode-setup(after my-ac-setup activate)
-  ;; (setq ac-sources (delete 'ac-source-gtags ac-sources))
-  ;; (setq ac-sources (append '(ac-source-c-headers) ac-sources))
-  ;; (setq ac-sources (append '(ac-source-irony) ac-sources))
-  (setq ac-sources (append '(ac-source-semantic) ac-sources))
-  )
-
-;; (define-key irony-mode-map (kbd "M-p") 'ac-complete-irony-async)
+	 ;; (define-key irony-mode-map (kbd "M-p") 'ac-complete-irony-async)
+	 ))
 
 ;; company
 (autoload 'company-mode "company" nil t)
