@@ -1,5 +1,4 @@
-1.
-pscp problem when called from bash 
+* pscp problem when called from bash 
 
 Hi,
 using pscp from "cmd" in Windows woks well but when it is used from bash, host:path is not correctly interpreted, it needs to add an additional / before the path to be well interpreted.
@@ -13,28 +12,28 @@ pscp -v myFile mylogin@myHost://tmp/myDir
 works well (with message
 Looking up host "myHost")
 
-2.
-srecodeç¼–è¾‘æ¨¡å¼C-c c-cæ˜¯ç¡®è®¤ä¿®æ”¹ç”Ÿæ•ˆ
+* srecode±à¼­Ä£Ê½C-c c-cÊÇÈ·ÈÏĞŞ¸ÄÉúĞ§
 
-3.
-diredä¸­Så³dired-do-symlinkå¯ä»¥ç»™exeåˆ›å»ºå¿«æ·æ–¹å¼ï¼ˆsymlink or soft linkï¼‰ï¼Œå¹¶æ”¾åˆ°æŒ‡å®šä½ç½®ã€‚
-å®‰è£…SmartGitæŠŠC:\Program Files\SmartGit\git\bin\git.exeåˆ›å»ºsymlinkåˆ°c:\mingw\msys\1.0\binä¸‹ï¼Œ
-è¿™æ ·å°±ç›¸å½“äºmsysä¸­æœ‰äº†gitå‘½ä»¤
+* diredÖĞS¼´dired-do-symlink¿ÉÒÔ¸øexe´´½¨¿ì½İ·½Ê½£¨symlink or soft link£©£¬²¢·Åµ½Ö¸¶¨Î»ÖÃ¡£
+°²×°SmartGit°ÑC:\Program Files\SmartGit\git\bin\git.exe´´½¨symlinkµ½c:\mingw\msys\1.0\binÏÂ£¬
+ÕâÑù¾ÍÏàµ±ÓÚmsysÖĞÓĞÁËgitÃüÁî
 
-4.
-CEDETçš„ä¿®æ”¹ï¼š4.1 ä¿®æ”¹cedet-global.elï¼Œæ·»åŠ 
+* ²å¼şĞŞ¸Ä
+
+** CEDETµÄĞŞ¸Ä£º
+ 
+*** 1 ĞŞ¸Äcedet-global.el£¬Ìí¼Ó
  		      ((eq texttype 'regexp)
  		       "g")
 +              ((eq texttype 'symbolname)
 +               "s")
-            4.2 åœ¨ect/srecodeä¸­ä¿®æ”¹c.srtå’Œdoc-cpp.srt
-            4.3 åˆ°.emacs.dä¸‹æŠŠsrecode-map.elåˆ é™¤
+*** 2 ÔÚect/srecodeÖĞĞŞ¸Äc.srtºÍdoc-cpp.srt
+*** 3 µ½.emacs.dÏÂ°Ñsrecode-map.elÉ¾³ı
 
-5.
-helm-files.elçš„ä¿®æ”¹
+** helm-files.elµÄĞŞ¸Ä
 ;; (require 'dired-x)
-6.
-nlinum.elçš„ä¿®æ”¹
+
+** nlinum.elµÄĞŞ¸Ä
 (defun nlinum--setup-window ()
   (let ((width (if (display-graphic-p)
                    (ceiling
@@ -50,5 +49,8 @@ nlinum.elçš„ä¿®æ”¹
 												width
 											  nlinum--width))
                         (cdr (window-margins)))))
-7.comment-boxåŠŸèƒ½
-8.<M-home>å’Œ<M-end>å¯ä»¥å°†å…¶ä»–çª—å£çš„å…‰æ ‡ç§»åˆ°å¼€å§‹æˆ–ç»“å°¾
+
+** comment-box¹¦ÄÜ
+¸ø´úÂë¼ÓÉÏ¿é×¢ÊÍ
+
+** <M-home>ºÍ<M-end>¿ÉÒÔ½«ÆäËû´°¿ÚµÄ¹â±êÒÆµ½¿ªÊ¼»ò½áÎ²
