@@ -742,6 +742,9 @@
 	   (apply #'ag/search string directory file-regex)
 	   (setq ag-arguments arg-bak)
 	   )))
+
+;; git
+(setenv "GIT_ASKPASS" "git-gui--askpass") ;解决git push不提示密码的问题
 ;;-----------------------------------------------------------自定义函数-----------------------------------------------------------;;
 ;; 资源管理器中打开
 (defun open-in-desktop-select (&optional dired)
