@@ -54,3 +54,18 @@ Looking up host "myHost")
 给代码加上块注释
 
 ** <M-home>和<M-end>可以将其他窗口的光标移到开始或结尾
+
+* git避免输入用户名密码
+HOME目录下创建.git-credentials
+
+内容是 https://zijianyue:gzjsy1314@github.com
+
+然后进入shell
+
+git config --global credential.helper store
+
+查看.gitconfig文件，会多了一项：
+
+[credential]
+
+    helper = store
