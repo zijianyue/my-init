@@ -202,6 +202,10 @@
 ;; DIRED的时间显示格式
 (setq ls-lisp-format-time-list  '("%Y-%m-%d %H:%M" "%Y-%m-%d %H:%M")
       ls-lisp-use-localized-time-format t)
+;; 优先横分割窗口
+(setq split-width-threshold nil)
+(setq split-height-threshold 0)
+
 ;; 自动添加的设置
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -273,7 +277,6 @@
  '(make-backup-files nil)
  '(mode-require-final-newline nil)
  '(mouse-wheel-progressive-speed nil)
- '(occur-mode-hook (quote (turn-on-font-lock next-error-follow-minor-mode)))
  '(password-cache-expiry nil)
  '(pcmpl-gnu-tarfile-regexp "")
  '(recentf-auto-cleanup 600)
@@ -644,6 +647,7 @@
 
 (global-set-key (kbd "M-v") 'ace-window)
 (define-key global-map (kbd "M-n") 'ace-jump-char-mode)
+(define-key global-map (kbd "M-]") 'ace-jump-char-mode)
 
 
 ;; 查看diff
@@ -683,10 +687,10 @@
 
 (global-set-key (kbd "<f9>") 'ag-this-file)
 (global-set-key (kbd "<C-f9>") 'my-ag)
-(global-set-key (kbd "<C-S-f9>") 'my-ag-project)
+;; (global-set-key (kbd "<C-S-f9>") 'my-ag-project)
 (global-set-key (kbd "<S-f9>") 'ag-dired-regexp)
-(global-set-key (kbd "<M-S-f9>") 'ag-project-dired-regexp)
-(global-set-key (kbd "<C-M-f9>") 'ag-kill-buffers)
+;; (global-set-key (kbd "<M-S-f9>") 'ag-project-dired-regexp)
+(global-set-key (kbd "<C-S-f9>") 'ag-kill-buffers)
 
 (autoload 'wgrep-ag-setup "wgrep-ag")
 (add-hook 'ag-mode-hook 'wgrep-ag-setup)
