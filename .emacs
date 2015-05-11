@@ -203,8 +203,8 @@
 (setq ls-lisp-format-time-list  '("%Y-%m-%d %H:%M" "%Y-%m-%d %H:%M")
       ls-lisp-use-localized-time-format t)
 ;; 优先横分割窗口
-(setq split-width-threshold nil)
-(setq split-height-threshold 0)
+(setq split-width-threshold 1000)	;增大向右分割的要求
+;; (setq split-height-threshold 0)
 
 ;; 自动添加的设置
 (custom-set-variables
@@ -697,6 +697,7 @@
 
 (eval-after-load "ag"
   '(progn
+	 (require 'grep )
 	 (defun my-ag (string directory)
 	   ""
 	   (interactive (list (grep-read-regexp)
@@ -1259,7 +1260,10 @@ If FULL is t, copy full file name."
 
 ;; 窗口管理
 ;; (global-set-key (kbd "<f9>") 'other-window)
-(global-set-key (kbd "<M-f9>") 'delete-window)
+(global-set-key (kbd "M-1") 'delete-other-windows)
+(global-set-key (kbd "M-2") 'split-window-below)
+(global-set-key (kbd "M-3") 'split-window-right)
+(global-set-key (kbd "M-4") 'delete-window)
 (global-set-key (kbd "<M-f4>") 'kill-this-buffer)
 (global-set-key (kbd "<M-S-down>") 'windmove-down)
 (global-set-key (kbd "<M-S-up>") 'windmove-up)
