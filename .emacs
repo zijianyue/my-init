@@ -674,10 +674,6 @@
 (require 'rich-minority)
 (rich-minority-mode 1)
 
-;; purpuse 窗口管理
-(autoload 'purpose-mode "window-purpose" nil t)
-(global-set-key (kbd "<C-f10>") 'purpose-mode)
-
 ;; fast silver searcher
 (autoload 'my-ag "ag" nil t)
 (autoload 'my-ag-project "ag" nil t)
