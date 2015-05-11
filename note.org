@@ -12,28 +12,28 @@ pscp -v myFile mylogin@myHost://tmp/myDir
 works well (with message
 Looking up host "myHost")
 
-* srecode±à¼­Ä£Ê½C-c c-cÊÇÈ·ÈÏĞŞ¸ÄÉúĞ§
+* srecodeç¼–è¾‘æ¨¡å¼C-c c-cæ˜¯ç¡®è®¤ä¿®æ”¹ç”Ÿæ•ˆ
 
-* diredÖĞS¼´dired-do-symlink¿ÉÒÔ¸øexe´´½¨¿ì½İ·½Ê½£¨symlink or soft link£©£¬²¢·Åµ½Ö¸¶¨Î»ÖÃ¡£
-°²×°SmartGit°ÑC:\Program Files\SmartGit\git\bin\git.exe´´½¨symlinkµ½c:\mingw\msys\1.0\binÏÂ£¬
-ÕâÑù¾ÍÏàµ±ÓÚmsysÖĞÓĞÁËgitÃüÁî
+* diredä¸­Så³dired-do-symlinkå¯ä»¥ç»™exeåˆ›å»ºå¿«æ·æ–¹å¼ï¼ˆsymlink or soft linkï¼‰ï¼Œå¹¶æ”¾åˆ°æŒ‡å®šä½ç½®ã€‚
+å®‰è£…SmartGitæŠŠC:\Program Files\SmartGit\git\bin\git.exeåˆ›å»ºsymlinkåˆ°c:\mingw\msys\1.0\binä¸‹ï¼Œ
+è¿™æ ·å°±ç›¸å½“äºmsysä¸­æœ‰äº†gitå‘½ä»¤
 
-* ²å¼şĞŞ¸Ä
+* æ’ä»¶ä¿®æ”¹
 
-** CEDETµÄĞŞ¸Ä£º
+** CEDETçš„ä¿®æ”¹ï¼š
  
-*** 1 ĞŞ¸Äcedet-global.el£¬Ìí¼Ó
+*** 1 ä¿®æ”¹cedet-global.elï¼Œæ·»åŠ 
  		      ((eq texttype 'regexp)
  		       "g")
 +              ((eq texttype 'symbolname)
 +               "s")
-*** 2 ÔÚect/srecodeÖĞĞŞ¸Äc.srtºÍdoc-cpp.srt
-*** 3 µ½.emacs.dÏÂ°Ñsrecode-map.elÉ¾³ı
+*** 2 åœ¨ect/srecodeä¸­ä¿®æ”¹c.srtå’Œdoc-cpp.srt
+*** 3 åˆ°.emacs.dä¸‹æŠŠsrecode-map.elåˆ é™¤
 
-** helm-files.elµÄĞŞ¸Ä
+** helm-files.elçš„ä¿®æ”¹
 ;; (require 'dired-x)
 
-** nlinum.elµÄĞŞ¸Ä
+** nlinum.elçš„ä¿®æ”¹
 (defun nlinum--setup-window ()
   (let ((width (if (display-graphic-p)
                    (ceiling
@@ -50,22 +50,24 @@ Looking up host "myHost")
 											  nlinum--width))
                         (cdr (window-margins)))))
 
-** comment-box¹¦ÄÜ
-¸ø´úÂë¼ÓÉÏ¿é×¢ÊÍ
+** comment-boxåŠŸèƒ½
+ç»™ä»£ç åŠ ä¸Šå—æ³¨é‡Š
 
-** <M-home>ºÍ<M-end>¿ÉÒÔ½«ÆäËû´°¿ÚµÄ¹â±êÒÆµ½¿ªÊ¼»ò½áÎ²
+** <M-home>å’Œ<M-end>å¯ä»¥å°†å…¶ä»–çª—å£çš„å…‰æ ‡ç§»åˆ°å¼€å§‹æˆ–ç»“å°¾
 
-* git±ÜÃâÊäÈëÓÃ»§ÃûÃÜÂë
-HOMEÄ¿Â¼ÏÂ´´½¨.git-credentials
+* gité¿å…è¾“å…¥ç”¨æˆ·åå¯†ç 
+HOMEç›®å½•ä¸‹åˆ›å»º.git-credentials
 
-ÄÚÈİÊÇ https://zijianyue:gzjsy1314@github.com
+å†…å®¹æ˜¯ https://zijianyue:gzjsy1314@github.com
 
-È»ºó½øÈëshell
+ç„¶åè¿›å…¥shell
 
 git config --global credential.helper store
 
-²é¿´.gitconfigÎÄ¼ş£¬»á¶àÁËÒ»Ïî£º
+æŸ¥çœ‹.gitconfigæ–‡ä»¶ï¼Œä¼šå¤šäº†ä¸€é¡¹ï¼š
 
 [credential]
 
     helper = store
+    
+* dynamic-library-alistæ˜¾ç¤ºä¾èµ–çš„dll
