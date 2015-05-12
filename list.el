@@ -416,7 +416,7 @@ cursor to the beginning of that symbol, then record a macro as if
     (switch-to-buffer-other-window (semantic-tag-buffer tag))
     (goto-char (point-min))
     (forward-line (1- line))
-    (when (not (re-search-forward (regexp-quote oldsym) (point-at-eol) t))
+    (when (not (re-search-forward oldsym (point-at-eol) t))
       (error "Cannot find hit.  Cannot record macro"))
     (goto-char (match-beginning 0))
     ;; Cursor is now in the right location.  Start recording a macro.
@@ -486,7 +486,7 @@ Return the number of occurrences FUNCTION was operated upon."
 	      (goto-char (point-min))
 	      (forward-line (1- line))
 	      (beginning-of-line)
-	      (while (re-search-forward (regexp-quote oldsym) (point-at-eol) t)
+	      (while (re-search-forward oldsym (point-at-eol) t)
 		(setq count (1+ count))
 		(save-excursion ;; Leave cursor after the matched name.
 		  (goto-char (match-beginning 0)) ;; Go to beginning of that sym
