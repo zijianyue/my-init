@@ -29,6 +29,8 @@ Looking up host "myHost")
 +               "s")
 *** 2 在ect/srecode中修改c.srt和doc-cpp.srt
 *** 3 到.emacs.d下把srecode-map.el删除
+*** 4 list.el 中semantic-symref-produce-list-on-results
+(semantic-symref-result-get-tags res nil)
 
 ** helm-files.el的修改
 ;; (require 'dired-x)
