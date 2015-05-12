@@ -608,7 +608,7 @@
 	 (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
 	 (add-hook 'irony-mode-hook 'irony-eldoc)
 	 (setq w32-pipe-read-delay 0)))
-(eval-after-load 'flycheck
+(eval-after-load "flycheck"
   '(progn
 	 (require 'flycheck-irony )
 	 (add-to-list 'flycheck-checkers 'irony)))
@@ -687,6 +687,7 @@
 (global-set-key (kbd "<S-f9>") 'ag-dired-regexp)
 ;; (global-set-key (kbd "<M-S-f9>") 'ag-project-dired-regexp)
 (global-set-key (kbd "<C-S-f9>") 'ag-kill-buffers)
+;; C-c C-k 停止ag-dired
 
 (autoload 'wgrep-ag-setup "wgrep-ag")
 (add-hook 'ag-mode-hook 'wgrep-ag-setup)
@@ -1255,7 +1256,7 @@ If FULL is t, copy full file name."
 (global-set-key (kbd "<C-M-f7>") 'kill-find)
 
 ;; 窗口管理
-;; (global-set-key (kbd "<f9>") 'other-window)
+(global-set-key (kbd "<M-f9>") 'kill-buffer-and-window)
 (global-set-key (kbd "M-1") 'delete-other-windows)
 (global-set-key (kbd "M-2") 'split-window-below)
 (global-set-key (kbd "M-3") 'split-window-right)
