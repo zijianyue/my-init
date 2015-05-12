@@ -334,7 +334,7 @@ Use the  `semantic-symref-hit-tags' method to get this list.")
     ))
 
 (defmethod semantic-symref-result-get-tags ((result semantic-symref-result)
-											&optional open-buffers)
+					    &optional open-buffers)
   "Get the list of tags from the symref result RESULT.
 Optional OPEN-BUFFERS indicates that the buffers that the hits are
 in should remain open after scanning.
@@ -344,114 +344,114 @@ already."
       (oref result hit-tags)
     ;; Calculate the tags.
     (let ((lines (oref result :hit-lines))
-		  (txt (oref (oref result :created-by) :searchfor))
-		  (searchtype (oref (oref result :created-by) :searchtype))
-		  (ans nil)
-		  (out nil)
-		  (tagList (semantic-fetch-tags))
-		  (whichFunc nil)
-		  (buffs-to-kill nil))
+	  (txt (oref (oref result :created-by) :searchfor))
+	  (searchtype (oref (oref result :created-by) :searchtype))
+	  (ans nil)
+	  (out nil)
+	  (tagList (semantic-fetch-tags))
+	  (whichFunc nil)
+	  (buffs-to-kill nil))
       (save-excursion
-		(setq
-		 ans
-		 (mapcar
-		  (lambda (hit)
-			(let* ((line (car hit))
-				   (file (cdr hit))
-				   (buff (find-buffer-visiting file))
-				   (tag nil)
-				   )
-			  (cond
-			   ;; We have a buffer already.  Check it out.
-			   (buff
-				(set-buffer buff))
+	(setq
+	 ans
+	 (mapcar
+	  (lambda (hit)
+	    (let* ((line (car hit))
+		   (file (cdr hit))
+		   (buff (find-buffer-visiting file))
+		   (tag nil)
+		   )
+	      (cond
+	       ;; We have a buffer already.  Check it out.
+	       (buff
+		(set-buffer buff))
 
-			   ;; We have a table, but it needs a refresh.
-			   ;; This means we should load in that buffer.
-			   (t
-				(let ((kbuff
-					   (if open-buffers
-						   ;; Even if we keep the buffers open, don't
-						   ;; let EDE ask lots of questions.
-						   (let ((ede-auto-add-method 'never))
-							 (find-file-noselect file t))
-						 ;; When not keeping the buffers open, then
-						 ;; don't setup all the fancy froo-froo features
-						 ;; either.
-						 (semantic-find-file-noselect file t))))
-				  (set-buffer kbuff)
-				  (setq buffs-to-kill (cons kbuff buffs-to-kill))
-				  (semantic-fetch-tags)
-				  ))
-			   )
+	       ;; We have a table, but it needs a refresh.
+	       ;; This means we should load in that buffer.
+	       (t
+		(let ((kbuff
+		       (if open-buffers
+			   ;; Even if we keep the buffers open, don't
+			   ;; let EDE ask lots of questions.
+			   (let ((ede-auto-add-method 'never))
+			     (find-file-noselect file t))
+			 ;; When not keeping the buffers open, then
+			 ;; don't setup all the fancy froo-froo features
+			 ;; either.
+			 (semantic-find-file-noselect file t))))
+		  (set-buffer kbuff)
+		  (setq buffs-to-kill (cons kbuff buffs-to-kill))
+		  (semantic-fetch-tags)
+		  ))
+	       )
 
-			  ;; Too much baggage in goto-line
-			  ;; (goto-line line)
-			  (goto-char (point-min))
-			  (forward-line (1- line))
+	      ;; Too much baggage in goto-line
+	      ;; (goto-line line)
+	      (goto-char (point-min))
+	      (forward-line (1- line))
 
-			  ;; Search forward for the matching text
-			  (when (re-search-forward txt
-									   (point-at-eol)
-									   t)
-				(goto-char (match-beginning 0))
-				)
+	      ;; Search forward for the matching text
+	      (when (re-search-forward txt
+				       (point-at-eol)
+				       t)
+		(goto-char (match-beginning 0))
+		)
 
-			  (setq tag (semantic-current-tag))
-			  (setq whichFunc (which-function))
+	      (setq tag (semantic-current-tag))
+		  (setq whichFunc (which-function))
 
-			  ;; If we are searching for a tag, but bound the tag we are looking
-			  ;; for, see if it resides in some other parent tag.
-			  ;;
-			  ;; If there is no parent tag, then we still need to hang the originator
-			  ;; in our list.
-			  (when (and (eq searchtype 'symbol)
-						 (string= (semantic-tag-name tag) txt))
-				(setq tag (or (semantic-current-tag-parent) tag)))
+	      ;; If we are searching for a tag, but bound the tag we are looking
+	      ;; for, see if it resides in some other parent tag.
+	      ;;
+	      ;; If there is no parent tag, then we still need to hang the originator
+	      ;; in our list.
+	      (when (and (eq searchtype 'symbol)
+			 (string= (semantic-tag-name tag) txt))
+		(setq tag (or (semantic-current-tag-parent) tag)))
 
-			  ;; 找不到tag时，使用which-fuction匹配本文件所有tag来查找
-			  (unless tag
-				(let ((foundFlag-p nil )
-					  (i 0))
+		  ;; 找不到tag时，使用which-fuction匹配本文件所有tag来查找
+		  (unless tag
+			(let ((foundFlag-p nil )
+				  (i 0))
 
-				  (while (and
-						  (not foundFlag-p)
-						  (<= i (length tagList)))
+			  (while (and
+					  (not foundFlag-p)
+					  (<= i (length tagList)))
 
-					;; if found, set foundFlag-p
-					
-					(when (equal (semantic-tag-name (elt tagList i)) whichFunc)
-					  (setq foundFlag-p t )
-					  (setq tag (elt tagList i)))
+				;; if found, set foundFlag-p
+				
+				(when (equal (semantic-tag-name (elt tagList i)) whichFunc)
+				  (setq foundFlag-p t )
+				  (setq tag (elt tagList i)))
 
-					(setq i (1+ i))))
-				)
-			  ;; 再找不到就创建一个空tag
-			  (unless tag
-				(setq tag (semantic-tag "/* COMMENT */" 'variable))
-				(semantic--tag-put-property tag :filename (buffer-file-name)))
+				(setq i (1+ i))))
+			)
+		  ;; 再找不到就创建一个空tag
+		  (unless tag
+			(setq tag (semantic-tag "/* COMMENT */" 'variable))
+			(semantic--tag-put-property tag :filename (buffer-file-name)))
 
-			  
-			  ;; Copy the tag, which adds a :filename property.
-			  (when tag
-				(setq tag (semantic-tag-copy tag nil t))
-				;; Ad this hit to the tag.
-				(semantic--tag-put-property tag :hit (list line)))
-			  tag))
-		  lines)))
+
+	      ;; Copy the tag, which adds a :filename property.
+	      (when tag
+		(setq tag (semantic-tag-copy tag nil t))
+		;; Ad this hit to the tag.
+		(semantic--tag-put-property tag :hit (list line)))
+	      tag))
+	  lines)))
       ;; Kill off dead buffers, unless we were requested to leave them open.
       (when (not open-buffers)
-		(mapc 'kill-buffer buffs-to-kill))
+	(mapc 'kill-buffer buffs-to-kill))
       ;; Strip out duplicates.
       (dolist (T ans)
-		(if (and T (not (semantic-equivalent-tag-p (car out) T)))
-			(setq out (cons T out))
-		  (when T
-			;; Else, add this line into the existing list of lines.
-			(let ((lines (append (semantic--tag-get-property (car out) :hit)
-								 (semantic--tag-get-property T :hit))))
-			  (semantic--tag-put-property (car out) :hit lines)))
-		  ))
+	(if (and T (not (semantic-equivalent-tag-p (car out) T)))
+	    (setq out (cons T out))
+	  (when T
+	    ;; Else, add this line into the existing list of lines.
+	    (let ((lines (append (semantic--tag-get-property (car out) :hit)
+				 (semantic--tag-get-property T :hit))))
+	      (semantic--tag-put-property (car out) :hit lines)))
+	  ))
       ;; Out is reversed... twice
       (oset result :hit-tags (nreverse out)))))
 
