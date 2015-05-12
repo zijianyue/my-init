@@ -57,6 +57,10 @@ Looking up host "myHost")
 			  )
 
 *** 6 symref把行号加上
+修改semantic-symref-rb-toggle-expand-tag
+	    (insert-button (format "[%s] %s" (car hits) (car text))
+
+
 
 ** helm-files.el的修改
 ;; (require 'dired-x)
@@ -99,3 +103,4 @@ git config --global credential.helper store
     helper = store
     
 * dynamic-library-alist显示依赖的dll
+* buffer中插入变量值 (insert (format "[%s] " (car hits)))
