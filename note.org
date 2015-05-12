@@ -31,7 +31,7 @@ Looking up host "myHost")
 *** 3 到.emacs.d下把srecode-map.el删除
 *** 4 list.el 中semantic-symref-produce-list-on-results
 (semantic-symref-result-get-tags res nil)
-这个是控制要不要把symref的文件都打开
+这个是控制要不要把symref的文件都打开(原来是传t，改为nil)
 *** 5 symref会过滤.h中的项是semantic-symref-result-get-tags中做的,对该函数做如下修改（详细见symbre.el）
 
 		  ;; 找不到tag时，使用which-fuction匹配本文件所有tag来查找
@@ -55,6 +55,10 @@ Looking up host "myHost")
 *** 6 symref把行号加上
 修改semantic-symref-rb-toggle-expand-tag
 	    (insert-button (format "[%s] %s" (car hits) (car text))
+
+*** 7 symref 重命名时对于semantic-symref-anything不好使，要修改list.el
+在semantic-symref-list-map-open-hits中修改
+	      (while (re-search-forward oldsym (point-at-eol) t)
 
 
 
