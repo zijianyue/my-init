@@ -32,6 +32,8 @@ Looking up host "myHost")
 *** 4 list.el 中semantic-symref-produce-list-on-results
 (semantic-symref-result-get-tags res nil)
 这个是控制要不要把symref的文件都打开
+*** 5 symref会过滤.h中的项是semantic-symref-produce-list-on-results中做的
+*** 6 symref把行号加上
 
 ** helm-files.el的修改
 ;; (require 'dired-x)
