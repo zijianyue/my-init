@@ -911,8 +911,7 @@ If FULL is t, copy full file name."
 		 (if (or text (not symbol))
 			 (progn
 			   (setq prompt (concat "Find References For: (default " symbol ") "))
-			   (setq input (completing-read prompt 'gtags-completing-gtags
-											nil nil nil gtags-history-list))
+			   (setq input (grep-read-regexp))
 			   (if (not (equal "" input))
 				   (setq symbol input))))
 		 ;; Gather results and tags
@@ -929,8 +928,7 @@ If FULL is t, copy full file name."
 		 (if (or text (not symbol))
 			 (progn
 			   (setq prompt (concat "Find References For: (default " symbol ") "))
-			   (setq input (completing-read prompt 'gtags-completing-gtags
-											nil nil nil gtags-history-list))
+			   (setq input (grep-read-regexp))
 			   (if (not (equal "" input))
 				   (setq symbol input))))
 		 ;; Gather results and tags
@@ -949,8 +947,7 @@ If FULL is t, copy full file name."
 		 (if (or text (equal "\\<\\>" symbol))
 			 (progn
 			   (setq prompt (concat "Find References For: (default " symbol ") "))
-			   (setq input (completing-read prompt 'gtags-completing-gtags
-											nil nil nil gtags-history-list))
+			   (setq input (grep-read-regexp))
 			   (if (not (equal "" input))
 				   (setq symbol input))))
 		 ;; Gather results and tags
