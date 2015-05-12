@@ -348,6 +348,8 @@ already."
 	  (searchtype (oref (oref result :created-by) :searchtype))
 	  (ans nil)
 	  (out nil)
+	  (tagList (semantic-fetch-tags))
+	  (whichFunc nil)
 	  (buffs-to-kill nil))
       (save-excursion
 	(setq
@@ -389,13 +391,14 @@ already."
 	      (forward-line (1- line))
 
 	      ;; Search forward for the matching text
-	      (when (re-search-forward (regexp-quote txt)
+	      (when (re-search-forward txt
 				       (point-at-eol)
 				       t)
 		(goto-char (match-beginning 0))
 		)
 
 	      (setq tag (semantic-current-tag))
+		  (setq whichFunc (which-function))
 
 	      ;; If we are searching for a tag, but bound the tag we are looking
 	      ;; for, see if it resides in some other parent tag.
@@ -408,9 +411,7 @@ already."
 
 		  ;; 找不到tag时，使用which-fuction匹配本文件所有tag来查找
 		  (unless tag
-			(let ((tagList (semantic-fetch-tags) )
-				  (foundFlag-p nil )
-				  (whichFunc (which-function))
+			(let ((foundFlag-p nil )
 				  (i 0))
 
 			  (while (and
