@@ -1310,3 +1310,5 @@ If FULL is t, copy full file name."
 (global-set-key (kbd "<C-S-f5>") 'lgrep)
 ;; diff
 (global-set-key (kbd "C-;") 'ediff-buffers)
+;; vc-dir
+(define-key vc-dir-mode-map (kbd "r") 'vc-revert)
