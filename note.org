@@ -32,7 +32,30 @@ Looking up host "myHost")
 *** 4 list.el 中semantic-symref-produce-list-on-results
 (semantic-symref-result-get-tags res nil)
 这个是控制要不要把symref的文件都打开
-*** 5 symref会过滤.h中的项是semantic-symref-produce-list-on-results中做的
+*** 5 symref会过滤.h中的项是semantic-symref-result-get-tags中做的,对该函数做如下修改
+
+		(setq tag (or (semantic-current-tag-parent) tag)))
+
+		  ;; 找不到tag时，使用which-fuction匹配本文件所有tag来查找
+		  (unless tag
+			(let ((tagList (semantic-fetch-tags) )
+				  (foundFlag-p nil )
+				  (whichFunc (which-function))
+				  (i 0))
+
+			  (while (and
+					  (not foundFlag-p)
+					  (<= i (length tagList)))
+
+				;; if found, set foundFlag-p
+				
+				(when (equal (semantic-tag-name (elt tagList i)) whichFunc)
+				  (setq foundFlag-p t )
+				  (setq tag (elt tagList i)))
+
+				(setq i (1+ i))))
+			  )
+
 *** 6 symref把行号加上
 
 ** helm-files.el的修改
