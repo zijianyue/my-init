@@ -1296,4 +1296,6 @@ If FULL is t, copy full file name."
 ;; diff
 (global-set-key (kbd "C-;") 'ediff-buffers)
 ;; vc-dir
-(define-key vc-dir-mode-map (kbd "r") 'vc-revert)
+(eval-after-load "vc-dir"
+  '(progn
+	 (define-key vc-dir-mode-map (kbd "r") 'vc-revert)))
