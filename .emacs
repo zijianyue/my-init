@@ -68,7 +68,7 @@
 
 ;; windows的find跟gnu 的grep有冲突
 (setq find-program (concat "\"" (getenv "MSYS") "\\find.exe\""))
-(setq grep-program "grep -nH -F")		;按普通字符串搜索
+(setq grep-program "grep -nH -F")		;-F按普通字符串搜索
 ;; 默认目录
 (setq default-directory "~")
 
@@ -906,16 +906,10 @@ If FULL is t, copy full file name."
 	   ""
 	   (interactive "*P")
 	   (semantic-fetch-tags)
-	   (let (symbol prompt input res)
+	   (let (symbol res)
 		 (setq symbol (semantic-current-tag))
-		 (if (or text (not symbol))
-			 (progn
-			   (setq prompt (concat "Find References For: (default " symbol ") "))
-			   (setq input (grep-read-regexp))
-			   (if (not (equal "" input))
-				   (setq symbol input))))
 		 ;; Gather results and tags
-		 (message "Gathering References...")
+		 (message "Gathering References for %s ..." (semantic-tag-name symbol))
 		 (setq res (semantic-symref-find-references-by-name (semantic-tag-name symbol)))
 		 (semantic-symref-produce-list-on-results res (semantic-tag-name symbol))))
 
@@ -923,16 +917,12 @@ If FULL is t, copy full file name."
 	   ""
 	   (interactive "*P")
 	   (semantic-fetch-tags)
-	   (let (symbol prompt input res)
+	   (let (symbol res)
 		 (setq symbol (thing-at-point 'symbol))
 		 (if (or text (not symbol))
-			 (progn
-			   (setq prompt (concat "Find References For: (default " symbol ") "))
-			   (setq input (grep-read-regexp))
-			   (if (not (equal "" input))
-				   (setq symbol input))))
+			   (setq symbol (grep-read-regexp)))
 		 ;; Gather results and tags
-		 (message "Gathering References...")
+		 (message "Gathering References for %s ..." symbol)
 		 (setq res (cond
 					((semantic-symref-find-references-by-name symbol))
 					((semantic-symref-find-references-by-symbolname symbol))))
@@ -942,16 +932,14 @@ If FULL is t, copy full file name."
 	   ""
 	   (interactive "*P")
 	   (semantic-fetch-tags)
-	   (let (symbol prompt input res)
-		 (setq symbol (concat "\\<" (thing-at-point 'symbol) "\\>"))
-		 (if (or text (equal "\\<\\>" symbol))
-			 (progn
-			   (setq prompt (concat "Find References For: (default " symbol ") "))
-			   (setq input (grep-read-regexp))
-			   (if (not (equal "" input))
-				   (setq symbol input))))
+	   (let (symbol res)
+		 (setq symbol (thing-at-point 'symbol))
+		 (if (or text (not symbol))
+			 (setq symbol (grep-read-regexp)))
+		 (if (eq text 0)
+			 (setq symbol (concat "\\<" symbol "\\>")))
 		 ;; Gather results and tags
-		 (message "Gathering References...")
+		 (message "Gathering References for %s ..." symbol)
 		 (setq res (semantic-symref-find-text symbol))
 		 (semantic-symref-produce-list-on-results res symbol)))
 	 ))
