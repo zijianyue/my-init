@@ -60,6 +60,11 @@ Looking up host "myHost")
 在semantic-symref-list-map-open-hits中修改
 	      (while (re-search-forward oldsym (point-at-eol) t)
 
+*** 8 修改semantic-symref-anything 注释会被过滤的问题
+ ;; 再找不到就创建一个空tag
+			  (unless tag
+				(setq tag (semantic-tag "/* COMMENT */" 'variable))
+				(semantic--tag-put-property tag :filename (buffer-file-name)))
 
 
 ** helm-files.el的修改
