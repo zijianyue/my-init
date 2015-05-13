@@ -250,15 +250,29 @@ Some useful functions are found in `semantic-format-tag-functions'."
 BUTTON is the button that was clicked."
   (interactive)
   (let* ((tag (button-get button 'tag))
-	 (buff-exist (semantic-tag-in-buffer-p tag))
-	 (kill-flag nil)
+	 (kill-flag t)
+	 (all-buff-list (buffer-list))
 	 (buff (semantic-tag-buffer tag))
 	 (hits (semantic--tag-get-property tag :hit))
 	 (state (button-get button 'state))
 	 (text nil))
 
-	(unless buff-exist
-	  (setq kill-flag t))
+	(let ((foundFlag-p nil )
+		  (tag-filename (semantic--tag-get-property tag :filename))
+		  (i 0))
+
+	  (while (and
+			  (not foundFlag-p)
+			  (<= i (length all-buff-list)))
+
+		;; if found, set foundFlag-p
+		
+		(when (and (buffer-live-p (elt all-buff-list i))
+				   (equal (buffer-file-name (elt all-buff-list i)) tag-filename))
+		  (setq foundFlag-p t )
+		  (setq kill-flag nil))
+
+		(setq i (1+ i))))
 
     (cond
      ((eq state 'closed)
