@@ -65,6 +65,7 @@ Looking up host "myHost")
 			  (unless tag
 				(setq tag (semantic-tag "/* COMMENT */" 'variable))
 				(semantic--tag-put-property tag :filename (buffer-file-name)))
+*** 9 修改semantic-symref-rb-toggle-expand-tag杀掉打开的buf，可以解决symref后台打开搜索的文件的问题
 
 
 ** helm-files.el的修改
