@@ -65,7 +65,6 @@ Looking up host "myHost")
 			  (unless tag
 				(setq tag (semantic-tag "/* COMMENT */" 'variable))
 				(semantic--tag-put-property tag :filename (buffer-file-name)))
-*** 9 修改semantic-symref-rb-toggle-expand-tag杀掉打开的buf，可以解决symref后台打开搜索的文件的问题
 
 
 ** helm-files.el的修改
@@ -110,3 +109,6 @@ git config --global credential.helper store
     
 * dynamic-library-alist显示依赖的dll
 * buffer中插入变量值 (insert (format "[%s] " (car hits)))
+* git的PATH设置
+安装官方git，选路径时选第2个，即把git/cmd/添加到PATH中，这样就可以使用git命令
+又不会引起其他命令的混乱
