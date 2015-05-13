@@ -403,11 +403,17 @@
 	 ))
 
 ;;auto-complete
-(eval-after-load "prog-mode"
+(dolist (file '("cc-mode" "lisp-mode"))
+  (eval-after-load file
+	'(progn
+	   (require 'auto-complete-config)
+	   )))
+
+(eval-after-load "auto-complete-config"
   '(progn
-	 (require 'auto-complete-config)
 	 ;; (require 'auto-complete-c-headers )
 	 ;; (require 'ac-irony)
+	 (message "auto-complete-config")
 
 	 (define-key ac-mode-map  (kbd "M-RET") 'auto-complete)
 	 (define-key ac-completing-map  (kbd "M-s") 'ac-isearch)
@@ -546,6 +552,13 @@
 (autoload 'helm-for-files "helm-config" nil t)
 (autoload 'helm-resume "helm-config" nil t)
 (autoload 'helm-gtags-mode "helm-gtags" nil t)
+(autoload 'helm-gtags-select "helm-gtags" nil t)
+(autoload 'helm-gtags-select-path "helm-gtags" nil t)
+(autoload 'helm-gtags-find-tag "helm-gtags" nil t)
+(autoload 'helm-gtags-find-files "helm-gtags" nil t)
+(autoload 'helm-gtags-create-tags "helm-gtags" nil t)
+(autoload 'helm-gtags-update-tags "helm-gtags" nil t)
+
 (autoload 'helm-occur "helm-gtags" nil t)
 (autoload 'helm-swoop "helm-swoop" nil t)
 (autoload 'helm-ag-this-file "helm-ag" nil t)
@@ -565,12 +578,15 @@
 (global-set-key (kbd "<M-apps>") 'helm-ag-this-file)
 (global-set-key (kbd "M-p") 'helm-swoop)
 
+(global-set-key (kbd "C-c b") 'helm-gtags-find-files)
+(global-set-key (kbd "C-c d") 'helm-gtags-find-tag)
+(global-set-key (kbd "<f6>") 'helm-gtags-select-path)
+(global-set-key (kbd "<f7>") 'helm-gtags-select)
+(global-set-key (kbd "<S-f5>") 'helm-gtags-create-tags)
+(global-set-key (kbd "<f5>") 'helm-gtags-update-tags)
+
 (eval-after-load "helm-gtags"
   '(progn
-	 (define-key helm-gtags-mode-map (kbd "<S-f5>") 'helm-gtags-create-tags)
-	 (define-key helm-gtags-mode-map (kbd "<f5>") 'helm-gtags-update-tags)
-	 (define-key helm-gtags-mode-map (kbd "<f7>") 'helm-gtags-select)
-	 (define-key helm-gtags-mode-map (kbd "<f6>") 'helm-gtags-select-path)
 	 (define-key helm-gtags-mode-map (kbd "C-]") nil)
 	 (define-key helm-gtags-mode-map (kbd "C-t") nil)
 	 (define-key helm-gtags-mode-map (kbd "M-*") nil)
@@ -579,7 +595,6 @@
 	 (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-next-history)
 	 (define-key helm-gtags-mode-map (kbd "C-|") 'helm-gtags-find-tag-other-window)
 	 (define-key helm-gtags-mode-map (kbd "C-M-,") 'helm-gtags-show-stack)
-	 (define-key helm-gtags-mode-map (concat helm-gtags-prefix-key "v") 'helm-gtags-find-files)
 	 ))
 
 ;; back button
@@ -1169,7 +1184,7 @@ If FULL is t, copy full file name."
 			(yas-glo-on)
 			))
 
-(dolist (hook '(c-mode-common-hook lua-mode-hook objc-mode-hook project-buffer-mode-hook dired-mode-hook))
+(dolist (hook '(c-mode-common-hook lua-mode-hook objc-mode-hook project-buffer-mode-hook))
   (add-hook hook
 			(lambda()
 			  (helm-gtags-mode 1)
@@ -1216,6 +1231,24 @@ If FULL is t, copy full file name."
 (add-hook 'font-lock-mode-hook
 		  (lambda () "DOCSTRING" (interactive)
 			(remove-dos-eol)))
+
+;; reuse buffer in DIRED
+(defadvice dired-find-file (around dired-find-file-single-buffer activate)
+  "Replace current buffer if file is a directory."
+  (interactive)
+  (let ((orig (current-buffer))
+        (filename (dired-get-file-for-visit)))
+    ad-do-it
+    (when (and (file-directory-p filename)
+               (not (eq (current-buffer) orig)))
+      (kill-buffer orig))))
+(defadvice dired-up-directory (around dired-up-directory-single-buffer activate)
+  "Replace current buffer if file is a directory."
+  (interactive)
+  (let ((orig (current-buffer)))
+    ad-do-it
+    (kill-buffer orig)))
+
 ;;-----------------------------------------------------------热键-----------------------------------------------------------;;
 
 ;;修改搜索和保存的快捷键
