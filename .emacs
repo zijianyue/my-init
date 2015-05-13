@@ -20,8 +20,8 @@
 (server-start)
 
 ;; 环境变量
-(setenv "MSYS" "C:\\msys\\bin")
-;; (setenv "MSYS" "C:\\MinGW\\msys\\1.0\\bin")
+;; (setenv "MSYS" "C:\\msys\\bin")
+(setenv "MSYS" "C:\\MinGW\\msys\\1.0\\bin")
 (setenv "MINGW" "C:\\MinGW\\bin")
 (setenv "PUTTY" "C:\\PuTTY")
 (setenv "LLVM" "C:\\Program Files (x86)\\LLVM\\bin")
@@ -308,6 +308,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(bm-face ((t (:background "peach puff"))))
  '(helm-lisp-show-completion ((t (:background "navajo white"))))
  '(helm-selection-line ((t (:background "light steel blue" :underline t))))
  '(zjl-hl-local-variable-reference-face ((t (:foreground "dark slate gray"))))
@@ -676,16 +677,13 @@
 
 ;; fast silver searcher
 (autoload 'my-ag "ag" nil t)
-(autoload 'my-ag-project "ag" nil t)
 (autoload 'ag-this-file "ag" nil t)
 (autoload 'ag-dired "ag" nil t)
 (autoload 'ag-dired-regexp "ag" nil t)
 
 (global-set-key (kbd "<f9>") 'ag-this-file)
 (global-set-key (kbd "<C-f9>") 'my-ag)
-;; (global-set-key (kbd "<C-S-f9>") 'my-ag-project)
 (global-set-key (kbd "<S-f9>") 'ag-dired-regexp)
-;; (global-set-key (kbd "<M-S-f9>") 'ag-project-dired-regexp)
 (global-set-key (kbd "<C-S-f9>") 'ag-kill-buffers)
 ;; C-c C-k 停止ag-dired
 
@@ -710,13 +708,13 @@
 	   ""
 	   (interactive (list (grep-read-regexp)
 						  (setq file-regex (list :file-regex
-												(concat (file-name-nondirectory (buffer-file-name) ) "$")))
+												(concat "/" (file-name-nondirectory (buffer-file-name) ) "$")))
 						  (setq directory default-directory)))
 	   (setq arg-bak ag-arguments)
 	   (add-to-list 'ag-arguments "-u")
 	   (apply #'ag/search string directory file-regex)
-	   (setq ag-arguments arg-bak)
-	   )))
+	   (setq ag-arguments arg-bak))
+	 ))
 
 ;; git
 (setenv "GIT_ASKPASS" "git-gui--askpass") ;解决git push不提示密码的问题
