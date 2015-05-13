@@ -250,10 +250,16 @@ Some useful functions are found in `semantic-format-tag-functions'."
 BUTTON is the button that was clicked."
   (interactive)
   (let* ((tag (button-get button 'tag))
+	 (buff-exist (semantic-tag-in-buffer-p tag))
+	 (kill-flag nil)
 	 (buff (semantic-tag-buffer tag))
 	 (hits (semantic--tag-get-property tag :hit))
 	 (state (button-get button 'state))
 	 (text nil))
+
+	(unless buff-exist
+	  (setq kill-flag t))
+
     (cond
      ((eq state 'closed)
       (with-current-buffer buff
@@ -298,7 +304,10 @@ BUTTON is the button that was clicked."
 			 (save-excursion
 			   (forward-char 1)
 			   (forward-line (length hits))
-			   (point)))))))))
+			   (point)))))))
+	(if kill-flag
+		(kill-buffer buff))
+	))
 
 (defun semantic-symref-rb-goto-file (&optional button)
   "Go to the file specified in the symref results buffer.
