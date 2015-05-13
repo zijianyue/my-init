@@ -403,11 +403,7 @@
 	 ))
 
 ;;auto-complete
-(dolist (file '("cc-mode" "lisp-mode"))
-  (eval-after-load file
-	'(progn
-	   (require 'auto-complete-config)
-	   )))
+(require 'auto-complete-config)
 
 (eval-after-load "auto-complete-config"
   '(progn
