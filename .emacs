@@ -225,7 +225,7 @@
  '(bookmark-save-flag 1)
  '(bookmark-sort-flag nil)
  '(column-number-mode t)
- '(company-minimum-prefix-length 7)
+ '(company-minimum-prefix-length 20)
  '(company-tooltip-align-annotations t)
  '(company-transformers (quote (company-sort-by-occurrence)))
  '(compilation-scroll-output t)
@@ -695,7 +695,6 @@
 (global-set-key (kbd "<f9>") 'ag-this-file)
 (global-set-key (kbd "<C-f9>") 'my-ag)
 (global-set-key (kbd "<S-f9>") 'ag-dired-regexp)
-(global-set-key (kbd "<C-S-f9>") 'ag-kill-buffers)
 ;; C-c C-k 停止ag-dired
 
 (autoload 'wgrep-ag-setup "wgrep-ag")
@@ -929,7 +928,9 @@ If FULL is t, copy full file name."
 	   (let (symbol res)
 		 (setq symbol (thing-at-point 'symbol))
 		 (if (or text (not symbol))
-			   (setq symbol (grep-read-regexp)))
+			 (setq symbol (grep-read-regexp)))
+		 (if (eq text 0)
+			 (setq symbol (concat "\\<" symbol "\\>")))
 		 ;; Gather results and tags
 		 (message "Gathering References for %s ..." symbol)
 		 (setq res (cond
@@ -1069,6 +1070,17 @@ If FULL is t, copy full file name."
   (modify-syntax-entry ?_ "w"))
 
 (global-set-key (kbd "C-_") 'set-c-word-mode)
+
+(defun kill-spec-buffers ()
+  ""
+  (interactive)
+  (dolist (buffer (buffer-list))
+    (when (or (eq (buffer-local-value 'major-mode buffer) 'ag-mode)
+			  (eq (buffer-local-value 'major-mode buffer) 'semantic-symref-results-mode)
+			  (string-match-p "ag dired pattern" (buffer-name buffer)))
+      (kill-buffer buffer))))
+
+(global-set-key (kbd "<C-S-f9>") 'kill-spec-buffers)
 
 ;;-----------------------------------------------------------hook-----------------------------------------------------------;;
 (c-add-style "gzj"
@@ -1325,4 +1337,5 @@ If FULL is t, copy full file name."
 ;; vc-dir
 (eval-after-load "vc-dir"
   '(progn
-	 (define-key vc-dir-mode-map (kbd "r") 'vc-revert)))
+	 (define-key vc-dir-mode-map (kbd "r") 'vc-revert)
+	 (define-key vc-dir-mode-map (kbd "d") 'vc-diff)))
