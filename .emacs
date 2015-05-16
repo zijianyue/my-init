@@ -23,7 +23,7 @@
 ;; (setenv "MSYS" "C:\\msys\\bin")
 (setenv "MSYS" "C:\\MinGW\\msys\\1.0\\bin")
 (setenv "MINGW" "C:\\MinGW\\bin")
-(setenv "PUTTY" "C:\\PuTTY")
+(setenv "PUTTY" "C:\\Program Files (x86)\\PuTTY")
 (setenv "LLVM" "C:\\Program Files (x86)\\LLVM\\bin")
 (setenv "CMAKE" "C:\\Program Files (x86)\\CMake\\bin")
 (setenv "GTAGSBIN" "c:\\gtags\\bin")
@@ -262,6 +262,7 @@
  '(helm-gtags-cache-select-result t)
  '(helm-gtags-display-style (quote detail))
  '(helm-gtags-ignore-case t)
+ '(helm-gtags-maximum-candidates 2000)
  '(helm-gtags-suggested-key-mapping t)
  '(helm-truncate-lines t)
  '(horizontal-scroll-bar-mode t)
@@ -313,7 +314,7 @@
  '(helm-selection-line ((t (:background "light steel blue" :underline t))))
  '(zjl-hl-local-variable-reference-face ((t (:foreground "dark slate gray"))))
  '(zjl-hl-member-reference-face ((t (:foreground "dark goldenrod" :slant normal :weight normal)))))
-;;-----------------------------------------------------------插件-----------------------------------------------------------;;
+;;-----------------------------------------------------------plugin begin-----------------------------------------------------------;;
 ;; ggtags
 (autoload 'ggtags-mode "ggtags" "" t)
 (eval-after-load "ggtags"
@@ -728,7 +729,13 @@
 
 ;; git
 (setenv "GIT_ASKPASS" "git-gui--askpass") ;解决git push不提示密码的问题
-;;-----------------------------------------------------------自定义函数-----------------------------------------------------------;;
+
+;; purpose
+(autoload 'purpose-mode "window-purpose" nil t)
+(global-set-key (kbd "<C-f10>") 'purpose-mode)
+;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
+
+;;-----------------------------------------------------------define func begin-----------------------------------------------------------;;
 ;; 资源管理器中打开
 (defun open-in-desktop-select (&optional dired)
   (interactive "*P")
