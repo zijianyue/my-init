@@ -853,9 +853,10 @@ If FULL is t, copy full file name."
   (let ((strmod (current-kill 0)))
 	(if (eq last-command 'kill-region)
 		()
-	  (if (eq arg 0)
-		  (kill-new (setq strmod (replace-regexp-in-string "/" "\\\\" strmod)))
-		(kill-new (setq strmod (car (dired-get-marked-files)))))
+	  (when arg
+		(if (eq arg 0)
+			(kill-new (setq strmod (replace-regexp-in-string "/" "\\\\" strmod)))
+		  (kill-new (setq strmod (car (dired-get-marked-files))))))
 	  (message "%s" strmod))))
 
 (global-set-key (kbd "<M-f3>") 'copy-file-name) ;加上任意的参数就是复制全路径，比如m-0
