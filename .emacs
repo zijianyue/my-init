@@ -848,14 +848,14 @@ If FULL is t, copy full file name."
 		(kill-new file))
 	  (message "File `%s' copied." file))))
 
-;; dired下m-0 w复制全路径，并且把/换成\ ,m-1不转换
+;; dired下m-0 w复制全路径，并且把/换成\ ,M-9不转换
 (defadvice dired-copy-filename-as-kill(after copy-full-path activate)
   (let ((strmod (current-kill 0)))
 	(if (eq last-command 'kill-region)
 		()
-	  (if (eq arg 1)
-		  (kill-new (setq strmod (car (dired-get-marked-files))))
-		(kill-new (setq strmod (replace-regexp-in-string "/" "\\\\" strmod))))
+	  (if (eq arg 0)
+		  (kill-new (setq strmod (replace-regexp-in-string "/" "\\\\" strmod)))
+		(kill-new (setq strmod (car (dired-get-marked-files)))))
 	  (message "%s" strmod))))
 
 (global-set-key (kbd "<M-f3>") 'copy-file-name) ;加上任意的参数就是复制全路径，比如m-0
