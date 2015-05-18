@@ -113,3 +113,5 @@ git config --global credential.helper store
 安装官方git，选路径时选第2个，即把git/cmd/添加到PATH中，这样就可以使用git命令
 又不会引起其他命令的混乱
 * 查看diff时，apply hunk可以把变更给取消
+* psftp get 和 put时local dir就是起psftp命令时的目录
+可以用lpwd显示，也可以用lcd \path\to\new\dir修改
