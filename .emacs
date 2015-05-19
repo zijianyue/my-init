@@ -203,7 +203,7 @@
 (setq ls-lisp-format-time-list  '("%Y-%m-%d %H:%M" "%Y-%m-%d %H:%M")
       ls-lisp-use-localized-time-format t)
 ;; 优先横分割窗口
-(setq split-width-threshold 1000)	;增大向右分割的要求
+(setq split-width-threshold 9999)	;增大向右分割的要求
 ;; (setq split-height-threshold 0)
 
 ;; 自动添加的设置
@@ -438,7 +438,7 @@
 	 ;; (add-hook 'after-init-hook 'global-company-mode)
 	 (add-to-list 'company-backends 'company-irony)
 	 (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
-	 (global-set-key (kbd "<C-tab>") 'company-complete)
+	 (global-set-key (kbd "<S-return>") 'company-complete)
 	 (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
 	 (define-key company-active-map (kbd "M-s") 'company-filter-candidates)
 	 ;; (add-to-list 'company-backends 'company-c-headers)
@@ -733,6 +733,7 @@
 ;; purpose
 (autoload 'purpose-mode "window-purpose" nil t)
 (global-set-key (kbd "<C-f10>") 'purpose-mode)
+
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin-----------------------------------------------------------;;
@@ -880,6 +881,8 @@ If FULL is t, copy full file name."
 (defun setup-program-keybindings()
   (interactive)
   (local-set-key (kbd "<f12>") 'semantic-ia-fast-jump)
+  (local-set-key (kbd "M-`") 'ia-fast-jump-other)
+  (local-set-key (kbd "<M-f1>") 'ia-fast-jump-other)
   (local-set-key (kbd "<S-f12>") 'semantic-complete-jump)
   (local-set-key (kbd "<C-f12>") 'semantic-symref-just-symbol)
   (local-set-key (kbd "<M-S-f12>") 'semantic-symref-anything)
@@ -1054,6 +1057,19 @@ If FULL is t, copy full file name."
   (ring-insert semantic-tags-location-ring (point-marker))
   ad-do-it)
 
+(defadvice helm-gtags-find-tag-other-window (after helm-gtags-tag-other-back activate)
+  ""
+  (select-window (previous-window)))
+
+(defun ia-fast-jump-other ()
+  (interactive "")
+  (let ((pos (point)))
+	(switch-to-buffer-other-window (current-buffer))
+	(goto-char pos)
+	(semantic-ia-fast-jump (point))
+	(select-window (previous-window))
+	))
+
 ;; electric-pair-mode tweak 单词后的双引号不要pair
 ;; (defun my-electric-pair-conservative-inhibit (char)
 ;;   (or
@@ -1095,6 +1111,10 @@ If FULL is t, copy full file name."
 			  (string-match-p "\*Backtrace\*" (buffer-name buffer))
 			  (string-match-p "\*Completions\*" (buffer-name buffer))
 			  (string-match-p "\*Help\*" (buffer-name buffer))
+			  (string-match-p "\*Customize\*" (buffer-name buffer))
+			  (string-match-p "\*Cedet\*" (buffer-name buffer))
+			  (string-match-p "\*Annotate\*" (buffer-name buffer))
+			  (string-match-p "\*Compile-Log\*" (buffer-name buffer))
 			  )
       (kill-buffer buffer))))
 
@@ -1308,6 +1328,10 @@ If FULL is t, copy full file name."
 (global-set-key (kbd "<M-S-up>") 'windmove-up)
 (global-set-key (kbd "<M-S-left>") 'windmove-left)
 (global-set-key (kbd "<M-S-right>") 'windmove-right)
+(global-set-key (kbd "<C-tab>") 'other-frame)
+(global-set-key (kbd "C-S-t") 'make-frame-command)
+(global-set-key (kbd "C-)") 'delete-frame)
+
 
 ;; 文件跳转
 (global-set-key (kbd "<M-f6>") 'semantic-decoration-include-visit)
