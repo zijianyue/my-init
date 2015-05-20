@@ -255,6 +255,7 @@
  '(helm-ag-base-command "ag --nocolor --nogroup -S -Q ")
  '(helm-ag-fuzzy-match t)
  '(helm-buffer-max-length 40)
+ '(helm-candidate-number-limit 2000)
  '(helm-for-files-preferred-list
    (quote
 	(helm-source-buffers-list helm-source-bookmarks helm-source-recentf)))
@@ -435,6 +436,7 @@
   '(progn
 	 (require 'company-irony nil t )
 	 (require 'company-c-headers nil t )
+	 (setq company-async-timeout 15)
 	 ;; (add-hook 'after-init-hook 'global-company-mode)
 	 (add-to-list 'company-backends 'company-irony)
 	 (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
@@ -540,8 +542,7 @@
 	 ))
 
 ;; 异步copy rename文件
-(when (require 'dired-aux)
-  (require 'dired-async))
+(autoload 'dired-async-mode "dired-async.el" nil t)
 
 ;; helm系列
 (autoload 'helm-show-kill-ring "helm-config" nil t)
@@ -620,7 +621,9 @@
 	 (add-hook 'irony-mode-hook 'my-irony-mode-hook)
 	 (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
 	 (add-hook 'irony-mode-hook 'irony-eldoc)
-	 (setq w32-pipe-read-delay 0)))
+	 (setq w32-pipe-read-delay 0)
+	 (setq process-adaptive-read-buffering nil)
+	 ))
 (eval-after-load "flycheck"
   '(progn
 	 (require 'flycheck-irony )
@@ -1245,6 +1248,7 @@ If FULL is t, copy full file name."
 			(define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
 			(define-key dired-mode-map "c" 'create-known-ede-project)
 			(diff-hl-dired-mode)
+			(dired-async-mode 1)
 			))
 
 ;; shell相关设置
