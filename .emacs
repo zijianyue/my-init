@@ -574,7 +574,7 @@
 	 ))
 
 (global-set-key (kbd "C-S-v") 'helm-show-kill-ring)
-(global-set-key (kbd "<M-rwindow>") 'helm-semantic-or-imenu)
+(global-set-key (kbd "<C-M-apps>") 'helm-semantic-or-imenu)
 (global-set-key (kbd "<C-apps>") 'helm-for-files)
 (global-set-key (kbd "<S-apps>") 'helm-resume)
 (global-set-key (kbd "<M-apps>") 'helm-ag-this-file)
@@ -767,7 +767,7 @@
 ;; func args
 (require 'function-args )
 (global-set-key (kbd "<apps>") 'moo-jump-local)
-(global-set-key (kbd "<S-rwindow>") 'moo-complete)
+(global-set-key (kbd "<S-lwindow>") 'moo-complete)
 
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
@@ -1418,4 +1418,4 @@ If FULL is t, copy full file name."
 	 (define-key vc-dir-mode-map (kbd "r") 'vc-revert)
 	 (define-key vc-dir-mode-map (kbd "d") 'vc-diff)))
 ;; server-start
-(global-set-key (kbd "<C-rwindow>") 'server-start)
+(global-set-key (kbd "<C-lwindow>") 'server-start)
