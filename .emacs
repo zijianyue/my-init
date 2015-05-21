@@ -570,6 +570,7 @@
 	 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebihnd tab to do persistent action
 	 (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
 	 (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
+	 (setq helm-semantic-display-style 'semantic-format-tag-uml-prototype-default)
 	 ))
 
 (global-set-key (kbd "C-S-v") 'helm-show-kill-ring)
