@@ -250,6 +250,8 @@
  '(flycheck-indication-mode (quote right-fringe))
  '(frame-resize-pixelwise t)
  '(ggtags-highlight-tag-delay 16)
+ '(git-gutter:handled-backends (quote (git hg bzr svn)))
+ '(git-gutter:update-interval 2)
  '(global-auto-revert-mode t)
  '(grep-template "grep <X> <C> -nH -F <R> <F>")
  '(helm-ag-base-command "ag --nocolor --nogroup -S -Q ")
@@ -278,13 +280,14 @@
  '(ls-lisp-verbosity nil)
  '(make-backup-files nil)
  '(mode-require-final-newline nil)
+ '(moo-select-method (quote helm))
  '(mouse-wheel-progressive-speed nil)
  '(password-cache-expiry nil)
  '(pcmpl-gnu-tarfile-regexp "")
  '(recentf-auto-cleanup 600)
  '(rm-blacklist
    (quote
-	(" hl-p" " yas" " hs" " Ifdef" " pair" " HelmGtags" " GG" " company" " ElDoc" " Irony" " AC")))
+	(" hl-p" " yas" " hs" " Ifdef" " pair" " HelmGtags" " GG" " company" " ElDoc" " Irony" " AC" " FA" " GitGutter")))
  '(save-place t nil (saveplace))
  '(semantic-c-dependency-system-include-path
    (quote
@@ -570,7 +573,7 @@
 	 ))
 
 (global-set-key (kbd "C-S-v") 'helm-show-kill-ring)
-(global-set-key (kbd "<apps>") 'helm-semantic-or-imenu)
+(global-set-key (kbd "<M-rwindow>") 'helm-semantic-or-imenu)
 (global-set-key (kbd "<C-apps>") 'helm-for-files)
 (global-set-key (kbd "<S-apps>") 'helm-resume)
 (global-set-key (kbd "<M-apps>") 'helm-ag-this-file)
@@ -670,8 +673,31 @@
 (autoload 'diff-hl-dired-mode "diff-hl-margin" nil t)
 (autoload 'turn-on-diff-hl-mode "diff-hl-margin" nil t)
 
-(add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
+;; (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
 (add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode)
+
+;; git-gutter
+;; (require 'git-gutter)
+(require 'git-gutter-fringe)
+(global-git-gutter-mode t)
+
+(global-set-key (kbd "C-x v t") 'git-gutter:revert-hunk)
+(global-set-key (kbd "C-x v ,") 'git-gutter:previous-hunk)
+(global-set-key (kbd "C-x v .") 'git-gutter:next-hunk)
+(global-set-key (kbd "C-x v p") 'git-gutter:popup-hunk)
+
+(add-to-list 'git-gutter:update-hooks 'focus-in-hook)
+(add-to-list 'git-gutter:update-commands 'other-window)
+(fringe-helper-define 'git-gutter-fr:modified nil
+					  "...XX..."
+					  "..XXXX.."
+					  "..XXXX.."
+					  "...XX..."
+					  "...XX..."
+					  "........"
+					  "........"
+					  "...XX..."
+					  "...XX...")
 
 ;; wgrep
 (autoload 'wgrep-setup "wgrep")
@@ -736,6 +762,11 @@
 ;; purpose
 (autoload 'purpose-mode "window-purpose" nil t)
 (global-set-key (kbd "<C-f10>") 'purpose-mode)
+
+;; func args
+(require 'function-args )
+(global-set-key (kbd "<apps>") 'moo-jump-local)
+(global-set-key (kbd "<S-rwindow>") 'moo-complete)
 
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
@@ -1274,7 +1305,7 @@ If FULL is t, copy full file name."
 	   (add-hook hook
 				 (lambda()
 				   (setq truncate-lines t)
-				   (set-syntax-table c++-mode-syntax-table)
+				   ;; (set-syntax-table c++-mode-syntax-table)
 				   (modify-syntax-entry ?_ "w")    ;_ 当成单词的一部分
 				   )))))
 
@@ -1385,3 +1416,5 @@ If FULL is t, copy full file name."
   '(progn
 	 (define-key vc-dir-mode-map (kbd "r") 'vc-revert)
 	 (define-key vc-dir-mode-map (kbd "d") 'vc-diff)))
+;; server-start
+(global-set-key (kbd "<C-rwindow>") 'server-start)
