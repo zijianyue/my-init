@@ -287,7 +287,7 @@
  '(recentf-auto-cleanup 600)
  '(rm-blacklist
    (quote
-	(" hl-p" " yas" " hs" " Ifdef" " pair" " HelmGtags" " GG" " company" " ElDoc" " Irony" " AC" " FA" " GitGutter")))
+	(" hl-p" " yas" " hs" " Ifdef" " pair" " HelmGtags" " GG" " company" " ElDoc" " Irony" " AC" " FA" " GitGutter" " Gtags")))
  '(save-place t nil (saveplace))
  '(semantic-c-dependency-system-include-path
    (quote
@@ -323,25 +323,45 @@
 (autoload 'ggtags-mode "ggtags" "" t)
 (eval-after-load "ggtags"
   '(progn
+	 (remove-function (local 'eldoc-documentation-function) 'ggtags-eldoc-function)
 	 (define-key ggtags-mode-map (kbd "M-.") nil)
 	 (define-key ggtags-mode-map (kbd "M-,") nil)
-	 (define-key ggtags-mode-map (kbd "M-]") 'ggtags-find-tag-dwim)
-	 (define-key ggtags-mode-map (kbd "C-M-]") 'ggtags-find-reference)
+	 ;; (define-key ggtags-mode-map (kbd "M-]") 'ggtags-find-tag-dwim)
+	 ;; (define-key ggtags-mode-map (kbd "C-M-]") 'ggtags-find-reference)
 	 (define-key ggtags-mode-map (kbd "C-M-.") nil)
 	 (define-key ggtags-mode-map [S-down-mouse-1] 'ignore)
 	 (define-key ggtags-mode-map [S-down-mouse-3] 'ignore)
-	 (define-key ggtags-mode-map (kbd "<S-mouse-1>") 'ggtags-find-tag-mouse)
-	 (define-key ggtags-mode-map (kbd "<S-mouse-3>") 'ggtags-prev-mark)
-	 (define-key ggtags-mode-map (kbd "<C-S-mouse-3>") 'ggtags-next-mark)
+	 ;; (define-key ggtags-mode-map (kbd "<S-mouse-1>") 'ggtags-find-tag-mouse)
+	 ;; (define-key ggtags-mode-map (kbd "<S-mouse-3>") 'ggtags-prev-mark)
+	 ;; (define-key ggtags-mode-map (kbd "<C-S-mouse-3>") 'ggtags-next-mark)
 	 (define-key ggtags-highlight-tag-map [S-down-mouse-1] 'ignore)
 	 (define-key ggtags-highlight-tag-map [S-down-mouse-3] 'ignore)
-	 (define-key ggtags-highlight-tag-map (kbd "<S-mouse-1>") 'ggtags-find-tag-mouse)
-	 (define-key ggtags-highlight-tag-map (kbd "<S-mouse-3>") 'ggtags-prev-mark)
-	 (define-key ggtags-highlight-tag-map (kbd "<C-S-mouse-3>") 'ggtags-next-mark)
+	 ;; (define-key ggtags-highlight-tag-map (kbd "<S-mouse-1>") 'ggtags-find-tag-mouse)
+	 ;; (define-key ggtags-highlight-tag-map (kbd "<S-mouse-3>") 'ggtags-prev-mark)
+	 ;; (define-key ggtags-highlight-tag-map (kbd "<C-S-mouse-3>") 'ggtags-next-mark)
 	 (define-key ggtags-mode-map (kbd "M-?") 'ggtags-show-definition)
 	 (define-key ggtags-highlight-tag-map (kbd "<mouse-2>") 'ggtags-show-definition)
 	 (define-key ggtags-mode-map (kbd "C-c p") 'ggtags-find-file)
 	 (setq ggtags-mode-line-project-name nil)
+	 ))
+
+;; gtags
+(setq gtags-suggested-key-mapping nil)
+(setq gtags-disable-pushy-mouse-mapping t)
+(autoload 'gtags-mode "gtags" nil t)
+(eval-after-load "gtags"
+  '(progn
+	 (define-key gtags-mode-map [S-down-mouse-1] 'ignore)
+	 (define-key gtags-mode-map [S-down-mouse-3] 'ignore)
+	 (define-key gtags-mode-map (kbd "<S-mouse-3>") 'gtags-pop-stack)
+	 (define-key gtags-mode-map (kbd "<S-mouse-1>") 'gtags-find-tag-by-event)
+	 (define-key gtags-select-mode-map "p" 'previous-line)
+	 (define-key gtags-select-mode-map "n" 'next-line)
+	 (define-key gtags-select-mode-map "q" 'kill-this-buffer)
+	 (define-key gtags-select-mode-map [S-down-mouse-3] 'ignore)
+	 (define-key gtags-select-mode-map [S-down-mouse-1] 'ignore)
+	 (define-key gtags-select-mode-map (kbd "<S-mouse-3>") 'gtags-pop-stack)
+	 (define-key gtags-select-mode-map (kbd "<S-mouse-1>") 'gtags-select-tag-by-event)
 	 ))
 
 ;; 选中单位
@@ -363,7 +383,7 @@
 ;; (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 
 ;; 工程设置
-(eval-after-load "ggtags"
+(eval-after-load "cc-mode"
   '(progn
 	 (defun create-spec-ede-project (root-file known)
 	   (if known
@@ -674,13 +694,13 @@
 (autoload 'diff-hl-dired-mode "diff-hl-margin" nil t)
 (autoload 'turn-on-diff-hl-mode "diff-hl-margin" nil t)
 
-;; (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
+(add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
 (add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode)
 
 ;; git-gutter
 ;; (require 'git-gutter)
 (require 'git-gutter-fringe)
-(global-git-gutter-mode t)
+;; (global-git-gutter-mode t)
 
 (global-set-key (kbd "C-x v t") 'git-gutter:revert-hunk)
 (global-set-key (kbd "C-x v ,") 'git-gutter:previous-hunk)
@@ -689,16 +709,18 @@
 
 (add-to-list 'git-gutter:update-hooks 'focus-in-hook)
 (add-to-list 'git-gutter:update-commands 'other-window)
-(fringe-helper-define 'git-gutter-fr:modified nil
-					  "...XX..."
-					  "..XXXX.."
-					  "..XXXX.."
-					  "...XX..."
-					  "...XX..."
-					  "........"
-					  "........"
-					  "...XX..."
-					  "...XX...")
+(eval-after-load "git-gutter-fringe"
+  '(progn
+	 (fringe-helper-define 'git-gutter-fr:modified nil
+	   "...XX..."
+	   "..XXXX.."
+	   "..XXXX.."
+	   "...XX..."
+	   "...XX..."
+	   "........"
+	   "........"
+	   "...XX..."
+	   "...XX...")))
 
 ;; wgrep
 (autoload 'wgrep-setup "wgrep")
@@ -1092,6 +1114,11 @@ If FULL is t, copy full file name."
   (ring-insert semantic-tags-location-ring (point-marker))
   ad-do-it)
 
+(defadvice gtags-find-tag-by-event (around gtags-find-tag-by-event-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
+
 (defadvice helm-gtags-find-tag-other-window (after helm-gtags-tag-other-back activate)
   ""
   (select-window (previous-window)))
@@ -1247,10 +1274,10 @@ If FULL is t, copy full file name."
 			(setq-local ac-auto-start nil)
 			(setq-local indent-tabs-mode nil)
 			(irony-mode)
-			(ggtags-mode 1)
+			(gtags-mode 1)
+			;; (ggtags-mode 1)
 			(eldoc-mode 0)
 			(company-mode 1)
-			(remove-function (local 'eldoc-documentation-function) 'ggtags-eldoc-function)
 			(abbrev-mode 0)
 			(flycheck-mode 1)
 			(yas-glo-on)
