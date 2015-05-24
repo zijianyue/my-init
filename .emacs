@@ -699,28 +699,28 @@
 
 ;; git-gutter
 ;; (require 'git-gutter)
-(require 'git-gutter-fringe)
+;; (require 'git-gutter-fringe)
 ;; (global-git-gutter-mode t)
 
-(global-set-key (kbd "C-x v t") 'git-gutter:revert-hunk)
-(global-set-key (kbd "C-x v ,") 'git-gutter:previous-hunk)
-(global-set-key (kbd "C-x v .") 'git-gutter:next-hunk)
-(global-set-key (kbd "C-x v p") 'git-gutter:popup-hunk)
+;; (global-set-key (kbd "C-x v t") 'git-gutter:revert-hunk)
+;; (global-set-key (kbd "C-x v ,") 'git-gutter:previous-hunk)
+;; (global-set-key (kbd "C-x v .") 'git-gutter:next-hunk)
+;; (global-set-key (kbd "C-x v p") 'git-gutter:popup-hunk)
 
-(add-to-list 'git-gutter:update-hooks 'focus-in-hook)
-(add-to-list 'git-gutter:update-commands 'other-window)
-(eval-after-load "git-gutter-fringe"
-  '(progn
-	 (fringe-helper-define 'git-gutter-fr:modified nil
-	   "...XX..."
-	   "..XXXX.."
-	   "..XXXX.."
-	   "...XX..."
-	   "...XX..."
-	   "........"
-	   "........"
-	   "...XX..."
-	   "...XX...")))
+;; (add-to-list 'git-gutter:update-hooks 'focus-in-hook)
+;; (add-to-list 'git-gutter:update-commands 'other-window)
+;; (eval-after-load "git-gutter-fringe"
+;;   '(progn
+;; 	 (fringe-helper-define 'git-gutter-fr:modified nil
+;; 	   "...XX..."
+;; 	   "..XXXX.."
+;; 	   "..XXXX.."
+;; 	   "...XX..."
+;; 	   "...XX..."
+;; 	   "........"
+;; 	   "........"
+;; 	   "...XX..."
+;; 	   "...XX...")))
 
 ;; wgrep
 (autoload 'wgrep-setup "wgrep")
