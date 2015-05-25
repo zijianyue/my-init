@@ -430,7 +430,12 @@
 
 ;;auto-complete
 (require 'auto-complete-config)
-
+(defadvice ac-cc-mode-setup(after my-ac-setup activate)
+  ;; (setq ac-sources (delete 'ac-source-gtags ac-sources))
+  ;; (setq ac-sources (append '(ac-source-c-headers) ac-sources))
+  ;; (setq ac-sources (append '(ac-source-irony) ac-sources))
+  (setq ac-sources (append '(ac-source-semantic) ac-sources))
+  )
 (eval-after-load "auto-complete-config"
   '(progn
 	 ;; (require 'auto-complete-c-headers )
@@ -444,13 +449,6 @@
 	 (setq ac-modes (append '(objc-mode) ac-modes))
 
 	 (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
-	 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
-	   ;; (setq ac-sources (delete 'ac-source-gtags ac-sources))
-	   ;; (setq ac-sources (append '(ac-source-c-headers) ac-sources))
-	   ;; (setq ac-sources (append '(ac-source-irony) ac-sources))
-	   (setq ac-sources (append '(ac-source-semantic) ac-sources))
-	   )
-
 	 ;; (define-key irony-mode-map (kbd "M-p") 'ac-complete-irony-async)
 	 ))
 
@@ -528,70 +526,77 @@
 (global-set-key (kbd "C-:") 'fci-mode)
 (setq fci-rule-column 120)
 ;; 避免破坏 auto complete
-(eval-after-load "fill-column-indicator"
-  '(progn
-	 (defun sanityinc/fci-enabled-p () (symbol-value 'fci-mode))
+(defun sanityinc/fci-enabled-p () (symbol-value 'fci-mode))
 
-	 (defvar sanityinc/fci-mode-suppressed nil)
-	 (make-variable-buffer-local 'sanityinc/fci-mode-suppressed)
+(defvar sanityinc/fci-mode-suppressed nil)
+(make-variable-buffer-local 'sanityinc/fci-mode-suppressed)
 
-	 (defadvice popup-create (before suppress-fci-mode activate)
-	   "Suspend fci-mode while popups are visible"
-	   (let ((fci-enabled (sanityinc/fci-enabled-p)))
-		 (when fci-enabled
-		   (setq sanityinc/fci-mode-suppressed fci-enabled)
-		   (turn-off-fci-mode))))
+(defadvice popup-create (before suppress-fci-mode activate)
+  "Suspend fci-mode while popups are visible"
+  (let ((fci-enabled (sanityinc/fci-enabled-p)))
+	(when fci-enabled
+	  (setq sanityinc/fci-mode-suppressed fci-enabled)
+	  (turn-off-fci-mode))))
 
-	 (defadvice popup-delete (after restore-fci-mode activate)
-	   "Restore fci-mode when all popups have closed"
-	   (when (and sanityinc/fci-mode-suppressed
-				  (null popup-instances))
-		 (setq sanityinc/fci-mode-suppressed nil)
-		 (turn-on-fci-mode)))
+(defadvice popup-delete (after restore-fci-mode activate)
+  "Restore fci-mode when all popups have closed"
+  (when (and sanityinc/fci-mode-suppressed
+			 (null popup-instances))
+	(setq sanityinc/fci-mode-suppressed nil)
+	(turn-on-fci-mode)))
 
-	 ;; 避免和company冲突
-	 (defvar-local company-fci-mode-on-p nil)
+;; 避免和company冲突
+(defvar-local company-fci-mode-on-p nil)
 
-	 (defun company-turn-off-fci (&rest ignore)
-	   (when (boundp 'fci-mode)
-		 (setq company-fci-mode-on-p fci-mode)
-		 (when fci-mode (fci-mode -1))))
+(defun company-turn-off-fci (&rest ignore)
+  (when (boundp 'fci-mode)
+	(setq company-fci-mode-on-p fci-mode)
+	(when fci-mode (fci-mode -1))))
 
-	 (defun company-maybe-turn-on-fci (&rest ignore)
-	   (when company-fci-mode-on-p (fci-mode 1)))
-	 
-	 (add-hook 'company-completion-started-hook 'company-turn-off-fci)
-	 (add-hook 'company-completion-finished-hook 'company-maybe-turn-on-fci)
-	 (add-hook 'company-completion-cancelled-hook 'company-maybe-turn-on-fci)
-	 
-	 ;; 根据窗口分割情况刷新FCI
-	 (defun fci-all-window-refresh ()
-	   (walk-windows
-		#'(lambda (w)
-			(if (or (eq major-mode 'c++-mode)
-					(eq major-mode 'c-mode))
-				(progn (select-window w)
-					   (turn-on-fci-mode)
-					   (if (< (window-width w) fci-rule-column)
-						   (turn-off-fci-mode)))))
-		0))
-	 
-	 (defadvice split-window-right (after split-window-right-fci activate)
-	   ""
-	   (fci-all-window-refresh))
+(defun company-maybe-turn-on-fci (&rest ignore)
+  (when company-fci-mode-on-p (fci-mode 1)))
 
-	 (defadvice delete-other-windows (after delete-other-windows-fci activate)
-	   ""
-	   (fci-all-window-refresh))
+(add-hook 'company-completion-started-hook 'company-turn-off-fci)
+(add-hook 'company-completion-finished-hook 'company-maybe-turn-on-fci)
+(add-hook 'company-completion-cancelled-hook 'company-maybe-turn-on-fci)
 
-	 (defadvice mouse-delete-window (after mouse-delete-window-fci activate)
-	   ""
-	   (fci-all-window-refresh))
+;; 根据窗口分割情况刷新FCI
 
-	 (defadvice switch-to-buffer (after switch-to-buffer-fci activate)
-	   ""
-	   (fci-all-window-refresh))
-	 ))
+(defun fci-all-window-refresh ()
+  (setq proced-buf-list nil)	;保存已经处理过的buf
+  (walk-windows
+   #'(lambda (w)
+	   (select-window w)
+	   (if (or (eq major-mode 'c-mode)
+			   (eq major-mode 'c++-mode))
+		   (progn 
+			 (unless (and (memq (window-buffer) proced-buf-list)
+						  (>= (window-width w) fci-rule-column))
+			   (push (window-buffer) proced-buf-list)
+			   (turn-on-fci-mode)
+			   (if (< (window-width w) fci-rule-column)
+				   (turn-off-fci-mode))))))
+   0))
+
+(defadvice split-window-right (after split-window-right-fci activate)
+  ""
+  (fci-all-window-refresh))
+
+(defadvice delete-other-windows (after delete-other-windows-fci activate)
+  ""
+  (fci-all-window-refresh))
+
+(defadvice mouse-delete-window (after mouse-delete-window-fci activate)
+  ""
+  (fci-all-window-refresh))
+
+(defadvice delete-window (after delete-window-fci activate)
+  ""
+  (fci-all-window-refresh))
+
+(defadvice switch-to-buffer (after switch-to-buffer-fci activate)
+  ""
+  (fci-all-window-refresh))
 
 ;; 异步copy rename文件
 (autoload 'dired-async-mode "dired-async.el" nil t)
