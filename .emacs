@@ -254,6 +254,7 @@
  '(git-gutter:update-interval 2)
  '(global-auto-revert-mode t)
  '(grep-template "grep <X> <C> -nH -F <R> <F>")
+ '(gtags-ignore-case nil)
  '(helm-ag-base-command "ag --nocolor --nogroup -S -Q ")
  '(helm-ag-fuzzy-match t)
  '(helm-buffer-max-length 40)
