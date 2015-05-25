@@ -559,10 +559,38 @@
 
 	 (defun company-maybe-turn-on-fci (&rest ignore)
 	   (when company-fci-mode-on-p (fci-mode 1)))
-
+	 
 	 (add-hook 'company-completion-started-hook 'company-turn-off-fci)
 	 (add-hook 'company-completion-finished-hook 'company-maybe-turn-on-fci)
 	 (add-hook 'company-completion-cancelled-hook 'company-maybe-turn-on-fci)
+	 
+	 ;; 根据窗口分割情况刷新FCI
+	 (defun fci-all-window-refresh ()
+	   (walk-windows
+		#'(lambda (w)
+			(if (or (eq major-mode 'c++-mode)
+					(eq major-mode 'c-mode))
+				(progn (select-window w)
+					   (turn-on-fci-mode)
+					   (if (< (window-width w) fci-rule-column)
+						   (turn-off-fci-mode)))))
+		0))
+	 
+	 (defadvice split-window-right (after split-window-right-fci activate)
+	   ""
+	   (fci-all-window-refresh))
+
+	 (defadvice delete-other-windows (after delete-other-windows-fci activate)
+	   ""
+	   (fci-all-window-refresh))
+
+	 (defadvice mouse-delete-window (after mouse-delete-window-fci activate)
+	   ""
+	   (fci-all-window-refresh))
+
+	 (defadvice switch-to-buffer (after switch-to-buffer-fci activate)
+	   ""
+	   (fci-all-window-refresh))
 	 ))
 
 ;; 异步copy rename文件
@@ -672,7 +700,9 @@
 
 ;; 打开大文件
 (require 'vlf-setup)
-(define-key vlf-prefix-map (kbd "C-c v") vlf-mode-map)
+(eval-after-load "vlf"
+  '(progn
+	 (define-key vlf-prefix-map (kbd "C-c v") vlf-mode-map)))
 
 ;; ace
 (define-key cua--cua-keys-keymap [(meta v)] nil)
@@ -1287,7 +1317,7 @@ If FULL is t, copy full file name."
 			(modify-syntax-entry ?_ "w")    ;_ 当成单词的一部分
 			(c-set-style "gzj")      ;定制C/C++缩进风格,到实际工作环境中要用guess style来添加详细的缩进风格
 			(my-c-mode-common-hook-if0)
-			;; (fci-mode 1)
+			(fci-mode 1)
 			(setup-program-keybindings)
 			(hs-minor-mode 1)
 			(hide-ifdef-mode 1)
