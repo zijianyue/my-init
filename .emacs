@@ -47,17 +47,17 @@
 		 path-separator
 		 (getenv "PYTHON")
 		 path-separator
-		 ;; (getenv "CYGWIN")
-		 ;; path-separator
+		 (getenv "CYGWIN")
+		 path-separator
 		 (getenv "PATH")))
 
-(add-to-list 'exec-path (getenv "MINGW"))
-(add-to-list 'exec-path (getenv "MSYS"))
-(add-to-list 'exec-path (getenv "LLVM"))
-(add-to-list 'exec-path (getenv "CMAKE"))
-(add-to-list 'exec-path (getenv "GTAGSBIN"))
+(add-to-list 'exec-path (getenv "CYGWIN"))
 (add-to-list 'exec-path (getenv "PYTHON"))
-;; (add-to-list 'exec-path (getenv "CYGWIN"))
+(add-to-list 'exec-path (getenv "GTAGSBIN"))
+(add-to-list 'exec-path (getenv "CMAKE"))
+(add-to-list 'exec-path (getenv "LLVM"))
+(add-to-list 'exec-path (getenv "MSYS"))
+(add-to-list 'exec-path (getenv "MINGW"))
 
 
 (defvar site-lisp-dir)
@@ -200,7 +200,7 @@
 ;; tab补全时忽略大小写
 (setq-default completion-ignore-case t)
 ;; DIRED的时间显示格式
-(setq ls-lisp-format-time-list  '("%Y-%m-%d %H:%M" "%Y-%m-%d %H:%M")
+(setq ls-lisp-format-time-list  '("%Y-%m-%d %H:%M:%S" "%Y-%m-%d %H:%M:%S")
       ls-lisp-use-localized-time-format t)
 ;; 优先横分割窗口
 (setq split-width-threshold 9999)	;增大向右分割的要求
@@ -671,6 +671,7 @@
 
 ;; 打开大文件
 (require 'vlf-setup)
+(define-key vlf-prefix-map (kbd "C-c v") vlf-mode-map)
 
 ;; ace
 (define-key cua--cua-keys-keymap [(meta v)] nil)
@@ -1177,11 +1178,29 @@ If FULL is t, copy full file name."
 			  (string-match-p "\*Cedet\*" (buffer-name buffer))
 			  (string-match-p "\*Annotate\*" (buffer-name buffer))
 			  (string-match-p "\*Compile-Log\*" (buffer-name buffer))
+			  (string-match-p "\*GTAGS SELECT\*" (buffer-name buffer))
+			  (string-match-p "\*Calc\*" (buffer-name buffer))
 			  )
       (kill-buffer buffer))))
 
 (global-set-key (kbd "<C-S-f9>") 'kill-spec-buffers)
 
+;; reuse buffer in DIRED
+(defadvice dired-find-file (around dired-find-file-single-buffer activate)
+  "Replace current buffer if file is a directory."
+  (interactive)
+  (let ((orig (current-buffer))
+        (filename (dired-get-file-for-visit)))
+    ad-do-it
+    (when (and (file-directory-p filename)
+               (not (eq (current-buffer) orig)))
+      (kill-buffer orig))))
+(defadvice dired-up-directory (around dired-up-directory-single-buffer activate)
+  "Replace current buffer if file is a directory."
+  (interactive)
+  (let ((orig (current-buffer)))
+    ad-do-it
+    (kill-buffer orig)))
 ;;-----------------------------------------------------------hook-----------------------------------------------------------;;
 (c-add-style "gzj"
 			 '("stroustrup"
@@ -1340,23 +1359,6 @@ If FULL is t, copy full file name."
 (add-hook 'font-lock-mode-hook
 		  (lambda () "DOCSTRING" (interactive)
 			(remove-dos-eol)))
-
-;; reuse buffer in DIRED
-(defadvice dired-find-file (around dired-find-file-single-buffer activate)
-  "Replace current buffer if file is a directory."
-  (interactive)
-  (let ((orig (current-buffer))
-        (filename (dired-get-file-for-visit)))
-    ad-do-it
-    (when (and (file-directory-p filename)
-               (not (eq (current-buffer) orig)))
-      (kill-buffer orig))))
-(defadvice dired-up-directory (around dired-up-directory-single-buffer activate)
-  "Replace current buffer if file is a directory."
-  (interactive)
-  (let ((orig (current-buffer)))
-    ad-do-it
-    (kill-buffer orig)))
 
 ;;-----------------------------------------------------------热键-----------------------------------------------------------;;
 
