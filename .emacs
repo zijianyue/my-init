@@ -734,31 +734,6 @@
 (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
 (add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode)
 
-;; git-gutter
-;; (require 'git-gutter)
-;; (require 'git-gutter-fringe)
-;; (global-git-gutter-mode t)
-
-;; (global-set-key (kbd "C-x v t") 'git-gutter:revert-hunk)
-;; (global-set-key (kbd "C-x v ,") 'git-gutter:previous-hunk)
-;; (global-set-key (kbd "C-x v .") 'git-gutter:next-hunk)
-;; (global-set-key (kbd "C-x v p") 'git-gutter:popup-hunk)
-
-;; (add-to-list 'git-gutter:update-hooks 'focus-in-hook)
-;; (add-to-list 'git-gutter:update-commands 'other-window)
-;; (eval-after-load "git-gutter-fringe"
-;;   '(progn
-;; 	 (fringe-helper-define 'git-gutter-fr:modified nil
-;; 	   "...XX..."
-;; 	   "..XXXX.."
-;; 	   "..XXXX.."
-;; 	   "...XX..."
-;; 	   "...XX..."
-;; 	   "........"
-;; 	   "........"
-;; 	   "...XX..."
-;; 	   "...XX...")))
-
 ;; wgrep
 (autoload 'wgrep-setup "wgrep")
 (add-hook 'grep-setup-hook 'wgrep-setup)
@@ -808,7 +783,7 @@
 	   ""
 	   (interactive (list (grep-read-regexp)
 						  (setq file-regex (list :file-regex
-												(concat "/" (file-name-nondirectory (buffer-file-name) ) "$")))
+												 (concat "/" (file-name-nondirectory (buffer-file-name) ) "$")))
 						  (setq directory default-directory)))
 	   (setq arg-bak ag-arguments)
 	   (add-to-list 'ag-arguments "-u")
@@ -826,7 +801,7 @@
 ;; func args
 (require 'function-args )
 (global-set-key (kbd "<apps>") 'moo-jump-local)
-(global-set-key (kbd "<S-lwindow>") 'moo-complete)
+(global-set-key (kbd "<M-S-return>") 'moo-complete)
 
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
@@ -998,67 +973,66 @@ If FULL is t, copy full file name."
 (eval-after-load "cc-mode"
   '(progn
 	 (require 'semantic/symref/list )
-
-	 (defun semantic-symref-find-references-by-symbolname (name &optional scope tool-return)
-	   ""
-	   (interactive "sName: ")
-	   (let* ((inst (semantic-symref-instantiate
-					 :searchfor name
-					 :searchtype 'symbolname
-					 :searchscope (or scope 'project)
-					 :resulttype 'line))
-			  (result (semantic-symref-get-result inst)))
-		 (when tool-return
-		   (set tool-return inst))
-		 (prog1
-			 (setq semantic-symref-last-result result)
-		   (when (called-interactively-p 'interactive)
-			 (semantic-symref-data-debug-last-result))))
-	   )
-	 (defun semantic-symref-tag (&optional text)
-	   ""
-	   (interactive "*P")
-	   (semantic-fetch-tags)
-	   (let (symbol res)
-		 (setq symbol (semantic-current-tag))
-		 ;; Gather results and tags
-		 (message "Gathering References for %s ..." (semantic-tag-name symbol))
-		 (setq res (semantic-symref-find-references-by-name (semantic-tag-name symbol)))
-		 (semantic-symref-produce-list-on-results res (semantic-tag-name symbol))))
-
-	 (defun semantic-symref-just-symbol (&optional text)
-	   ""
-	   (interactive "*P")
-	   (semantic-fetch-tags)
-	   (let (symbol res)
-		 (setq symbol (thing-at-point 'symbol))
-		 (if (or text (not symbol))
-			 (setq symbol (grep-read-regexp)))
-		 (if (eq text 0)
-			 (setq symbol (concat "\\<" symbol "\\>")))
-		 ;; Gather results and tags
-		 (message "Gathering References for %s ..." symbol)
-		 (setq res (cond
-					((semantic-symref-find-references-by-name symbol))
-					((semantic-symref-find-references-by-symbolname symbol))))
-		 (semantic-symref-produce-list-on-results res symbol)))
-
-	 (defun semantic-symref-anything (&optional text)
-	   ""
-	   (interactive "*P")
-	   (semantic-fetch-tags)
-	   (let (symbol res)
-		 (setq symbol (thing-at-point 'symbol))
-		 (if (or text (not symbol))
-			 (setq symbol (grep-read-regexp)))
-		 (if (eq text 0)
-			 (setq symbol (concat "\\<" symbol "\\>")))
-		 ;; Gather results and tags
-		 (message "Gathering References for %s ..." symbol)
-		 (setq res (semantic-symref-find-text symbol))
-		 (semantic-symref-produce-list-on-results res symbol)))
 	 ))
 
+(defun semantic-symref-find-references-by-symbolname (name &optional scope tool-return)
+  ""
+  (interactive "sName: ")
+  (let* ((inst (semantic-symref-instantiate
+				:searchfor name
+				:searchtype 'symbolname
+				:searchscope (or scope 'project)
+				:resulttype 'line))
+		 (result (semantic-symref-get-result inst)))
+	(when tool-return
+	  (set tool-return inst))
+	(prog1
+		(setq semantic-symref-last-result result)
+	  (when (called-interactively-p 'interactive)
+		(semantic-symref-data-debug-last-result))))
+  )
+(defun semantic-symref-tag (&optional text)
+  ""
+  (interactive "*P")
+  (semantic-fetch-tags)
+  (let (symbol res)
+	(setq symbol (semantic-current-tag))
+	;; Gather results and tags
+	(message "Gathering References for %s ..." (semantic-tag-name symbol))
+	(setq res (semantic-symref-find-references-by-name (semantic-tag-name symbol)))
+	(semantic-symref-produce-list-on-results res (semantic-tag-name symbol))))
+
+(defun semantic-symref-just-symbol (&optional text)
+  ""
+  (interactive "*P")
+  (semantic-fetch-tags)
+  (let (symbol res)
+	(setq symbol (thing-at-point 'symbol))
+	(if (or text (not symbol))
+		(setq symbol (grep-read-regexp)))
+	(if (eq text 0)
+		(setq symbol (concat "\\<" symbol "\\>")))
+	;; Gather results and tags
+	(message "Gathering References for %s ..." symbol)
+	(setq res (cond
+			   ((semantic-symref-find-references-by-name symbol))
+			   ((semantic-symref-find-references-by-symbolname symbol))))
+	(semantic-symref-produce-list-on-results res symbol)))
+
+(defun semantic-symref-anything (&optional text)
+  ""
+  (interactive "*P")
+  (semantic-fetch-tags)
+  (let (symbol res)
+	(setq symbol (thing-at-point 'symbol))
+	(if (or text (not symbol))
+		(setq symbol (grep-read-regexp)))
+	(if (eq text 0)
+		(setq symbol (concat "\\<" symbol "\\>")))
+	;; Gather results and tags
+	(message "Gathering References for %s ..." symbol)
+	(setq res (semantic-symref-find-text symbol))
+	(semantic-symref-produce-list-on-results res symbol)))
 ;; 自定义的mru
 (defvar semantic-tags-location-ring (make-ring 30))
 
@@ -1169,28 +1143,11 @@ If FULL is t, copy full file name."
 	(select-window (previous-window))
 	))
 
-;; electric-pair-mode tweak 单词后的双引号不要pair
-;; (defun my-electric-pair-conservative-inhibit (char)
-;;   (or
-;;    ;; I find it more often preferable not to pair when the
-;;    ;; same char is next.
-;;    (eq char (char-after))
-;;    ;; Don't pair up when we insert the second of "" or of ((.
-;;    (and (eq char (char-before))
-;; 		(eq char (char-before (1- (point)))))
-;;    ;; I also find it often preferable not to pair next to a word.
-;;    (eq (char-syntax (following-char)) ?w)
-;;    (if (eq char 34)						;34是"
-;; 	   (and (not (backward-char))
-;; 			(if (eq (char-syntax (preceding-char)) ?w)
-;; 				(not (forward-char))
-;; 			  (forward-char))))
-;;    ))
-
 (defun set-c-word-mode ()
   ""
   (interactive)
-  (modify-syntax-entry ?_ "w"))
+  (modify-syntax-entry ?_ "w")
+  (bm-toggle-cycle-all-buffers))
 
 (global-set-key (kbd "C-_") 'set-c-word-mode)
 
