@@ -118,3 +118,6 @@ git config --global credential.helper store
 * 搭建emacs编译环境时
 把C:\MinGW\msys\1.0\etc下的fstab.sample改名为fstab
 XPM源码中的simx.h和xpm.h复制到C:\MinGW\include\X11下
+* 安装pygments
+先安装python 2.7 或 3.4
+再打开cmd 切换到pygments根目录执行c:\python34\python.exe setup.py install即可，有可能得先下载setuptools
