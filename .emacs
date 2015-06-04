@@ -27,8 +27,9 @@
 (setenv "LLVM" "C:\\Program Files (x86)\\LLVM\\bin")
 (setenv "CMAKE" "C:\\Program Files (x86)\\CMake\\bin")
 (setenv "GTAGSBIN" "c:\\gtags\\bin")
-(setenv "PYTHON" "C:\\Python27")
+(setenv "PYTHON" "C:\\Python34")
 (setenv "CYGWIN" "C:\\cygwin\\bin")
+(setenv "GTAGSLABEL" "pygments")
 
 
 (setenv "PATH"
@@ -86,19 +87,20 @@
 (setq ring-bell-function 'ignore)
 
 ;; Load CEDET offical
-(if (and (< emacs-minor-version 5)
-		 (eq emacs-major-version 24))
-	(load-file "D:/cedet-master/cedet-devel-load.el"))
+;; (if (and (< emacs-minor-version 5)
+;; 		 (eq emacs-major-version 24))
+(load-file "~/.emacs.d/cedet-master/cedet-devel-load.el")
+;; )
 
 (eval-after-load "cc-mode"
   '(progn  
 	 ;; cedet builtin
-	 (if (and (eq emacs-minor-version 5)
-			  (eq emacs-major-version 24))
-		 (progn
-		   (require 'semantic )
-		   (require 'srecode)
-		   (require 'semantic/decorate )))
+	 ;; (if (and (eq emacs-minor-version 5)
+	 ;; 		  (eq emacs-major-version 24))
+	 ;; 	 (progn
+	 ;; 	   (require 'semantic )
+	 ;; 	   (require 'srecode)
+	 ;; 	   (require 'semantic/decorate )))
 	 
 	 ;; (require 'semantic/mru-bookmark )
 	 (semantic-mode t)
@@ -122,17 +124,18 @@
 (eval-after-load "lisp-mode"
   '(progn
 	 ;; cedet builtin
-	 (if (and (< emacs-minor-version 5)
-			  (eq emacs-major-version 24))
-		 (progn
-		   (require 'semantic )
-		   (require 'semantic/decorate )
+	 ;; (if (and (< emacs-minor-version 5)
+	 ;; 		  (eq emacs-major-version 24))
+	 ;; 	 (progn
+	 ;; 	   (require 'semantic )
+	 ;; 	   (require 'semantic/decorate )
 		   ;; (require 'semantic/mru-bookmark )
 		   (semantic-mode t)
 		   (global-semantic-decoration-mode t)
 		   ;; (global-semantic-mru-bookmark-mode t)
 		   (global-semantic-stickyfunc-mode t)
-		   ))))
+		   ;; ))
+))
 
 
 ;;修改标题栏，显示buffer的名字
@@ -263,12 +266,14 @@
  '(helm-for-files-preferred-list
    (quote
 	(helm-source-buffers-list helm-source-bookmarks helm-source-recentf)))
+ '(helm-gtags-auto-update t)
  '(helm-gtags-cache-max-result-size 104857600)
  '(helm-gtags-cache-select-result t)
  '(helm-gtags-display-style (quote detail))
  '(helm-gtags-ignore-case t)
  '(helm-gtags-maximum-candidates 2000)
  '(helm-gtags-suggested-key-mapping t)
+ '(helm-gtags-update-interval-second 0)
  '(helm-truncate-lines t)
  '(horizontal-scroll-bar-mode t)
  '(icomplete-show-matches-on-no-input t)
@@ -528,6 +533,21 @@
 (autoload 'fci-mode "fill-column-indicator" "" t)
 (global-set-key (kbd "C-:") 'fci-mode)
 (setq fci-rule-column 120)
+(defun fci-all-window-refresh ()
+  (setq proced-buf-list nil)	;保存已经处理过的buf
+  (walk-windows
+   #'(lambda (w)
+	   (select-window w)
+	   (if (or (eq major-mode 'c-mode)
+			   (eq major-mode 'c++-mode))
+		   (progn 
+			 (unless (and (memq (window-buffer) proced-buf-list)
+						  (>= (window-width w) fci-rule-column))
+			   (push (window-buffer) proced-buf-list)
+			   (turn-on-fci-mode)
+			   (if (< (window-width w) fci-rule-column)
+				   (turn-off-fci-mode))))))
+   0))
 (eval-after-load "fill-column-indicator"
   '(progn
 	 ;; 避免破坏 auto complete
@@ -566,22 +586,6 @@
 	 (add-hook 'company-completion-cancelled-hook 'company-maybe-turn-on-fci)
 
 	 ;; 根据窗口分割情况刷新FCI
-
-	 (defun fci-all-window-refresh ()
-	   (setq proced-buf-list nil)	;保存已经处理过的buf
-	   (walk-windows
-		#'(lambda (w)
-			(select-window w)
-			(if (or (eq major-mode 'c-mode)
-					(eq major-mode 'c++-mode))
-				(progn 
-				  (unless (and (memq (window-buffer) proced-buf-list)
-							   (>= (window-width w) fci-rule-column))
-					(push (window-buffer) proced-buf-list)
-					(turn-on-fci-mode)
-					(if (< (window-width w) fci-rule-column)
-						(turn-off-fci-mode))))))
-		0))
 
 	 (defadvice split-window-right (after split-window-right-fci activate)
 	   ""
@@ -733,11 +737,13 @@
 
 
 ;; 查看diff
-(autoload 'diff-hl-dired-mode "diff-hl-margin" nil t)
-(autoload 'turn-on-diff-hl-mode "diff-hl-margin" nil t)
+(require 'diff-hl-margin )
+(global-diff-hl-mode)
+;; (autoload 'diff-hl-dired-mode "diff-hl-margin" nil t)
+;; (autoload 'turn-on-diff-hl-mode "diff-hl-margin" nil t)
 
-(add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
-(add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode)
+;; (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
+;; (add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode)
 
 ;; wgrep
 (autoload 'wgrep-setup "wgrep")
@@ -1135,6 +1141,16 @@ If FULL is t, copy full file name."
   (ring-insert semantic-tags-location-ring (point-marker))
   ad-do-it)
 
+(defadvice semantic-analyze-proto-impl-toggle (around semantic-analyze-proto-impl-toggle-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
+
+(defadvice semantic-decoration-include-visit (around semantic-decoration-include-visit-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
+
 (defadvice helm-gtags-find-tag-other-window (after helm-gtags-tag-other-back activate)
   ""
   (select-window (previous-window)))
@@ -1284,7 +1300,7 @@ If FULL is t, copy full file name."
 			(modify-syntax-entry ?_ "w")    ;_ 当成单词的一部分
 			(c-set-style "gzj")      ;定制C/C++缩进风格,到实际工作环境中要用guess style来添加详细的缩进风格
 			(my-c-mode-common-hook-if0)
-			(fci-mode 1)
+			;; (fci-mode 1)
 			(setup-program-keybindings)
 			(hs-minor-mode 1)
 			(hide-ifdef-mode 1)
@@ -1350,7 +1366,7 @@ If FULL is t, copy full file name."
 	   (add-hook hook
 				 (lambda()
 				   (setq truncate-lines t)
-				   ;; (set-syntax-table c++-mode-syntax-table)
+				   (set-syntax-table c++-mode-syntax-table)
 				   (modify-syntax-entry ?_ "w")    ;_ 当成单词的一部分
 				   )))))
 
