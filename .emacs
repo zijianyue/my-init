@@ -89,7 +89,7 @@
 ;; Load CEDET offical
 ;; (if (and (< emacs-minor-version 5)
 ;; 		 (eq emacs-major-version 24))
-(load-file "~/.emacs.d/cedet-master/cedet-devel-load.el")
+(load-file "d:/cedet-master/cedet-devel-load.el")
 ;; )
 
 (eval-after-load "cc-mode"
@@ -1307,7 +1307,7 @@ If FULL is t, copy full file name."
 			(setq-local ac-auto-start nil)
 			(setq-local indent-tabs-mode nil)
 			(irony-mode)
-			(gtags-mode 1)
+			;; (gtags-mode 1)
 			;; (ggtags-mode 1)
 			(eldoc-mode 0)
 			(company-mode 1)
@@ -1329,6 +1329,7 @@ If FULL is t, copy full file name."
   (add-hook hook
 			(lambda()
 			  (helm-gtags-mode 1)
+			  (gtags-mode 1)
 			  )))
 
 (add-hook 'dired-mode-hook
