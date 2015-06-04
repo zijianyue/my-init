@@ -273,7 +273,7 @@
  '(helm-gtags-ignore-case t)
  '(helm-gtags-maximum-candidates 2000)
  '(helm-gtags-suggested-key-mapping t)
- '(helm-gtags-update-interval-second 0)
+ '(helm-gtags-update-interval-second nil)
  '(helm-truncate-lines t)
  '(horizontal-scroll-bar-mode t)
  '(icomplete-show-matches-on-no-input t)
