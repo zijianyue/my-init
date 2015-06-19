@@ -129,13 +129,13 @@
 	 ;; 	 (progn
 	 ;; 	   (require 'semantic )
 	 ;; 	   (require 'semantic/decorate )
-		   ;; (require 'semantic/mru-bookmark )
-		   (semantic-mode t)
-		   (global-semantic-decoration-mode t)
-		   ;; (global-semantic-mru-bookmark-mode t)
-		   (global-semantic-stickyfunc-mode t)
-		   ;; ))
-))
+	 ;; (require 'semantic/mru-bookmark )
+	 (semantic-mode t)
+	 (global-semantic-decoration-mode t)
+	 ;; (global-semantic-mru-bookmark-mode t)
+	 (global-semantic-stickyfunc-mode t)
+	 ;; ))
+	 ))
 
 
 ;;修改标题栏，显示buffer的名字
@@ -267,13 +267,18 @@
    (quote
 	(helm-source-buffers-list helm-source-bookmarks helm-source-recentf)))
  '(helm-gtags-auto-update t)
- '(helm-gtags-cache-max-result-size 104857600)
+ '(helm-gtags-cache-max-result-size 204857600)
  '(helm-gtags-cache-select-result t)
  '(helm-gtags-display-style (quote detail))
  '(helm-gtags-ignore-case t)
  '(helm-gtags-maximum-candidates 2000)
  '(helm-gtags-suggested-key-mapping t)
  '(helm-gtags-update-interval-second nil)
+ '(helm-semantic-display-style
+   (quote
+	((python-mode . semantic-format-tag-summarize)
+	 (c-mode . semantic-format-tag-uml-prototype-default)
+	 (emacs-lisp-mode . semantic-format-tag-abbreviate-emacs-lisp-mode))))
  '(helm-truncate-lines t)
  '(horizontal-scroll-bar-mode t)
  '(icomplete-show-matches-on-no-input t)
@@ -289,6 +294,7 @@
  '(mode-require-final-newline nil)
  '(moo-select-method (quote helm))
  '(mouse-wheel-progressive-speed nil)
+ '(org-src-fontify-natively t)
  '(password-cache-expiry nil)
  '(pcmpl-gnu-tarfile-regexp "")
  '(recentf-auto-cleanup 600)
@@ -364,6 +370,7 @@
 	 (define-key gtags-mode-map [S-down-mouse-3] 'ignore)
 	 (define-key gtags-mode-map (kbd "<S-mouse-3>") 'gtags-pop-stack)
 	 (define-key gtags-mode-map (kbd "<S-mouse-1>") 'gtags-find-tag-by-event)
+	 (define-key gtags-mode-map (kbd "C-c i") 'gtags-find-with-idutils)
 	 (define-key gtags-select-mode-map "p" 'previous-line)
 	 (define-key gtags-select-mode-map "n" 'next-line)
 	 (define-key gtags-select-mode-map "q" 'kill-this-buffer)
@@ -587,25 +594,25 @@
 
 	 ;; 根据窗口分割情况刷新FCI
 
-	 (defadvice split-window-right (after split-window-right-fci activate)
-	   ""
-	   (fci-all-window-refresh))
+	 ;; (defadvice split-window-right (after split-window-right-fci activate)
+	 ;;   ""
+	 ;;   (fci-all-window-refresh))
 
-	 (defadvice delete-other-windows (after delete-other-windows-fci activate)
-	   ""
-	   (fci-all-window-refresh))
+	 ;; (defadvice delete-other-windows (after delete-other-windows-fci activate)
+	 ;;   ""
+	 ;;   (fci-all-window-refresh))
 
-	 (defadvice mouse-delete-window (after mouse-delete-window-fci activate)
-	   ""
-	   (fci-all-window-refresh))
+	 ;; (defadvice mouse-delete-window (after mouse-delete-window-fci activate)
+	 ;;   ""
+	 ;;   (fci-all-window-refresh))
 
-	 (defadvice delete-window (after delete-window-fci activate)
-	   ""
-	   (fci-all-window-refresh))
+	 ;; (defadvice delete-window (after delete-window-fci activate)
+	 ;;   ""
+	 ;;   (fci-all-window-refresh))
 
-	 (defadvice switch-to-buffer (after switch-to-buffer-fci activate)
-	   ""
-	   (fci-all-window-refresh))
+	 ;; (defadvice switch-to-buffer (after switch-to-buffer-fci activate)
+	 ;;   ""
+	 ;;   (fci-all-window-refresh))
 	 ))
 ;; 异步copy rename文件
 (autoload 'dired-async-mode "dired-async.el" nil t)
@@ -633,11 +640,10 @@
 	 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebihnd tab to do persistent action
 	 (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
 	 (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
-	 (setq helm-semantic-display-style 'semantic-format-tag-uml-prototype-default)
 	 ))
 
 (global-set-key (kbd "C-S-v") 'helm-show-kill-ring)
-(global-set-key (kbd "<C-M-apps>") 'helm-semantic-or-imenu)
+(global-set-key (kbd "<apps>") 'helm-semantic-or-imenu)
 (global-set-key (kbd "<C-apps>") 'helm-for-files)
 (global-set-key (kbd "<S-apps>") 'helm-resume)
 (global-set-key (kbd "<M-apps>") 'helm-ag-this-file)
@@ -662,6 +668,9 @@
 	 (define-key helm-gtags-mode-map (kbd "C-M-,") 'helm-gtags-show-stack)
 	 ))
 
+(add-hook 'helm-update-hook
+		  (lambda ()
+			(setq truncate-lines t)))
 ;; back button
 ;; (require 'back-button)
 ;; (back-button-mode 1)
@@ -811,8 +820,8 @@
 
 ;; func args
 (require 'function-args )
-(global-set-key (kbd "<apps>") 'moo-jump-local)
-(global-set-key (kbd "<M-S-return>") 'moo-complete)
+;; (global-set-key (kbd "<apps>") 'moo-jump-local)
+(global-set-key (kbd "<M-S-return>") 'fa-show)
 
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
@@ -1307,7 +1316,6 @@ If FULL is t, copy full file name."
 			(setq-local ac-auto-start nil)
 			(setq-local indent-tabs-mode nil)
 			(irony-mode)
-			;; (gtags-mode 1)
 			;; (ggtags-mode 1)
 			(eldoc-mode 0)
 			(company-mode 1)
@@ -1328,8 +1336,8 @@ If FULL is t, copy full file name."
 (dolist (hook '(c-mode-common-hook lua-mode-hook objc-mode-hook project-buffer-mode-hook))
   (add-hook hook
 			(lambda()
-			  (helm-gtags-mode 1)
 			  (gtags-mode 1)
+			  (helm-gtags-mode 1)
 			  )))
 
 (add-hook 'dired-mode-hook
