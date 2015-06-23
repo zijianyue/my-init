@@ -89,7 +89,7 @@
 ;; Load CEDET offical
 ;; (if (and (< emacs-minor-version 5)
 ;; 		 (eq emacs-major-version 24))
-(load-file "d:/cedet-master/cedet-devel-load.el")
+;; (load-file "d:/cedet-master/cedet-devel-load.el")
 ;; )
 
 (eval-after-load "cc-mode"
@@ -98,15 +98,14 @@
 	 ;; (if (and (eq emacs-minor-version 5)
 	 ;; 		  (eq emacs-major-version 24))
 	 ;; 	 (progn
-	 ;; 	   (require 'semantic )
-	 ;; 	   (require 'srecode)
-	 ;; 	   (require 'semantic/decorate )))
+	 	   (require 'semantic )
+	 	   (require 'srecode)
+	 	   (require 'semantic/decorate )
+	 ))
 	 
-	 ;; (require 'semantic/mru-bookmark )
 	 (semantic-mode t)
 	 (global-ede-mode t)
 	 (global-semantic-decoration-mode t)
-	 ;; (global-semantic-mru-bookmark-mode t)
 	 (global-semantic-stickyfunc-mode t)
 	 (global-srecode-minor-mode t)
 	 (global-semantic-highlight-edits-mode t)
@@ -127,15 +126,13 @@
 	 ;; (if (and (< emacs-minor-version 5)
 	 ;; 		  (eq emacs-major-version 24))
 	 ;; 	 (progn
-	 ;; 	   (require 'semantic )
-	 ;; 	   (require 'semantic/decorate )
-	 ;; (require 'semantic/mru-bookmark )
-	 (semantic-mode t)
-	 (global-semantic-decoration-mode t)
-	 ;; (global-semantic-mru-bookmark-mode t)
-	 (global-semantic-stickyfunc-mode t)
-	 ;; ))
-	 ))
+	 	   (require 'semantic )
+	 	   (require 'semantic/decorate )
+		   (semantic-mode t)
+		   (global-semantic-decoration-mode t)
+		   (global-semantic-stickyfunc-mode t)
+		   ;; ))
+))
 
 
 ;;修改标题栏，显示buffer的名字
