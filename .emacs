@@ -101,7 +101,7 @@
 	 	   (require 'semantic )
 	 	   (require 'srecode)
 	 	   (require 'semantic/decorate )
-	 ))
+	 ;; ))
 	 
 	 (semantic-mode t)
 	 (global-ede-mode t)
