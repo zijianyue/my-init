@@ -89,7 +89,7 @@
 ;; Load CEDET offical
 ;; (if (and (< emacs-minor-version 5)
 ;; 		 (eq emacs-major-version 24))
-;; (load-file "d:/cedet-master/cedet-devel-load.el")
+(load-file "d:/cedet-master/cedet-devel-load.el")
 ;; )
 
 (eval-after-load "cc-mode"
@@ -98,9 +98,9 @@
 	 ;; (if (and (eq emacs-minor-version 5)
 	 ;; 		  (eq emacs-major-version 24))
 	 ;; 	 (progn
-	 	   (require 'semantic )
-	 	   (require 'srecode)
-	 	   (require 'semantic/decorate )
+	 ;; (require 'semantic )
+	 ;; (require 'srecode)
+	 ;; (require 'semantic/decorate )
 	 ;; ))
 	 
 	 (semantic-mode t)
@@ -126,13 +126,13 @@
 	 ;; (if (and (< emacs-minor-version 5)
 	 ;; 		  (eq emacs-major-version 24))
 	 ;; 	 (progn
-	 	   (require 'semantic )
-	 	   (require 'semantic/decorate )
-		   (semantic-mode t)
-		   (global-semantic-decoration-mode t)
-		   (global-semantic-stickyfunc-mode t)
-		   ;; ))
-))
+	 ;; (require 'semantic )
+	 ;; (require 'semantic/decorate )
+	 (semantic-mode t)
+	 (global-semantic-decoration-mode t)
+	 (global-semantic-stickyfunc-mode t)
+	 ;; ))
+	 ))
 
 
 ;;修改标题栏，显示buffer的名字
@@ -627,8 +627,12 @@
 (autoload 'helm-gtags-create-tags "helm-gtags" nil t)
 (autoload 'helm-gtags-update-tags "helm-gtags" nil t)
 
+(define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
+
 (autoload 'helm-occur "helm-gtags" nil t)
 (autoload 'helm-swoop "helm-swoop" nil t)
+(autoload 'helm-swoop-from-isearch "helm-swoop" nil t)
+
 (autoload 'helm-ag-this-file "helm-ag" nil t)
 
 
@@ -738,8 +742,7 @@
 	 (setq ace-jump-mode-move-keys (loop for i from ?a to ?z collect i))))
 
 (global-set-key (kbd "M-v") 'ace-window)
-(define-key global-map (kbd "M-n") 'ace-jump-char-mode)
-(define-key global-map (kbd "M-]") 'ace-jump-char-mode)
+(global-set-key (kbd "M-j") 'ace-jump-char-mode)
 
 
 ;; 查看diff
@@ -817,7 +820,6 @@
 
 ;; func args
 (require 'function-args )
-;; (global-set-key (kbd "<apps>") 'moo-jump-local)
 (global-set-key (kbd "<M-S-return>") 'fa-show)
 
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
@@ -1164,10 +1166,10 @@ If FULL is t, copy full file name."
 (defun ia-fast-jump-other ()
   (interactive "")
   (let ((pos (point)))
-	(switch-to-buffer-other-window (current-buffer))
-	(goto-char pos)
-	(semantic-ia-fast-jump (point))
-	(select-window (previous-window))
+	(save-selected-window
+	  (switch-to-buffer-other-window (current-buffer))
+	  (goto-char pos)
+	  (semantic-ia-fast-jump (point)))
 	))
 
 (defun set-c-word-mode ()
@@ -1221,6 +1223,18 @@ If FULL is t, copy full file name."
   (let ((orig (current-buffer)))
     ad-do-it
     (kill-buffer orig)))
+
+;; 大文件处理
+(defun my-find-file-check-make-large-file-read-only-hook ()
+  ""
+  (when (and (< (* 200 1024) (buffer-size))
+			 (or (eq major-mode 'c-mode)
+				 (eq major-mode 'c++-mode)))
+	(nlinum-mode -1)
+	;; (jit-lock-mode nil)
+	))
+(add-hook 'find-file-hook 'my-find-file-check-make-large-file-read-only-hook)
+
 ;;-----------------------------------------------------------hook-----------------------------------------------------------;;
 (c-add-style "gzj"
 			 '("stroustrup"
