@@ -87,26 +87,21 @@
 (setq ring-bell-function 'ignore)
 
 ;; Load CEDET offical
-;; (if (and (< emacs-minor-version 5)
-;; 		 (eq emacs-major-version 24))
 (load-file "d:/cedet-master/cedet-devel-load.el")
-;; )
+
+;; cedet builtin
+;; (require 'semantic )
+;; (require 'semantic/decorate )
+
+(semantic-mode t)
+(global-semantic-decoration-mode t)
+(global-semantic-stickyfunc-mode t)
 
 (eval-after-load "cc-mode"
   '(progn  
-	 ;; cedet builtin
-	 ;; (if (and (eq emacs-minor-version 5)
-	 ;; 		  (eq emacs-major-version 24))
-	 ;; 	 (progn
-	 ;; (require 'semantic )
 	 ;; (require 'srecode)
-	 ;; (require 'semantic/decorate )
-	 ;; ))
 	 
-	 (semantic-mode t)
 	 (global-ede-mode t)
-	 (global-semantic-decoration-mode t)
-	 (global-semantic-stickyfunc-mode t)
 	 (global-srecode-minor-mode t)
 	 (global-semantic-highlight-edits-mode t)
 
@@ -119,21 +114,6 @@
 	 (setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
 	 ;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
 	 ))
-
-(eval-after-load "lisp-mode"
-  '(progn
-	 ;; cedet builtin
-	 ;; (if (and (< emacs-minor-version 5)
-	 ;; 		  (eq emacs-major-version 24))
-	 ;; 	 (progn
-	 ;; (require 'semantic )
-	 ;; (require 'semantic/decorate )
-	 (semantic-mode t)
-	 (global-semantic-decoration-mode t)
-	 (global-semantic-stickyfunc-mode t)
-	 ;; ))
-	 ))
-
 
 ;;修改标题栏，显示buffer的名字
 (setq frame-title-format "%b [%+] %f")
@@ -828,6 +808,7 @@
   (let ((word (if mark-active
                   (buffer-substring-no-properties (region-beginning) (region-end))
 				(current-word nil t))))
+	(setq-local default-process-coding-system '(utf-8 . gbk))
     (setq word (read-string (format "Search the dictionary for (default %s): " word)
                             nil nil word))
     (set-buffer (get-buffer-create "*sdcv*"))
@@ -835,7 +816,7 @@
     (erase-buffer)
 	(message "searching for %s ..." word)
 
-    (let ((process (start-process  "sdcv" "*sdcv*"  "sdcv" "-n" "--utf8-output" "--data-dir" "d:/dic" word)))
+    (let ((process (start-process  "sdcv" "*sdcv*"  "sdcv" "-n" "--utf8-output" "--data-dir" "/cygdrive/c/gtags/dict" word)))
       ;;start-process-shell-command(未试)
       (set-process-sentinel
        process
@@ -852,7 +833,6 @@
                                           (delete-window)))))
            (goto-char (point-min))))))))
 
-(setq default-process-coding-system '(utf-8 . gbk))
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin-----------------------------------------------------------;;
