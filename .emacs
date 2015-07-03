@@ -817,7 +817,7 @@
     (erase-buffer)
 	(message "searching for %s ..." word)
 
-    (let ((process (start-process  "sdcv" "*sdcv*"  "sdcv" "-n" "--utf8-output" "--data-dir" "/cygdrive/c/gtags/dict" word)))
+    (let ((process (start-process  "sdcv" "*sdcv*"  "sdcv" "-n" "--utf8-output" "--data-dir" "/cygdrive/c/gtags/dic" word)))
       ;;start-process-shell-command(未试)
       (set-process-sentinel
        process
