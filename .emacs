@@ -803,14 +803,15 @@
 (global-set-key (kbd "<M-S-return>") 'fa-show)
 
 ;; 星际译王
-(defun kid-sdcv-to-buffer ()
-  (interactive)
+(defun kid-sdcv-to-buffer (&optional input)
+  (interactive "*P")
   (let ((word (if mark-active
                   (buffer-substring-no-properties (region-beginning) (region-end))
 				(current-word nil t))))
-	(setq-local default-process-coding-system '(utf-8 . gbk))
-    (setq word (read-string (format "Search the dictionary for (default %s): " word)
-                            nil nil word))
+	(if input
+		(setq word (read-string (format "Search the dictionary for (default %s): " word)
+								nil nil word)))
+    
     (set-buffer (get-buffer-create "*sdcv*"))
     (buffer-disable-undo)
     (erase-buffer)
@@ -833,6 +834,7 @@
                                           (delete-window)))))
            (goto-char (point-min))))))))
 
+(global-set-key (kbd "<M-f11>") 'kid-sdcv-to-buffer)
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin-----------------------------------------------------------;;
@@ -981,7 +983,6 @@ If FULL is t, copy full file name."
   (interactive)
   (local-set-key (kbd "<f12>") 'semantic-ia-fast-jump)
   (local-set-key (kbd "M-`") 'ia-fast-jump-other)
-  (local-set-key (kbd "<M-f1>") 'ia-fast-jump-other)
   (local-set-key (kbd "<S-f12>") 'semantic-complete-jump)
   (local-set-key (kbd "<C-f12>") 'semantic-symref-just-symbol)
   (local-set-key (kbd "<M-S-f12>") 'semantic-symref-anything)
