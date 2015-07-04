@@ -5,3 +5,5 @@
 	default = simple
 [credential]
 	helper = store
+[http]
+	postBuffer = 500000000
