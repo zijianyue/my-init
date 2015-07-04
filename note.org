@@ -75,7 +75,6 @@
 
 *** <M-home>和<M-end>可以将其他窗口的光标移到开始或结尾
 
-
 ** dynamic-library-alist显示依赖的dll
 ** buffer中插入变量值 (insert (format "[%s] " (car hits)))
 ** 查看diff时，apply hunk可以把变更给取消
@@ -83,14 +82,14 @@
 把C:\MinGW\msys\1.0\etc下的fstab.sample改名为fstab
 XPM源码中的simx.h和xpm.h复制到C:\MinGW\include\X11下
 ** How to Undo the Unpushed Commits in Magit?
-Oct 15th, 2014 | Comments
-
 In Magit buffer *magit: ..*,
 
 Hit x
 Select origin/master
 Above action will undo all the commits that haven’t been pushed to github.com. It will still preserve the modified states of the yet-to-be staged/committed files.
 
+** magit部分提交修改
+用tab展开修改，假如有多个hunk，在要提交的hunk上stage（s键），如果失败可能是无法单独提交该hunk
 
 * git
 ** git避免输入用户名密码
