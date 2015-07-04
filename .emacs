@@ -31,7 +31,6 @@
 (setenv "CYGWIN" "C:\\cygwin\\bin")
 (setenv "GTAGSLABEL" "pygments")
 
-
 (setenv "PATH"
 		(concat
 		 (getenv "MSYS")
