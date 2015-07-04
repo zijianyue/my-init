@@ -123,3 +123,11 @@ XPM源码中的simx.h和xpm.h复制到C:\MinGW\include\X11下
 再打开cmd 切换到pygments根目录执行c:\python34\python.exe setup.py install即可，有可能得先下载setuptools
 * win7拒绝访问sendto文件夹
 在我的电脑的地址栏输入shell:sendto即可
+* How to Undo the Unpushed Commits in Magit?
+Oct 15th, 2014 | Comments
+
+In Magit buffer *magit: ..*,
+
+Hit x
+Select origin/master
+Above action will undo all the commits that haven’t been pushed to github.com. It will still preserve the modified states of the yet-to-be staged/committed files.
