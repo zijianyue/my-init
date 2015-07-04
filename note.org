@@ -1,76 +1,59 @@
-* pscp problem when called from bash 
+* emacs
+** srecode编辑模式C-c c-c是确认修改生效
+** dired中S即dired-do-symlink可以给exe创建快捷方式（symlink or soft link），并放到指定位置。
+** 插件修改
 
-Hi,
-using pscp from "cmd" in Windows woks well but when it is used from bash, host:path is not correctly interpreted, it needs to add an additional / before the path to be well interpreted.
-For example:
-pscp -v myFile mylogin@myHost:/tmp/myDir
-gives messages
-Looking up host "myHost;C"
-ssh_init: Host does not exist
-
-pscp -v myFile mylogin@myHost://tmp/myDir
-works well (with message
-Looking up host "myHost")
-
-* srecode编辑模式C-c c-c是确认修改生效
-
-* dired中S即dired-do-symlink可以给exe创建快捷方式（symlink or soft link），并放到指定位置。
-安装SmartGit把C:\Program Files\SmartGit\git\bin\git.exe创建symlink到c:\mingw\msys\1.0\bin下，
-这样就相当于msys中有了git命令
-
-* 插件修改
-
-** CEDET的修改：
- 
-*** 1 修改cedet-global.el，添加
+*** CEDET的修改：
+  
+**** 1 修改cedet-global.el，添加
  		      ((eq texttype 'regexp)
  		       "g")
 +              ((eq texttype 'symbolname)
 +               "s")
-*** 2 在ect/srecode中修改c.srt和doc-cpp.srt
-*** 3 到.emacs.d下把srecode-map.el删除
-*** 4 list.el 中semantic-symref-produce-list-on-results
+**** 2 在ect/srecode中修改c.srt和doc-cpp.srt
+**** 3 到.emacs.d下把srecode-map.el删除
+**** 4 list.el 中semantic-symref-produce-list-on-results
 (semantic-symref-result-get-tags res nil)
 这个是控制要不要把symref的文件都打开(原来是传t，改为nil)
-*** 5 symref会过滤.h中的项是semantic-symref-result-get-tags中做的,对该函数做如下修改（详细见symbre.el）
+**** 5 symref会过滤.h中的项是semantic-symref-result-get-tags中做的,对该函数做如下修改（详细见symbre.el）
 
-		  ;; 找不到tag时，使用which-fuction匹配本文件所有tag来查找
-		  (unless tag
-			(let ((foundFlag-p nil )
-				  (i 0))
+		   ;; 找不到tag时，使用which-fuction匹配本文件所有tag来查找
+		   (unless tag
+			 (let ((foundFlag-p nil )
+				   (i 0))
 
-			  (while (and
-					  (not foundFlag-p)
-					  (<= i (length tagList)))
+			   (while (and
+					   (not foundFlag-p)
+					   (<= i (length tagList)))
 
-				;; if found, set foundFlag-p
-				
-				(when (equal (semantic-tag-name (elt tagList i)) whichFunc)
-				  (setq foundFlag-p t )
-				  (setq tag (elt tagList i)))
+				 ;; if found, set foundFlag-p
+				 
+				 (when (equal (semantic-tag-name (elt tagList i)) whichFunc)
+				   (setq foundFlag-p t )
+				   (setq tag (elt tagList i)))
 
-				(setq i (1+ i))))
-			  )
+				 (setq i (1+ i))))
+			   )
 
-*** 6 symref把行号加上
+**** 6 symref把行号加上
 修改semantic-symref-rb-toggle-expand-tag
 	    (insert-button (format "[%s] %s" (car hits) (car text))
 
-*** 7 symref 重命名时对于semantic-symref-anything不好使，要修改list.el
+**** 7 symref 重命名时对于semantic-symref-anything不好使，要修改list.el
 在semantic-symref-list-map-open-hits中修改
 	      (while (re-search-forward oldsym (point-at-eol) t)
 
-*** 8 修改semantic-symref-anything 注释会被过滤的问题
- ;; 再找不到就创建一个空tag
-			  (unless tag
-				(setq tag (semantic-tag "/* COMMENT */" 'variable))
-				(semantic--tag-put-property tag :filename (buffer-file-name)))
+**** 8 修改semantic-symref-anything 注释会被过滤的问题
+  ;; 再找不到就创建一个空tag
+			   (unless tag
+				 (setq tag (semantic-tag "/* COMMENT */" 'variable))
+				 (semantic--tag-put-property tag :filename (buffer-file-name)))
 
 
-** helm-files.el的修改
+*** helm-files.el的修改
 ;; (require 'dired-x)
 
-** nlinum.el的修改
+*** nlinum.el的修改
 (defun nlinum--setup-window ()
   (let ((width (if (display-graphic-p)
                    (ceiling
@@ -87,12 +70,30 @@ Looking up host "myHost")
 											  nlinum--width))
                         (cdr (window-margins)))))
 
-** comment-box功能
+*** comment-box功能
 给代码加上块注释
 
-** <M-home>和<M-end>可以将其他窗口的光标移到开始或结尾
+*** <M-home>和<M-end>可以将其他窗口的光标移到开始或结尾
 
-* git避免输入用户名密码
+
+** dynamic-library-alist显示依赖的dll
+** buffer中插入变量值 (insert (format "[%s] " (car hits)))
+** 查看diff时，apply hunk可以把变更给取消
+** 搭建emacs编译环境时
+把C:\MinGW\msys\1.0\etc下的fstab.sample改名为fstab
+XPM源码中的simx.h和xpm.h复制到C:\MinGW\include\X11下
+** How to Undo the Unpushed Commits in Magit?
+Oct 15th, 2014 | Comments
+
+In Magit buffer *magit: ..*,
+
+Hit x
+Select origin/master
+Above action will undo all the commits that haven’t been pushed to github.com. It will still preserve the modified states of the yet-to-be staged/committed files.
+
+
+* git
+** git避免输入用户名密码
 HOME目录下创建.git-credentials
 
 内容是 https://zijianyue:gzjsy1314@github.com
@@ -107,27 +108,31 @@ git config --global credential.helper store
 
     helper = store
     
-* dynamic-library-alist显示依赖的dll
-* buffer中插入变量值 (insert (format "[%s] " (car hits)))
-* git的PATH设置
+
+** git的PATH设置
 安装官方git，选路径时选第2个，即把git/cmd/添加到PATH中，这样就可以使用git命令
 又不会引起其他命令的混乱
-* 查看diff时，apply hunk可以把变更给取消
-* psftp get 和 put时local dir就是起psftp命令时的目录
+
+
+* 其他
+** pscp problem when called from bash 
+
+Hi,
+using pscp from "cmd" in Windows woks well but when it is used from bash, host:path is not correctly interpreted, it needs to add an additional / before the path to be well interpreted.
+For example:
+pscp -v myFile mylogin@myHost:/tmp/myDir
+gives messages
+Looking up host "myHost;C"
+ssh_init: Host does not exist
+
+pscp -v myFile mylogin@myHost://tmp/myDir
+works well (with message
+Looking up host "myHost")
+
+** psftp get 和 put时local dir就是起psftp命令时的目录
 可以用lpwd显示，也可以用lcd \path\to\new\dir修改
-* 搭建emacs编译环境时
-把C:\MinGW\msys\1.0\etc下的fstab.sample改名为fstab
-XPM源码中的simx.h和xpm.h复制到C:\MinGW\include\X11下
-* 安装pygments
+** 安装pygments
 先安装python 2.7 或 3.4
 再打开cmd 切换到pygments根目录执行c:\python34\python.exe setup.py install即可，有可能得先下载setuptools
-* win7拒绝访问sendto文件夹
+** win7拒绝访问sendto文件夹
 在我的电脑的地址栏输入shell:sendto即可
-* How to Undo the Unpushed Commits in Magit?
-Oct 15th, 2014 | Comments
-
-In Magit buffer *magit: ..*,
-
-Hit x
-Select origin/master
-Above action will undo all the commits that haven’t been pushed to github.com. It will still preserve the modified states of the yet-to-be staged/committed files.
