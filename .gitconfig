@@ -1,0 +1,7 @@
+[user]
+	email = zijian@163.com
+	name = zijianyue
+[push]
+	default = simple
+[credential]
+	helper = store
