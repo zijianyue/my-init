@@ -795,6 +795,7 @@
 (setenv "GIT_ASKPASS" "git-gui--askpass") ;解决git push不提示密码的问题
 ;; 要想保存密码不用每次输入得修改.git-credentials和.gitconfig
 (require 'magit)
+(global-set-key (kbd "C-x g") 'magit-status)
 
 ;; purpose
 (autoload 'purpose-mode "window-purpose" nil t)
@@ -806,7 +807,7 @@
 
 ;; 星际译王
 (defun kid-sdcv-to-buffer (&optional input)
-  (interactive "*P")
+  (interactive "P")
   (let ((word (if mark-active
                   (buffer-substring-no-properties (region-beginning) (region-end))
 				(current-word nil t))))
@@ -841,7 +842,7 @@
 ;;-----------------------------------------------------------define func begin-----------------------------------------------------------;;
 ;; 资源管理器中打开
 (defun open-in-desktop-select (&optional dired)
-  (interactive "*P")
+  (interactive "P")
   (let ((file (buffer-name)))
 	(if dired
 		;; (setq file (dired-get-filename 'no-dir)) ;xp
@@ -1025,7 +1026,7 @@ If FULL is t, copy full file name."
   )
 (defun semantic-symref-tag (&optional text)
   ""
-  (interactive "*P")
+  (interactive "P")
   (semantic-fetch-tags)
   (let (symbol res)
 	(setq symbol (semantic-current-tag))
