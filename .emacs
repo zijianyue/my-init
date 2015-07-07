@@ -29,7 +29,7 @@
 (setenv "GTAGSBIN" "c:\\gtags\\bin")
 (setenv "PYTHON" "C:\\Python34")
 (setenv "CYGWIN" "C:\\cygwin\\bin")
-(setenv "GTAGSLABEL" "pygments")
+;; (setenv "GTAGSLABEL" "pygments")
 
 (setenv "PATH"
 		(concat
@@ -837,6 +837,31 @@
            (goto-char (point-min))))))))
 
 (global-set-key (kbd "<M-f11>") 'kid-sdcv-to-buffer)
+
+;; ac-clang
+(require 'ac-clang)
+
+(setq w32-pipe-read-delay 0)          ;; <- Windows Only
+(setq ac-clang-async-autocompletion-manualtrigger-key "<C-tab>")
+
+(when (ac-clang-initialize)
+  (add-hook 'c-mode-common-hook '(lambda ()
+								   ;; (setq ac-clang-cflags CFLAGS)
+								   (ac-clang-activate-after-modify)
+								   (define-key ac-mode-map (kbd "M-.") nil)
+								   (define-key ac-mode-map (kbd "M-,") nil)
+								   (define-key ac-mode-map (kbd "C-c `") 'ac-clang-diagnostics)
+								   (define-key ac-mode-map (kbd "<S-f12>") 'ac-clang-jump-smart) 
+								   )))
+(defadvice ac-clang-activate (after ac-clang-activate-after activate)
+  ""
+  (setq ac-sources ac-clang--ac-sources-backup)
+  (setq ac-sources (append '(ac-source-clang-async) ac-sources))
+  )
+(defadvice ac-clang-jump-smart (around ac-clang-jump-smart-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  ad-do-it)
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin-----------------------------------------------------------;;
