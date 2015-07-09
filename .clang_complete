@@ -1,5 +1,8 @@
 -std=c++11
--Wall
+-Weverything
+-Wno-cast-qual
+-Wno-missing-field-initializers
+-Wno-gnu-zero-variadic-macro-arguments
 -nostdinc
 -ferror-limit=0
 -I/
