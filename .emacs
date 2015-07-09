@@ -51,13 +51,13 @@
 		 path-separator
 		 (getenv "PATH")))
 
-(add-to-list 'exec-path (getenv "CYGWIN"))
-(add-to-list 'exec-path (getenv "PYTHON"))
-(add-to-list 'exec-path (getenv "GTAGSBIN"))
-(add-to-list 'exec-path (getenv "CMAKE"))
-(add-to-list 'exec-path (getenv "LLVM"))
-(add-to-list 'exec-path (getenv "MSYS"))
-(add-to-list 'exec-path (getenv "MINGW"))
+(add-to-list 'exec-path (getenv "MINGW") t)
+(add-to-list 'exec-path (getenv "MSYS") t)
+(add-to-list 'exec-path (getenv "LLVM") t)
+(add-to-list 'exec-path (getenv "CMAKE") t)
+(add-to-list 'exec-path (getenv "GTAGSBIN") t)
+(add-to-list 'exec-path (getenv "PYTHON") t)
+(add-to-list 'exec-path (getenv "CYGWIN") t)
 
 
 (defvar site-lisp-dir)
@@ -91,28 +91,22 @@
 ;; cedet builtin
 ;; (require 'semantic )
 ;; (require 'semantic/decorate )
+;; (require 'srecode)
 
 (semantic-mode t)
 (global-semantic-decoration-mode t)
 (global-semantic-stickyfunc-mode t)
-
-(eval-after-load "cc-mode"
-  '(progn  
-	 ;; (require 'srecode)
-	 
-	 (global-ede-mode t)
-	 (global-srecode-minor-mode t)
-	 (global-semantic-highlight-edits-mode t)
-
-	 ;; (setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
-	 ;; let cedet call ctags to find things which cedet can not find
-	 ;; (semantic-load-enable-all-ectags-support)
-	 (semanticdb-enable-gnu-global-databases 'c-mode)
-	 (semanticdb-enable-gnu-global-databases 'c++-mode)
-	 (set-default 'semantic-case-fold t)
-	 (setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
-	 ;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
-	 ))
+(global-ede-mode t)
+(global-srecode-minor-mode t)
+(global-semantic-highlight-edits-mode t)
+;; (setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
+;; let cedet call ctags to find things which cedet can not find
+;; (semantic-load-enable-all-ectags-support)
+(semanticdb-enable-gnu-global-databases 'c-mode)
+(semanticdb-enable-gnu-global-databases 'c++-mode)
+(set-default 'semantic-case-fold t)
+(setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
+;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
 
 ;;修改标题栏，显示buffer的名字
 (setq frame-title-format "%b [%+] %f")
@@ -840,9 +834,8 @@
 
 ;; ac-clang
 (require 'ac-clang)
-
+(setq ac-clang-async-autocompletion-manualtrigger-key "M-n")
 (setq w32-pipe-read-delay 0)          ;; <- Windows Only
-(setq ac-clang-async-autocompletion-manualtrigger-key "<C-tab>")
 
 (when (ac-clang-initialize)
   (add-hook 'c-mode-common-hook '(lambda ()
@@ -1265,16 +1258,16 @@ If FULL is t, copy full file name."
     (kill-buffer orig)))
 
 ;; 大文件处理
-(defun my-find-file-check-make-large-file-read-only-hook ()
+(defun check-large-file-hook ()
   ""
-  (when (and (< (* 200 1024) (buffer-size))
-			 (or (eq major-mode 'c-mode)
-				 (eq major-mode 'c++-mode)))
+  (when (< (* 300 1024) (buffer-size))
 	(nlinum-mode -1)
 	;; (jit-lock-mode nil)
 	))
-(add-hook 'find-file-hook 'my-find-file-check-make-large-file-read-only-hook)
 
+;; 大文件不开semantic
+(add-to-list 'semantic-inhibit-functions
+             (lambda () (< (* 300 1024) (buffer-size))))
 ;;-----------------------------------------------------------hook-----------------------------------------------------------;;
 (c-add-style "gzj"
 			 '("stroustrup"
@@ -1373,6 +1366,7 @@ If FULL is t, copy full file name."
 			(abbrev-mode 0)
 			(flycheck-mode 1)
 			(yas-glo-on)
+			(check-large-file-hook)
 			;; (superword-mode)                ;连字符不分割单词,影响move和edit，但是鼠标双击选择不管用 ，相对subword-mode
 			))
 
