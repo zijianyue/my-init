@@ -1366,7 +1366,6 @@ If FULL is t, copy full file name."
 			(abbrev-mode 0)
 			(flycheck-mode 1)
 			(yas-glo-on)
-			(check-large-file-hook)
 			;; (superword-mode)                ;连字符不分割单词,影响move和edit，但是鼠标双击选择不管用 ，相对subword-mode
 			))
 
