@@ -11,6 +11,12 @@
 -I/UPF
 -I/UPF_Dubhe/Export
 -I/UPF_SMI/Include
+-I/Service/TG/MM/RM/Source/PMM
+-IC:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include
+-IC:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/atlmfc/include
+-IC:/Program Files (x86)/Windows Kits/8.1/Include/um
+-IC:/Program Files (x86)/Windows Kits/8.1/Include/shared
+-IC:/Program Files (x86)/Windows Kits/8.1/Include/winrt
 -Ic:/MinGW/lib/gcc/mingw32/4.8.1/include
 -Ic:/MinGW/lib/gcc/mingw32/4.8.1/include/c++
 -ID:/linux/linux-3.18.3/include/uapi
