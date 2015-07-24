@@ -93,10 +93,10 @@
 ;; (require 'semantic/decorate )
 ;; (require 'srecode)
 
+(global-ede-mode t)
 (semantic-mode t)
 (global-semantic-decoration-mode t)
 (global-semantic-stickyfunc-mode t)
-(global-ede-mode t)
 (global-srecode-minor-mode t)
 (global-semantic-highlight-edits-mode t)
 ;; (setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
@@ -107,6 +107,9 @@
 (set-default 'semantic-case-fold t)
 (setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
 ;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
+
+(global-set-key (kbd "M-]") 'semantic-ia-show-summary)
+;; semantic-ia-show-doc 备用
 
 ;;修改标题栏，显示buffer的名字
 (setq frame-title-format "%b [%+] %f")
@@ -275,7 +278,10 @@
  '(semantic-c-dependency-system-include-path
    (quote
 	("C:/Program Files (x86)/Microsoft Visual Studio 8/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/PlatformSDK/Include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/atlmfc/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/SDK/v2.0/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/atlmfc/include" "C:/cygwin/usr/include" "D:/linux/linux-3.18.3/include/uapi")))
- '(semantic-idle-scheduler-idle-time 5)
+ '(semantic-default-submodes
+   (quote
+	(global-semantic-decoration-mode global-semantic-stickyfunc-mode global-semantic-idle-scheduler-mode global-semanticdb-minor-mode global-semantic-highlight-edits-mode)))
+ '(semantic-idle-scheduler-idle-time 2)
  '(semantic-idle-scheduler-max-buffer-size 200000)
  '(semantic-imenu-bucketize-file nil)
  '(semantic-imenu-summary-function (quote semantic-format-tag-abbreviate))
@@ -420,6 +426,8 @@
   ;; (setq ac-sources (append '(ac-source-c-headers) ac-sources))
   ;; (setq ac-sources (append '(ac-source-irony) ac-sources))
   (setq ac-sources (append '(ac-source-semantic) ac-sources))
+  ;; (setq ac-sources (append '(ac-source-semantic-raw) ac-sources)) ;;会干扰->成员的补全
+  ;; (setq ac-sources (append '(ac-source-imenu) ac-sources)) ;;会干扰->成员的补全
   )
 (eval-after-load "auto-complete-config"
   '(progn
@@ -836,6 +844,7 @@
 
 ;; ac-clang
 (require 'ac-clang)
+;; (setq ac-clang-debug-log-buffer-p t)
 (setq ac-clang-async-autocompletion-manualtrigger-key "M-n")
 (setq w32-pipe-read-delay 0)          ;; <- Windows Only
 
