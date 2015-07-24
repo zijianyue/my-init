@@ -191,6 +191,7 @@
  '(ac-disable-faces nil)
  '(ac-ignore-case t)
  '(ac-trigger-key "TAB")
+ '(ac-use-fuzzy t)
  '(ac-use-menu-map t)
  '(ad-redefinition-action (quote accept))
  '(auto-save-default nil)
@@ -422,11 +423,11 @@
 ;;auto-complete
 (require 'auto-complete-config)
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
-  ;; (setq ac-sources (delete 'ac-source-gtags ac-sources))
+  (setq ac-sources (delete 'ac-source-gtags ac-sources))
   ;; (setq ac-sources (append '(ac-source-c-headers) ac-sources))
   ;; (setq ac-sources (append '(ac-source-irony) ac-sources))
   (setq ac-sources (append '(ac-source-semantic) ac-sources))
-  ;; (setq ac-sources (append '(ac-source-semantic-raw) ac-sources)) ;;会干扰->成员的补全
+  (setq ac-sources (append '(ac-source-semantic-raw) ac-sources)) ;;会干扰->成员的补全
   ;; (setq ac-sources (append '(ac-source-imenu) ac-sources)) ;;会干扰->成员的补全
   )
 (eval-after-load "auto-complete-config"
@@ -441,7 +442,8 @@
 	 (ac-config-default)
 	 (setq ac-modes (append '(objc-mode) ac-modes))
 
-	 (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
+	 ;; (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
+	 (setq-default ac-sources '(ac-source-dictionary))
 	 ;; (define-key irony-mode-map (kbd "M-p") 'ac-complete-irony-async)
 	 ))
 
@@ -1369,9 +1371,10 @@ If FULL is t, copy full file name."
 			(setq-local ac-auto-start nil)
 			(setq-local indent-tabs-mode nil)
 			(irony-mode)
+			(irony--mode-exit)
 			;; (ggtags-mode 1)
 			(eldoc-mode 0)
-			(company-mode 1)
+			;; (company-mode 1)
 			(abbrev-mode 0)
 			(flycheck-mode 1)
 			(yas-glo-on)
