@@ -137,3 +137,4 @@ Looking up host "myHost")
 在我的电脑的地址栏输入shell:sendto即可
 
 *.dir-locals.el具体实现有关函数hack-dir-local-variables
+* c-forward-conditional是#if #end之间移动，不能带else，c-up-conditional是不同深度的#之间内外移动，可以带else
