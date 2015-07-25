@@ -299,7 +299,7 @@
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
  '(user-full-name "gezijian")
  '(vc-svn-program "C:\\Program Files\\TortoiseSVN\\bin\\svn")
- '(whitespace-line-column 121)
+ '(whitespace-line-column 120)
  '(winner-mode t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -374,52 +374,51 @@
 ;; 设置成c++文件类型
 (add-to-list 'auto-mode-alist (cons stl-base-dir 'c++-mode))
 (add-to-list 'auto-mode-alist (cons stl-base-dir-12 'c++-mode))
-;; (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
+(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
+(add-to-list 'auto-mode-alist '("\\.hpp\\'" . c++-mode))
 
 ;; 工程设置
-(eval-after-load "cc-mode"
-  '(progn
-	 (defun create-spec-ede-project (root-file known)
-	   (if known
-		   (ede-cpp-root-project "code" :file root-file
-								 :include-path '( "/include" "/server" "/upf"
-												  "/upf_dubhe/export" "/UPF_SMI/Include" "/Service/TG/MM/RM/Source/PMM")
-								 :spp-files '( "Service/TG/MM/RM/Source/PMM/RMPmm_Const.h"
-											   "Service/TG/MM/RM/Include/RM_switch.h"
-											   "Service/TG/MM/RM/Include/RM_Debug.h"
-											   "ede_switch.h" ;ON OFF宏写成(1)(0)的话不能识别
-											   )
-								 :spp-table '(("IN" . "")
-											  ("OUT" . "")
-											  ("INOUT" . "") ;如果在函数参数前加上这样的宏会导致无法识别
-											  ))
-		 (ede-cpp-root-project "code" :file root-file)))
+(defun create-spec-ede-project (root-file known)
+  (if known
+	  (ede-cpp-root-project "code" :file root-file
+							:include-path '( "/include" "/server" "/upf"
+											 "/upf_dubhe/export" "/UPF_SMI/Include" "/Service/TG/MM/RM/Source/PMM")
+							:spp-files '( "Service/TG/MM/RM/Source/PMM/RMPmm_Const.h"
+										  "Service/TG/MM/RM/Include/RM_switch.h"
+										  "Service/TG/MM/RM/Include/RM_Debug.h"
+										  "ede_switch.h" ;ON OFF宏写成(1)(0)的话不能识别
+										  )
+							:spp-table '(("IN" . "")
+										 ("OUT" . "")
+										 ("INOUT" . "") ;如果在函数参数前加上这样的宏会导致无法识别
+										 ))
+	(ede-cpp-root-project "code" :file root-file)))
 
-	 (defun create-known-ede-project(&optional select)
-	   (interactive "P")
-	   (if select
-		   (setq root-file (read-file-name "Open a root file in proj: "))
-		 (setq root-file "./GTAGS"))
-	   (create-spec-ede-project root-file t)
-	   ;; (find-sln root-file)
-	   (message "Known EDE Project Created." ))
+(defun create-known-ede-project(&optional select)
+  (interactive "P")
+  (if select
+	  (setq root-file (read-file-name "Open a root file in proj: "))
+	(setq root-file "./GTAGS"))
+  (create-spec-ede-project root-file t)
+  ;; (find-sln root-file)
+  (message "Known EDE Project Created." ))
 
-	 (defun create-unknown-ede-project(&optional select)
-	   (interactive "P")
-	   (if select
-		   (setq root-file (read-file-name "Open a root file in proj: "))
-		 (setq root-file "./GTAGS"))
-	   (create-spec-ede-project root-file nil)
-	   ;; (find-sln root-file)
-	   (message "UnKnown EDE Project Created." ))
+(defun create-unknown-ede-project(&optional select)
+  (interactive "P")
+  (if select
+	  (setq root-file (read-file-name "Open a root file in proj: "))
+	(setq root-file "./GTAGS"))
+  (create-spec-ede-project root-file nil)
+  ;; (find-sln root-file)
+  (message "UnKnown EDE Project Created." ))
 
-	 (global-set-key (kbd "C-c e") 'create-known-ede-project)
-	 (global-set-key (kbd "C-c u") 'create-unknown-ede-project)
+(global-set-key (kbd "C-c e") 'create-known-ede-project)
+(global-set-key (kbd "C-c u") 'create-unknown-ede-project)
 
-	 (create-spec-ede-project "e:/projects/tempspace/test4c/GTAGS" nil)
-	 (create-spec-ede-project "e:/projects/eNavi2_800X480_ChangeUI/GTAGS" t)
-	 (create-spec-ede-project "e:/projects/Clarion_13MY_Dev_For_MM/GTAGS" t)
-	 ))
+(create-spec-ede-project "e:/projects/tempspace/test4c/GTAGS" nil)
+(create-spec-ede-project "e:/projects/eNavi2_800X480_ChangeUI/GTAGS" t)
+(create-spec-ede-project "e:/projects/Clarion_13MY_Dev_For_MM/GTAGS" t)
+
 
 ;;auto-complete
 (require 'auto-complete-config)
@@ -846,28 +845,30 @@
 (global-set-key (kbd "<M-f11>") 'kid-sdcv-to-buffer)
 
 ;; ac-clang
-(require 'ac-clang)
 ;; (setq ac-clang-debug-log-buffer-p t)
-(setq ac-clang-async-autocompletion-manualtrigger-key "M-n")
-(setq w32-pipe-read-delay 0)          ;; <- Windows Only
-
-(when (ac-clang-initialize)
-  (add-hook 'c-mode-common-hook '(lambda ()
-								   ;; (setq ac-clang-cflags CFLAGS)
-								   (ac-clang-activate-after-modify)
-								   (define-key ac-mode-map (kbd "M-.") 'ac-clang-jump-smart)
-								   (define-key ac-mode-map (kbd "M-,") nil)
-								   (define-key ac-mode-map (kbd "C-c `") 'ac-clang-diagnostics)
-								   )))
-(defadvice ac-clang-activate (after ac-clang-activate-after activate)
-  ""
-  (setq ac-sources ac-clang--ac-sources-backup)
-  (setq ac-sources (append '(ac-source-clang-async) ac-sources))
-  )
-(defadvice ac-clang-jump-smart (around ac-clang-jump-smart-mru activate)
-  ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+;; (setq ac-clang-debug-log-buffer-size (* 1024 1024))
+(require 'ac-clang)
+(eval-after-load "ac-clang"
+  '(progn
+	 (setq ac-clang-async-autocompletion-manualtrigger-key "M-n")
+	 (setq w32-pipe-read-delay 0)          ;; <- Windows Only
+	 (when (ac-clang-initialize)
+	   (add-hook 'c-mode-common-hook '(lambda ()
+										;; (setq ac-clang-cflags CFLAGS)
+										(ac-clang-activate-after-modify)
+										(define-key ac-mode-map (kbd "M-.") 'ac-clang-jump-smart)
+										(define-key ac-mode-map (kbd "M-,") nil)
+										(define-key ac-mode-map (kbd "C-c `") 'ac-clang-diagnostics)
+										)))
+	 (defadvice ac-clang-activate (after ac-clang-activate-after activate)
+	   ""
+	   (setq ac-sources ac-clang--ac-sources-backup)
+	   (setq ac-sources (append '(ac-source-clang-async) ac-sources))
+	   )
+	 (defadvice ac-clang-jump-smart (around ac-clang-jump-smart-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker))
+	   ad-do-it)))
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin-----------------------------------------------------------;;
@@ -1272,14 +1273,14 @@ If FULL is t, copy full file name."
 ;; 大文件处理
 (defun check-large-file-hook ()
   ""
-  (when (< (* 300 1024) (buffer-size))
+  (when (< (* 200 1024) (buffer-size))
 	(nlinum-mode -1)
 	;; (jit-lock-mode nil)
 	))
 
 ;; 大文件不开semantic
 (add-to-list 'semantic-inhibit-functions
-             (lambda () (< (* 300 1024) (buffer-size))))
+             (lambda () (< (* 200 1024) (buffer-size))))
 ;;-----------------------------------------------------------hook-----------------------------------------------------------;;
 (c-add-style "gzj"
 			 '("stroustrup"
