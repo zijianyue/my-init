@@ -93,12 +93,13 @@
 ;; (require 'semantic/decorate )
 ;; (require 'srecode)
 
-(global-ede-mode t)
-(semantic-mode t)
-(global-semantic-decoration-mode t)
-(global-semantic-stickyfunc-mode t)
+(add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode t)
+(add-to-list 'semantic-default-submodes 'global-semantic-stickyfunc-mode t)
+(add-to-list 'semantic-default-submodes 'global-semantic-highlight-edits-mode t)
+
 (global-srecode-minor-mode t)
-(global-semantic-highlight-edits-mode t)
+(semantic-mode t)
+(global-ede-mode t)
 ;; (setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
 ;; let cedet call ctags to find things which cedet can not find
 ;; (semantic-load-enable-all-ectags-support)
@@ -280,9 +281,6 @@
  '(semantic-c-dependency-system-include-path
    (quote
 	("C:/Program Files (x86)/Microsoft Visual Studio 8/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/PlatformSDK/Include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/atlmfc/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/SDK/v2.0/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/atlmfc/include" "C:/cygwin/usr/include" "D:/linux/linux-3.18.3/include/uapi")))
- '(semantic-default-submodes
-   (quote
-	(global-semantic-decoration-mode global-semantic-stickyfunc-mode global-semantic-idle-scheduler-mode global-semanticdb-minor-mode global-semantic-highlight-edits-mode)))
  '(semantic-idle-scheduler-idle-time 2)
  '(semantic-idle-scheduler-max-buffer-size 200000)
  '(semantic-imenu-bucketize-file nil)
@@ -422,6 +420,14 @@
 
 ;;auto-complete
 (require 'auto-complete-config)
+(setq ac-fuzzy-enable t)
+(require 'pos-tip)
+(setq ac-quick-help-prefer-pos-tip t)
+(setq ac-trigger-commands
+      (cons 'backward-delete-char-untabify ac-trigger-commands))
+(setq ac-trigger-commands
+      (cons 'autopair-backspace ac-trigger-commands))
+(global-set-key (kbd "C-x /") 'ac-complete-filename)
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
   (setq ac-sources (delete 'ac-source-gtags ac-sources))
   ;; (setq ac-sources (append '(ac-source-c-headers) ac-sources))
@@ -440,7 +446,8 @@
 	 (define-key ac-completing-map  (kbd "M-s") 'ac-isearch)
 
 	 (ac-config-default)
-	 (setq ac-modes (append '(objc-mode) ac-modes))
+	 
+	 (add-to-list 'ac-modes 'objc-mode)
 
 	 ;; (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
 	 (setq-default ac-sources '(ac-source-dictionary))
@@ -501,6 +508,8 @@
 (autoload 'bm-toggle   "bm" "Toggle bookmark in current buffer." t)
 (autoload 'bm-next     "bm" "Goto bookmark."                     t)
 (autoload 'bm-previous "bm" "Goto previous bookmark."            t)
+(autoload 'bm-toggle-cycle-all-buffers "bm" nil  t)
+
 (global-set-key (kbd "<C-f2>") 'bm-toggle)
 (global-set-key (kbd "<f2>")   'bm-next)
 (global-set-key (kbd "<S-f2>") 'bm-previous)
@@ -661,6 +670,7 @@
 ;; (require 'back-button)
 ;; (back-button-mode 1)
 
+(require 'xcscope )
 ;; flycheck
 (autoload 'flycheck-mode "flycheck" nil t)
 (global-set-key (kbd "M-g l") 'flycheck-list-errors)
@@ -1220,6 +1230,10 @@ If FULL is t, copy full file name."
 (defun set-c-word-mode ()
   ""
   (interactive)
+  ;; (require 'cc-mode)
+  ;; (set-syntax-table c++-mode-syntax-table)
+  (modify-syntax-entry ?- ".")			;-作为标点符号，起到分隔单词作用
+  (modify-syntax-entry ?& ".")
   (modify-syntax-entry ?_ "w")
   (bm-toggle-cycle-all-buffers))
 
@@ -1280,7 +1294,7 @@ If FULL is t, copy full file name."
 
 ;; 大文件不开semantic
 (add-to-list 'semantic-inhibit-functions
-             (lambda () (< (* 200 1024) (buffer-size))))
+             (lambda () (< (* 400 1024) (buffer-size))))
 ;;-----------------------------------------------------------hook-----------------------------------------------------------;;
 (c-add-style "gzj"
 			 '("stroustrup"
@@ -1429,7 +1443,7 @@ If FULL is t, copy full file name."
 ;; gtags symref 的结果都设置为C语法，主要为了highlight-symbol能正确
 (eval-after-load "cc-mode"
   '(progn
-	 (dolist (hook '(gtags-select-mode-hook semantic-symref-results-mode-hook))
+	 (dolist (hook '(gtags-select-mode-hook semantic-symref-results-mode-hook cscope-list-entry-hook))
 	   (add-hook hook
 				 (lambda()
 				   (setq truncate-lines t)
