@@ -86,7 +86,7 @@
 (setq ring-bell-function 'ignore)
 
 ;; Load CEDET offical
-(load-file "d:/cedet-master/cedet-devel-load.el")
+(load-file "d:/cedet-git/cedet-devel-load.el")
 
 ;; cedet builtin
 ;; (require 'semantic )
@@ -211,6 +211,7 @@
  '(compilation-scroll-output t)
  '(compilation-skip-threshold 2)
  '(confirm-kill-emacs (quote y-or-n-p))
+ '(cscope-no-mouse-prompts t)
  '(cua-mode t nil (cua-base))
  '(dired-dwim-target t)
  '(dired-listing-switches "-alh")
@@ -255,7 +256,7 @@
 	((python-mode . semantic-format-tag-summarize)
 	 (c-mode . semantic-format-tag-uml-prototype-default)
 	 (emacs-lisp-mode . semantic-format-tag-abbreviate-emacs-lisp-mode))))
- '(helm-truncate-lines t)
+ '(helm-truncate-lines t t)
  '(horizontal-scroll-bar-mode t)
  '(icomplete-show-matches-on-no-input t)
  '(ido-mode (quote both) nil (ido))
@@ -277,6 +278,7 @@
  '(rm-blacklist
    (quote
 	(" hl-p" " yas" " hs" " Ifdef" " pair" " HelmGtags" " GG" " company" " ElDoc" " Irony" " AC" " FA" " GitGutter" " Gtags")))
+ '(rscope-keymap-prefix "p")
  '(save-place t nil (saveplace))
  '(semantic-c-dependency-system-include-path
    (quote
@@ -399,6 +401,7 @@
 	(setq root-file "./GTAGS"))
   (create-spec-ede-project root-file t)
   ;; (find-sln root-file)
+  (cscope-set-initial-directory (file-name-directory root-file))
   (message "Known EDE Project Created." ))
 
 (defun create-unknown-ede-project(&optional select)
@@ -408,6 +411,7 @@
 	(setq root-file "./GTAGS"))
   (create-spec-ede-project root-file nil)
   ;; (find-sln root-file)
+  (cscope-set-initial-directory (file-name-directory root-file))
   (message "UnKnown EDE Project Created." ))
 
 (global-set-key (kbd "C-c e") 'create-known-ede-project)
@@ -656,6 +660,8 @@
 	 (define-key helm-gtags-mode-map (kbd "M-*") nil)
 	 (define-key helm-gtags-mode-map (kbd "M-,") nil)
 	 (define-key helm-gtags-mode-map (kbd "M-.") nil)
+	 (define-key helm-gtags-mode-map (kbd "C-c s") nil)
+	 (define-key helm-gtags-mode-map (kbd "C-c m") 'helm-gtags-find-symbol)
 	 (define-key helm-gtags-mode-map (kbd "C-\\") 'helm-gtags-dwim)
 	 (define-key helm-gtags-mode-map (kbd "C-<") 'helm-gtags-previous-history)
 	 (define-key helm-gtags-mode-map (kbd "C->") 'helm-gtags-next-history)
@@ -670,7 +676,31 @@
 ;; (require 'back-button)
 ;; (back-button-mode 1)
 
+;; cscope
 (require 'xcscope )
+(require 'rscope )
+
+(define-key cscope-list-entry-keymap "q" (lambda ()
+										   (interactive)
+										   (quit-window t)));; quit-window t 可以关闭窗口并恢复原先窗口布局
+
+(defun cscope-prompt-for-symbol-fset (prompt extract-filename)
+  "make cscope-no-mouse-prompts work"
+  (let (sym)
+    (setq sym (cscope-extract-symbol-at-cursor extract-filename))
+    (if (or (not sym)
+			(string= sym "")
+			(not cscope-no-mouse-prompts)
+			;; Always prompt for symbol in dired mode.
+			(eq major-mode 'dired-mode)
+			)
+		(setq sym (read-from-minibuffer prompt sym))
+      sym)
+    )
+  )
+
+(fset 'cscope-prompt-for-symbol 'cscope-prompt-for-symbol-fset) ;fset 直接覆盖原函数
+
 ;; flycheck
 (autoload 'flycheck-mode "flycheck" nil t)
 (global-set-key (kbd "M-g l") 'flycheck-list-errors)
@@ -847,9 +877,7 @@
              (local-set-key (kbd "d") 'kid-sdcv-to-buffer)
              (local-set-key (kbd "q") (lambda ()
                                         (interactive)
-                                        (bury-buffer)
-                                        (unless (null (cdr (window-list))) ; only one window
-                                          (delete-window)))))
+										(quit-window t))))
            (goto-char (point-min))))))))
 
 (global-set-key (kbd "<M-f11>") 'kid-sdcv-to-buffer)
@@ -1029,7 +1057,7 @@ If FULL is t, copy full file name."
   (local-set-key (kbd "M-`") 'ia-fast-jump-other)
   (local-set-key (kbd "<C-f12>") 'semantic-symref-just-symbol)
   (local-set-key (kbd "<M-S-f12>") 'semantic-symref-anything)
-  (local-set-key (kbd "<C-S-f12>") 'semantic-symref-tag)
+  (local-set-key (kbd "<C-S-f12>") 'semantic-symref)
   (local-set-key (kbd "<M-f12>") 'semantic-analyze-proto-impl-toggle)
   (local-set-key (kbd "<M-down>") 'senator-next-tag)
   (local-set-key (kbd "<M-up>") 'senator-previous-tag)
@@ -1049,6 +1077,239 @@ If FULL is t, copy full file name."
 	 (require 'semantic/symref/list )
 	 ))
 
+;; 重写cedet函数 begin
+
+(defun cedet-gnu-global-search-fset (searchtext texttype type scope)
+  "add -s"
+  (let ((flgs (cond ((eq type 'file)
+					 "-a")
+					(t "-xa")))
+		(scopeflgs (cond
+					((eq scope 'project)
+					 ""
+					 )
+					((eq scope 'target)
+					 "l")))
+		(stflag (cond ((or (eq texttype 'tagname)
+						   (eq texttype 'tagregexp))
+					   "")
+					  ((eq texttype 'tagcompletions)
+					   "c")
+					  ((eq texttype 'regexp)
+					   "g")
+					  ((eq texttype 'symbolname)
+					   "s")
+					  (t "r"))))
+    (cedet-gnu-global-call (list (concat flgs scopeflgs stflag)
+								 searchtext))))
+
+(fset 'cedet-gnu-global-search 'cedet-gnu-global-search-fset)
+
+
+(defun semantic-symref-hit-to-tag-via-buffer-fset (hit searchtxt searchtype &optional open-buffers)
+  "avoid missing reference"
+  (let* ((line (car hit))
+		 (file (cdr hit))
+		 (buff (find-buffer-visiting file))
+		 (tag nil)
+		 (tagList nil)
+		 (whichFunc nil)
+		 )
+    (cond
+     ;; We have a buffer already.  Check it out.
+     (buff
+      (set-buffer buff))
+
+     ;; We have a table, but it needs a refresh.
+     ;; This means we should load in that buffer.
+     (t
+      (let ((kbuff
+			 (if open-buffers
+				 ;; Even if we keep the buffers open, don't
+				 ;; let EDE ask lots of questions.
+				 (let ((ede-auto-add-method 'never))
+				   (find-file-noselect file t))
+			   ;; When not keeping the buffers open, then
+			   ;; don't setup all the fancy froo-froo features
+			   ;; either.
+			   (semantic-find-file-noselect file t))))
+		(set-buffer kbuff)
+		(push kbuff semantic-symref-recently-opened-buffers)
+		(semantic-fetch-tags)
+		))
+     )
+
+    ;; Too much baggage in goto-line
+    ;; (goto-line line)
+    (goto-char (point-min))
+    (forward-line (1- line))
+
+    ;; Search forward for the matching text
+    (when (re-search-forward searchtxt
+							 (point-at-eol)
+							 t)
+      (goto-char (match-beginning 0))
+      )
+
+    (setq tag (semantic-current-tag))
+	(unless (zerop (current-indentation))
+	  (setq whichFunc (which-function)))
+    ;; If we are searching for a tag, but bound the tag we are looking
+    ;; for, see if it resides in some other parent tag.
+    ;;
+    ;; If there is no parent tag, then we still need to hang the originator
+    ;; in our list.
+    (when (and (eq searchtype 'symbol)
+			   (string= (semantic-tag-name tag) searchtxt))
+      (setq tag (or (semantic-current-tag-parent) tag)))
+
+	;; 找不到tag时，使用which-fuction匹配本文件所有tag来查
+	(unless tag
+	  (let ((foundFlag-p nil )
+			(i 0))
+
+		(setq tagList (semantic-fetch-tags))
+		(while (and
+				(not foundFlag-p)
+				(<= i (length tagList)))
+
+		  ;; if found, set foundFlag-p
+		  
+		  (when (equal (semantic-tag-name (elt tagList i)) whichFunc)
+			(setq foundFlag-p t )
+			(setq tag (elt tagList i)))
+
+		  (setq i (1+ i))))
+	  )
+	;; 再找不到就创建一个空tag
+	(unless tag
+	  (setq tag (semantic-tag "/* COMMENT */" 'variable))
+	  (semantic--tag-put-property tag :filename (buffer-file-name)))
+
+    ;; Copy the tag, which adds a :filename property.
+    (when tag
+      (setq tag (semantic-tag-copy tag nil t))
+      ;; Ad this hit to the tag.
+      (semantic--tag-put-property tag :hit (list line)))
+    tag))
+
+(fset 'semantic-symref-hit-to-tag-via-buffer 'semantic-symref-hit-to-tag-via-buffer-fset)
+
+(defun semantic-symref-produce-list-on-results-fset (res str)
+  "(semantic-symref-result-get-tags res nil)"
+  (when (not res) (error "No references found"))
+  (semantic-symref-result-get-tags res nil)
+  (message "Gathering References...done")
+  ;; Build a references buffer.
+  (let ((buff (get-buffer-create (format "*Symref %s" str))))
+    (switch-to-buffer-other-window buff)
+    (set-buffer buff)
+    (semantic-symref-results-mode)
+    (set (make-local-variable 'semantic-symref-current-results) res)
+    (semantic-symref-results-dump res)
+    (goto-char (point-min))))
+
+(fset 'semantic-symref-produce-list-on-results 'semantic-symref-produce-list-on-results-fset)
+
+
+(defun semantic-symref-rb-toggle-expand-tag-fset (&optional button)
+  "kill non-open buffer and add line num"
+  (interactive)
+  (let* ((tag (button-get button 'tag))
+		 (kill-flag t)
+		 (all-buff-list (buffer-list))
+		 (buff (semantic-tag-buffer tag))
+		 (hits (semantic--tag-get-property tag :hit))
+		 (state (button-get button 'state))
+		 (text nil))
+	
+	(let ((foundFlag-p nil )
+		  (tag-filename (semantic--tag-get-property tag :filename))
+		  (i 0))
+
+	  (while (and
+			  (not foundFlag-p)
+			  (<= i (length all-buff-list)))
+
+		;; if found, set foundFlag-p
+		
+		(when (and (buffer-live-p (elt all-buff-list i))
+				   (equal (buffer-file-name (elt all-buff-list i)) tag-filename))
+		  (setq foundFlag-p t )
+		  (setq kill-flag nil))
+
+		(setq i (1+ i))))
+
+    (cond
+     ((eq state 'closed)
+      (with-current-buffer buff
+		(dolist (H hits)
+		  (goto-char (point-min))
+		  (forward-line (1- H))
+		  (beginning-of-line)
+		  (back-to-indentation)
+		  (setq text (cons (buffer-substring (point) (point-at-eol)) text)))
+		(setq text (nreverse text)))
+      (goto-char (button-start button))
+      (forward-char 1)
+      (let ((inhibit-read-only t))
+		(delete-char 1)
+		(insert "-")
+		(button-put button 'state 'open)
+		(save-excursion
+		  (end-of-line)
+		  (while text
+			(insert "\n")
+			(insert "    ")
+			(insert-button (format "[%s] %s" (car hits) (car text))
+						   'mouse-face 'highlight
+						   'face nil
+						   'action 'semantic-symref-rb-goto-match
+						   'tag tag
+						   'line (car hits))
+			(setq text (cdr text)
+				  hits (cdr hits))))))
+     ((eq state 'open)
+      (let ((inhibit-read-only t))
+		(button-put button 'state 'closed)
+		;; Delete the various bits.
+		(goto-char (button-start button))
+		(forward-char 1)
+		(delete-char 1)
+		(insert "+")
+		(save-excursion
+		  (end-of-line)
+		  (forward-char 1)
+		  (delete-region (point)
+						 (save-excursion
+						   (forward-char 1)
+						   (forward-line (length hits))
+						   (point)))))))
+	(if kill-flag
+		(kill-buffer buff))
+	))
+
+(defadvice semantic-symref-produce-list-on-results (before semantic-symref-produce-list-on-results-before activate)
+  ""
+  (fset 'semantic-symref-rb-toggle-expand-tag 'semantic-symref-rb-toggle-expand-tag-fset))
+
+(defun semantic-symref-fset ()
+  ""
+  (interactive)
+  (semantic-fetch-tags)
+  (let (symbol res)
+	(setq symbol (semantic-current-tag))
+	;; Gather results and tags
+	(message "Gathering References for %s ..." (semantic-tag-name symbol))
+	(setq res (semantic-symref-find-references-by-name (semantic-tag-name symbol)))
+	(semantic-symref-produce-list-on-results res (semantic-tag-name symbol))))
+
+(eval-after-load "list"
+  '(progn
+	 (fset 'semantic-symref 'semantic-symref-fset)))
+
+;; 重写cedet函数 end
+
 (defun semantic-symref-find-references-by-symbolname (name &optional scope tool-return)
   ""
   (interactive "sName: ")
@@ -1065,16 +1326,7 @@ If FULL is t, copy full file name."
 	  (when (called-interactively-p 'interactive)
 		(semantic-symref-data-debug-last-result))))
   )
-(defun semantic-symref-tag (&optional text)
-  ""
-  (interactive "P")
-  (semantic-fetch-tags)
-  (let (symbol res)
-	(setq symbol (semantic-current-tag))
-	;; Gather results and tags
-	(message "Gathering References for %s ..." (semantic-tag-name symbol))
-	(setq res (semantic-symref-find-references-by-name (semantic-tag-name symbol)))
-	(semantic-symref-produce-list-on-results res (semantic-tag-name symbol))))
+
 
 (defun semantic-symref-just-symbol (&optional text)
   ""
@@ -1124,99 +1376,88 @@ If FULL is t, copy full file name."
 		(goto-char pos))                                           
 	  (set-marker marker nil nil))))
 
-(defadvice semantic-ia-fast-jump (around semantic-ia-fast-jump-mru activate)
+(defadvice semantic-ia-fast-jump (before semantic-ia-fast-jump-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice semantic-complete-jump (around semantic-complete-jump-mru activate)
+(defadvice semantic-complete-jump (before semantic-complete-jump-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice semantic-symref-just-symbol (around semantic-symref-just-symbol-mru activate)
+(defadvice semantic-symref-just-symbol (before semantic-symref-just-symbol-mru activate)
   ""
   (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (window-configuration-to-register :prev-win-symref))
 
-(defadvice semantic-symref-anything (around semantic-symref-anything-mru activate)
+(defadvice semantic-symref-anything (before semantic-symref-anything-mru activate)
   ""
   (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (window-configuration-to-register :prev-win-symref))
 
-(defadvice semantic-symref-tag (around semantic-symref-tag-mru activate)
+(defadvice semantic-symref-fset (before semantic-symref-tag-mru activate)
   ""
   (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (window-configuration-to-register :prev-win-symref))
 
-(defadvice helm-gtags-dwim (around helm-gtags-dwim-mru activate)
+(defadvice helm-gtags-dwim (before helm-gtags-dwim-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice helm-gtags-find-rtag (around helm-gtags-find-rtag-mru activate)
+(defadvice helm-gtags-find-rtag (before helm-gtags-find-rtag-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice helm-gtags-find-tag (around helm-gtags-find-tag-mru activate)
+(defadvice helm-gtags-find-tag (before helm-gtags-find-tag-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice helm-gtags-select (around helm-gtags-select-mru activate)
+(defadvice helm-gtags-select (before helm-gtags-select-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice helm-gtags-select-path (around helm-gtags-select-path-mru activate)
+(defadvice helm-gtags-select-path (before helm-gtags-select-path-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice semantic-decoration-include-visit (around semantic-decoration-include-visit-mru activate)
+(defadvice semantic-decoration-include-visit (before semantic-decoration-include-visit-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice ag (around ag-mru activate)
+(defadvice ag (before ag-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice ag-this-file (around ag-this-file-mru activate)
+(defadvice ag-this-file (before ag-this-file-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice occur (around occur-mru activate)
+(defadvice occur (before occur-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice rgrep (around rgrep-mru activate)
+(defadvice rgrep (before rgrep-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice gtags-find-tag-by-event (around gtags-find-tag-by-event-mru activate)
+(defadvice gtags-find-tag-by-event (before gtags-find-tag-by-event-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice semantic-analyze-proto-impl-toggle (around semantic-analyze-proto-impl-toggle-mru activate)
+(defadvice semantic-analyze-proto-impl-toggle (before semantic-analyze-proto-impl-toggle-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice semantic-decoration-include-visit (around semantic-decoration-include-visit-mru activate)
+(defadvice semantic-decoration-include-visit (before semantic-decoration-include-visit-mru activate)
   ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  ad-do-it)
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
 (defadvice helm-gtags-find-tag-other-window (after helm-gtags-tag-other-back activate)
   ""
   (select-window (previous-window)))
+
+(defadvice semantic-symref-hide-buffer (after semantic-symref-hide-buffer-after activate)
+  ""
+  (jump-to-register :prev-win-symref))
 
 (defun ia-fast-jump-other ()
   (interactive "")
@@ -1443,7 +1684,7 @@ If FULL is t, copy full file name."
 ;; gtags symref 的结果都设置为C语法，主要为了highlight-symbol能正确
 (eval-after-load "cc-mode"
   '(progn
-	 (dolist (hook '(gtags-select-mode-hook semantic-symref-results-mode-hook cscope-list-entry-hook))
+	 (dolist (hook '(gtags-select-mode-hook semantic-symref-results-mode-hook cscope-list-entry-hook rscope-list-entry-hook))
 	   (add-hook hook
 				 (lambda()
 				   (setq truncate-lines t)
