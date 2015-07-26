@@ -211,6 +211,7 @@
  '(compilation-scroll-output t)
  '(compilation-skip-threshold 2)
  '(confirm-kill-emacs (quote y-or-n-p))
+ '(cscope-edit-single-match nil)
  '(cscope-no-mouse-prompts t)
  '(cua-mode t nil (cua-base))
  '(dired-dwim-target t)
@@ -682,7 +683,13 @@
 
 (define-key cscope-list-entry-keymap "q" (lambda ()
 										   (interactive)
-										   (quit-window t)));; quit-window t 可以关闭窗口并恢复原先窗口布局
+										   (bury-buffer)
+										   (jump-to-register :prev-win-layout)))
+
+(defadvice cscope-call (before cscope-call-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  (window-configuration-to-register :prev-win-layout))
 
 (defun cscope-prompt-for-symbol-fset (prompt extract-filename)
   "make cscope-no-mouse-prompts work"
@@ -700,6 +707,14 @@
   )
 
 (fset 'cscope-prompt-for-symbol 'cscope-prompt-for-symbol-fset) ;fset 直接覆盖原函数
+
+(defun rscope-all-symbol-assignments-fset (symbol)
+  "10 -> 9"
+  (interactive (rscope-interactive
+				(list (cons "Find all assignments of symbol: " (current-word)))))
+  (rscope-handle-query (concat "9" symbol "\n")))
+
+(fset 'rscope-all-symbol-assignments 'rscope-all-symbol-assignments-fset)
 
 ;; flycheck
 (autoload 'flycheck-mode "flycheck" nil t)
@@ -877,7 +892,7 @@
              (local-set-key (kbd "d") 'kid-sdcv-to-buffer)
              (local-set-key (kbd "q") (lambda ()
                                         (interactive)
-										(quit-window t))))
+										(quit-window t))));; quit-window t 可以关闭窗口并恢复原先窗口布局,但是buffer被kill
            (goto-char (point-min))))))))
 
 (global-set-key (kbd "<M-f11>") 'kid-sdcv-to-buffer)
@@ -903,10 +918,9 @@
 	   (setq ac-sources ac-clang--ac-sources-backup)
 	   (setq ac-sources (append '(ac-source-clang-async) ac-sources))
 	   )
-	 (defadvice ac-clang-jump-smart (around ac-clang-jump-smart-mru activate)
+	 (defadvice ac-clang-jump-smart (before ac-clang-jump-smart-mru activate)
 	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker))
-	   ad-do-it)))
+	   (ring-insert semantic-tags-location-ring (point-marker)))))
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin-----------------------------------------------------------;;
@@ -1387,17 +1401,17 @@ If FULL is t, copy full file name."
 (defadvice semantic-symref-just-symbol (before semantic-symref-just-symbol-mru activate)
   ""
   (ring-insert semantic-tags-location-ring (point-marker))
-  (window-configuration-to-register :prev-win-symref))
+  (window-configuration-to-register :prev-win-layout))
 
 (defadvice semantic-symref-anything (before semantic-symref-anything-mru activate)
   ""
   (ring-insert semantic-tags-location-ring (point-marker))
-  (window-configuration-to-register :prev-win-symref))
+  (window-configuration-to-register :prev-win-layout))
 
 (defadvice semantic-symref-fset (before semantic-symref-tag-mru activate)
   ""
   (ring-insert semantic-tags-location-ring (point-marker))
-  (window-configuration-to-register :prev-win-symref))
+  (window-configuration-to-register :prev-win-layout))
 
 (defadvice helm-gtags-dwim (before helm-gtags-dwim-mru activate)
   ""
@@ -1457,7 +1471,7 @@ If FULL is t, copy full file name."
 
 (defadvice semantic-symref-hide-buffer (after semantic-symref-hide-buffer-after activate)
   ""
-  (jump-to-register :prev-win-symref))
+  (jump-to-register :prev-win-layout))
 
 (defun ia-fast-jump-other ()
   (interactive "")
