@@ -103,6 +103,7 @@
 ;; (setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
 ;; let cedet call ctags to find things which cedet can not find
 ;; (semantic-load-enable-all-ectags-support)
+(semantic-load-enable-primary-ectags-support)
 (semanticdb-enable-gnu-global-databases 'c-mode)
 (semanticdb-enable-gnu-global-databases 'c++-mode)
 (set-default 'semantic-case-fold t)
@@ -943,6 +944,35 @@
   (open-in-desktop-select t)
   )
 
+;; toggle hide/show #if
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (define-key c-mode-base-map (kbd "C-{") 'my-hif-toggle-block)
+            ))
+
+;;; for hideif
+(defun my-hif-toggle-block ()
+  "toggle hide/show-ifdef-block --lgfang"
+  (interactive)
+  (require 'hideif)
+  (let* ((top-bottom (hif-find-ifdef-block))
+         (top (car top-bottom)))
+    (goto-char top)
+    (hif-end-of-line)
+    (setq top (point))
+    (if (hif-overlay-at top)
+        (show-ifdef-block)
+      (hide-ifdef-block))))
+
+(defun hif-overlay-at (position)
+  "An imitation of the one in hide-show --lgfang"
+  (let ((overlays (overlays-at position))
+        ov found)
+    (while (and (not found) (setq ov (car overlays)))
+      (setq found (eq (overlay-get ov 'invisible) 'hide-ifdef)
+            overlays (cdr overlays)))
+    found))
+
 ;; #if 0灰色
 (defun my-c-mode-font-lock-if0 (limit)
   (save-restriction
@@ -1489,6 +1519,7 @@ If FULL is t, copy full file name."
   ;; (set-syntax-table c++-mode-syntax-table)
   (modify-syntax-entry ?- ".")			;-作为标点符号，起到分隔单词作用
   (modify-syntax-entry ?& ".")
+  (modify-syntax-entry ?< ".")
   (modify-syntax-entry ?_ "w")
   (bm-toggle-cycle-all-buffers))
 
