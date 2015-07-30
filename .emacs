@@ -199,6 +199,7 @@
  '(ad-redefinition-action (quote accept))
  '(auto-save-default nil)
  '(autopair-blink nil)
+ '(aw-scope (quote frame))
  '(back-button-local-keystrokes nil)
  '(back-button-mode-lighter "")
  '(backward-delete-char-untabify-method nil)
@@ -680,34 +681,37 @@
 
 ;; cscope
 (require 'xcscope )
+(cscope-setup)
 (require 'rscope )
-
-(define-key cscope-list-entry-keymap "q" (lambda ()
-										   (interactive)
-										   (bury-buffer)
-										   (jump-to-register :prev-win-layout)))
+(setq cscope-suppress-user-symbol-prompt t)
+(define-key cscope-minor-mode-keymap [(shift button3)] nil)
+(define-key cscope-minor-mode-keymap [mouse-3] nil)
+(define-key cscope-minor-mode-keymap [S-mouse-3] nil)
 
 (defadvice cscope-call (before cscope-call-mru activate)
   ""
   (ring-insert semantic-tags-location-ring (point-marker))
   (window-configuration-to-register :prev-win-layout))
 
-(defun cscope-prompt-for-symbol-fset (prompt extract-filename)
-  "make cscope-no-mouse-prompts work"
-  (let (sym)
-    (setq sym (cscope-extract-symbol-at-cursor extract-filename))
-    (if (or (not sym)
-			(string= sym "")
-			(not cscope-no-mouse-prompts)
-			;; Always prompt for symbol in dired mode.
-			(eq major-mode 'dired-mode)
-			)
-		(setq sym (read-from-minibuffer prompt sym))
-      sym)
-    )
-  )
+(defadvice cscope-bury-buffer (after cscope-bury-buffer-after activate)
+  ""
+  (jump-to-register :prev-win-layout))
+;; (defun cscope-prompt-for-symbol-fset (prompt extract-filename)
+;;   "make cscope-no-mouse-prompts work"
+;;   (let (sym)
+;;     (setq sym (cscope-extract-symbol-at-cursor extract-filename))
+;;     (if (or (not sym)
+;; 			(string= sym "")
+;; 			(not cscope-no-mouse-prompts)
+;; 			;; Always prompt for symbol in dired mode.
+;; 			(eq major-mode 'dired-mode)
+;; 			)
+;; 		(setq sym (read-from-minibuffer prompt sym))
+;;       sym)
+;;     )
+;;   )
 
-(fset 'cscope-prompt-for-symbol 'cscope-prompt-for-symbol-fset) ;fset 直接覆盖原函数
+;; (fset 'cscope-prompt-for-symbol 'cscope-prompt-for-symbol-fset) ;fset 直接覆盖原函数
 
 (defun rscope-all-symbol-assignments-fset (symbol)
   "10 -> 9"
@@ -850,6 +854,73 @@
 	   (add-to-list 'ag-arguments "-u")
 	   (apply #'ag/search string directory file-regex)
 	   (setq ag-arguments arg-bak))
+
+	 (defun ag/kill-process-fset ()
+	   ""
+	   (interactive)
+	   (let ((ag (get-buffer-process (current-buffer))))
+		 (and ag (eq (process-status ag) 'run)
+			  ;; (eq (process-filter ag) (function find-dired-filter))
+			  (condition-case nil
+				  (delete-process ag)
+				(error nil)))))
+	 (fset 'ag/kill-process 'ag/kill-process-fset)
+
+	 (defun ag-dired-regexp-fset (dir regexp)
+	   ""
+	   (interactive "DDirectory: \nsFile regexp: ")
+	   (let* ((dired-buffers dired-buffers) ;; do not mess with regular dired buffers
+			  (orig-dir dir)
+			  (dir (file-name-as-directory (expand-file-name dir)))
+			  (buffer-name (if ag-reuse-buffers
+							   "*ag dired*"
+							 (format "*ag dired pattern:%s dir:%s*" regexp dir)))
+			  (cmd (concat ag-executable " --nocolor -ui -g \"" regexp "\" "
+						   (shell-quote-argument dir)
+						   " | grep -v \"^$\" | sed 's:\\\\:\\\\\\\\:g' | xargs -I '{}' ls "
+						   dired-listing-switches " '{}' &")))
+		 (with-current-buffer (get-buffer-create buffer-name)
+		   (switch-to-buffer (current-buffer))
+		   (widen)
+		   (kill-all-local-variables)
+		   (if (fboundp 'read-only-mode)
+			   (read-only-mode -1)
+			 (setq buffer-read-only nil))
+		   (let ((inhibit-read-only t)) (erase-buffer))
+		   (setq default-directory dir)
+		   (run-hooks 'dired-before-readin-hook)
+		   (shell-command cmd (current-buffer))
+		   (insert "  " dir ":\n")
+		   (insert "  " cmd "\n")
+		   (dired-mode dir)
+		   (let ((map (make-sparse-keymap)))
+			 (set-keymap-parent map (current-local-map))
+			 (define-key map "\C-c\C-k" 'ag/kill-process)
+			 (use-local-map map))
+		   (set (make-local-variable 'dired-sort-inhibit) t)
+		   (set (make-local-variable 'revert-buffer-function)
+				`(lambda (ignore-auto noconfirm)
+				   (ag-dired-regexp ,orig-dir ,regexp)))
+		   (if (fboundp 'dired-simple-subdir-alist)
+			   (dired-simple-subdir-alist)
+			 (set (make-local-variable 'dired-subdir-alist)
+				  (list (cons default-directory (point-min-marker)))))
+		   (let ((proc (get-buffer-process (current-buffer))))
+			 (set-process-filter proc #'ag/dired-filter)
+			 (set-process-sentinel proc #'ag/dired-sentinel)
+			 ;; Initialize the process marker; it is used by the filter.
+			 (move-marker (process-mark proc) 1 (current-buffer)))
+		   (setq mode-line-process '(":%s")))))
+	 
+	 (fset 'ag-dired-regexp 'ag-dired-regexp-fset)
+
+	 (defun ag/buffer-name-fset (search-string directory regexp)
+	   "Return a buffer name formatted according to ag.el conventions."
+	   (cond
+		(ag-reuse-buffers "*ag search*")
+		(regexp (format "*ag search regexp:%s %s*" search-string  buffer-file-name))
+	   (:else (format "*ag search text:%s %s*" search-string  buffer-file-name))))
+	 (fset 'ag/buffer-name 'ag/buffer-name-fset)
 	 ))
 
 ;; magit
@@ -922,6 +993,12 @@
 	 (defadvice ac-clang-jump-smart (before ac-clang-jump-smart-mru activate)
 	   ""
 	   (ring-insert semantic-tags-location-ring (point-marker)))))
+
+;; 显示搜索index
+;; (require 'anzu) ;;大文件搜索时很卡
+;; (global-anzu-mode +1)
+;; (global-set-key (kbd "M-%") 'anzu-query-replace)
+;; (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin-----------------------------------------------------------;;
@@ -1752,6 +1829,8 @@ If FULL is t, copy full file name."
 (define-key isearch-mode-map "\C-v" 'isearch-yank-kill)
 (define-key isearch-mode-map "\M-o" 'isearch-occur)
 (define-key isearch-mode-map "\M-w" 'isearch-toggle-word)
+(define-key isearch-mode-map "\M-/" 'isearch-complete)
+
 ;; 搜索光标下的单词
 (global-set-key (kbd "<f8>") 'isearch-forward-symbol-at-point)
 (global-set-key (kbd "<M-f8>") 'highlight-symbol-at-point) ;高亮光标下的单词
