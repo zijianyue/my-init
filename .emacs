@@ -215,6 +215,7 @@
  '(confirm-kill-emacs (quote y-or-n-p))
  '(cscope-edit-single-match nil)
  '(cscope-no-mouse-prompts t)
+ '(cscope-option-use-inverted-index t)
  '(cua-mode t nil (cua-base))
  '(dired-dwim-target t)
  '(dired-listing-switches "-alh")
@@ -266,6 +267,7 @@
  '(imenu-max-item-length 120)
  '(imenu-max-items 1000)
  '(inhibit-startup-screen t)
+ '(isearch-allow-scroll t)
  '(jit-lock-context-time 1.5)
  '(jit-lock-defer-time 0.5)
  '(large-file-warning-threshold 20000000)
@@ -919,7 +921,7 @@
 	   (cond
 		(ag-reuse-buffers "*ag search*")
 		(regexp (format "*ag search regexp:%s %s*" search-string  buffer-file-name))
-	   (:else (format "*ag search text:%s %s*" search-string  buffer-file-name))))
+		(:else (format "*ag search text:%s %s*" search-string  buffer-file-name))))
 	 (fset 'ag/buffer-name 'ag/buffer-name-fset)
 	 ))
 
