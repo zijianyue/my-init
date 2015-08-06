@@ -282,7 +282,7 @@
  '(recentf-auto-cleanup 600)
  '(rm-blacklist
    (quote
-	(" hl-p" " yas" " hs" " Ifdef" " pair" " HelmGtags" " GG" " company" " ElDoc" " Irony" " AC" " FA" " GitGutter" " Gtags")))
+	(" hl-p" " yas" " hs" " Ifdef" " pair" " HelmGtags" " GG" " company" " ElDoc" " Irony" " AC" " FA" " GitGutter" " Gtags" " Anzu")))
  '(rscope-keymap-prefix "p")
  '(save-place t nil (saveplace))
  '(semantic-c-dependency-system-include-path
@@ -997,10 +997,15 @@
 	   (ring-insert semantic-tags-location-ring (point-marker)))))
 
 ;; 显示搜索index
-;; (require 'anzu) ;;大文件搜索时很卡
-;; (global-anzu-mode +1)
-;; (global-set-key (kbd "M-%") 'anzu-query-replace)
-;; (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
+(require 'anzu)
+(global-anzu-mode +1)
+(setq anzu-search-threshold 1000) ;;防止大文件搜索时很卡
+(global-set-key (kbd "M-%") 'anzu-query-replace)
+(global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
+
+;; (autoload 'helm-do-pt "helm-pt" nil t)
+;; (autoload 'helm-projectile-pt "helm-pt" nil t)
+
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin-----------------------------------------------------------;;
