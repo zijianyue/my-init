@@ -301,6 +301,7 @@
  '(sln-mode-devenv-2008 "Devenv.com")
  '(switch-window-shortcut-style (quote (quote qwerty)))
  '(tab-width 4)
+ '(tabbar-cycle-scope (quote tabs))
  '(undo-outer-limit 20000000)
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
  '(user-full-name "gezijian")
@@ -427,6 +428,7 @@
 (create-spec-ede-project "e:/projects/tempspace/test4c/GTAGS" nil)
 (create-spec-ede-project "e:/projects/eNavi2_800X480_ChangeUI/GTAGS" t)
 (create-spec-ede-project "e:/projects/Clarion_13MY_Dev_For_MM/GTAGS" t)
+(create-spec-ede-project "e:/rtags-master/src/GTAGS" nil)
 
 
 ;;auto-complete
@@ -1011,10 +1013,26 @@
 ;; (autoload 'helm-projectile-pt "helm-pt" nil t)
 
 ;; tabbar
-;; (global-set-key (kbd "C-c t") 'tabbar-ruler-move)
-;; (require 'tabbar-ruler)
-(require 'tabbar )
-(tabbar-mode)
+(global-set-key (kbd "<C-tab>") 'tabbar-forward-tab)
+(global-set-key (kbd "<C-S-tab>") 'tabbar-backward-tab)
+
+(require 'tabbar-ruler)
+(defun on-modifying-buffer-fset ()
+  (set-buffer-modified-p (buffer-modified-p))
+  (tabbar-set-template tabbar-current-tabset nil)
+  ;; (tabbar-display-update)
+  )
+(defun after-modifying-buffer-fset (begin end length)
+  (set-buffer-modified-p (buffer-modified-p))
+  (tabbar-set-template tabbar-current-tabset nil)
+  ;; (tabbar-display-update)
+  )
+
+(fset 'on-modifying-buffer 'on-modifying-buffer-fset)
+(fset 'after-modifying-buffer 'after-modifying-buffer-fset)
+
+
+
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin-----------------------------------------------------------;;
@@ -1873,19 +1891,19 @@ If FULL is t, copy full file name."
 (global-set-key (kbd "<C-M-f7>") 'kill-find)
 
 ;; 窗口管理
-(global-set-key (kbd "<M-f9>") 'kill-buffer-and-window)
+(global-set-key (kbd "<M-f4>") 'kill-buffer-and-window)
 (global-set-key (kbd "M-1") 'delete-other-windows)
 (global-set-key (kbd "M-2") 'split-window-below)
 (global-set-key (kbd "M-3") 'split-window-right)
 (global-set-key (kbd "M-4") 'delete-window)
-(global-set-key (kbd "<M-f4>") 'kill-this-buffer)
+(global-set-key (kbd "C-S-k") 'kill-this-buffer)
 (global-set-key (kbd "<M-S-down>") 'windmove-down)
 (global-set-key (kbd "<M-S-up>") 'windmove-up)
 (global-set-key (kbd "<M-S-left>") 'windmove-left)
 (global-set-key (kbd "<M-S-right>") 'windmove-right)
-(global-set-key (kbd "<C-tab>") 'other-frame)
-(global-set-key (kbd "C-S-t") 'make-frame-command)
-(global-set-key (kbd "C-)") 'delete-frame)
+(global-set-key (kbd "C-S-o") 'other-frame)
+(global-set-key (kbd "C-S-n") 'make-frame-command)
+(global-set-key (kbd "<M-f9>") 'delete-frame)
 
 
 ;; 文件跳转
