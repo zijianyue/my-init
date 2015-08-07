@@ -1346,8 +1346,6 @@ If FULL is t, copy full file name."
     (semantic-symref-results-dump res)
     (goto-char (point-min))))
 
-(fset 'semantic-symref-produce-list-on-results 'semantic-symref-produce-list-on-results-fset)
-
 
 (defun semantic-symref-rb-toggle-expand-tag-fset (&optional button)
   "kill non-open buffer and add line num"
@@ -1426,9 +1424,6 @@ If FULL is t, copy full file name."
 		(kill-buffer buff))
 	))
 
-(defadvice semantic-symref-produce-list-on-results (before semantic-symref-produce-list-on-results-before activate)
-  ""
-  (fset 'semantic-symref-rb-toggle-expand-tag 'semantic-symref-rb-toggle-expand-tag-fset))
 
 (defun semantic-symref-fset ()
   ""
@@ -1443,7 +1438,9 @@ If FULL is t, copy full file name."
 
 (eval-after-load "list"
   '(progn
-	 (fset 'semantic-symref 'semantic-symref-fset)))
+	 (fset 'semantic-symref-rb-toggle-expand-tag 'semantic-symref-rb-toggle-expand-tag-fset)
+	 (fset 'semantic-symref 'semantic-symref-fset)
+	 (fset 'semantic-symref-produce-list-on-results 'semantic-symref-produce-list-on-results-fset)))
 
 ;; 重写cedet函数 end
 
