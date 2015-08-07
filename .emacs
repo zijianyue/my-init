@@ -94,7 +94,7 @@
 ;; (require 'srecode)
 
 (add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode t)
-(add-to-list 'semantic-default-submodes 'global-semantic-stickyfunc-mode t)
+;; (add-to-list 'semantic-default-submodes 'global-semantic-stickyfunc-mode t)
 (add-to-list 'semantic-default-submodes 'global-semantic-highlight-edits-mode t)
 
 (global-srecode-minor-mode t)
@@ -244,6 +244,7 @@
  '(helm-ag-fuzzy-match t)
  '(helm-buffer-max-length 40)
  '(helm-candidate-number-limit 2000)
+ '(helm-case-fold-search t)
  '(helm-for-files-preferred-list
    (quote
 	(helm-source-buffers-list helm-source-bookmarks helm-source-recentf)))
@@ -304,6 +305,7 @@
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
  '(user-full-name "gezijian")
  '(vc-svn-program "C:\\Program Files\\TortoiseSVN\\bin\\svn")
+ '(which-function-mode t)
  '(whitespace-line-column 120)
  '(winner-mode t))
 (custom-set-faces
@@ -379,7 +381,7 @@
 ;; 设置成c++文件类型
 (add-to-list 'auto-mode-alist (cons stl-base-dir 'c++-mode))
 (add-to-list 'auto-mode-alist (cons stl-base-dir-12 'c++-mode))
-(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
+;; (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 (add-to-list 'auto-mode-alist '("\\.hpp\\'" . c++-mode))
 
 ;; 工程设置
@@ -439,6 +441,7 @@
 (global-set-key (kbd "C-x /") 'ac-complete-filename)
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
   (setq ac-sources (delete 'ac-source-gtags ac-sources))
+  (setq ac-sources (delete 'ac-source-words-in-same-mode-buffers ac-sources))
   ;; (setq ac-sources (append '(ac-source-c-headers) ac-sources))
   ;; (setq ac-sources (append '(ac-source-irony) ac-sources))
   (setq ac-sources (append '(ac-source-semantic) ac-sources))
@@ -458,7 +461,7 @@
 	 
 	 (add-to-list 'ac-modes 'objc-mode)
 
-	 ;; (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
+	 (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
 	 (setq-default ac-sources '(ac-source-dictionary))
 	 ;; (define-key irony-mode-map (kbd "M-p") 'ac-complete-irony-async)
 	 ))
@@ -666,6 +669,7 @@
 	 (define-key helm-gtags-mode-map (kbd "M-,") nil)
 	 (define-key helm-gtags-mode-map (kbd "M-.") nil)
 	 (define-key helm-gtags-mode-map (kbd "C-c s") nil)
+	 (define-key helm-gtags-mode-map (kbd "C-c t") nil)
 	 (define-key helm-gtags-mode-map (kbd "C-c m") 'helm-gtags-find-symbol)
 	 (define-key helm-gtags-mode-map (kbd "C-\\") 'helm-gtags-dwim)
 	 (define-key helm-gtags-mode-map (kbd "C-<") 'helm-gtags-previous-history)
@@ -1006,6 +1010,11 @@
 ;; (autoload 'helm-do-pt "helm-pt" nil t)
 ;; (autoload 'helm-projectile-pt "helm-pt" nil t)
 
+;; tabbar
+;; (global-set-key (kbd "C-c t") 'tabbar-ruler-move)
+;; (require 'tabbar-ruler)
+(require 'tabbar )
+(tabbar-mode)
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin-----------------------------------------------------------;;
@@ -1605,7 +1614,7 @@ If FULL is t, copy full file name."
   (modify-syntax-entry ?& ".")
   (modify-syntax-entry ?< ".")
   (modify-syntax-entry ?_ "w")
-  (bm-toggle-cycle-all-buffers))
+  (setq bm-cycle-all-buffers nil))
 
 (global-set-key (kbd "C-_") 'set-c-word-mode)
 
@@ -1665,6 +1674,14 @@ If FULL is t, copy full file name."
 ;; 大文件不开semantic
 (add-to-list 'semantic-inhibit-functions
              (lambda () (< (* 400 1024) (buffer-size))))
+
+(defun which-func-update-fset ()
+  ;; "Update the Which-Function mode display for all windows."
+  (walk-windows 'which-func-update-1 nil 'visible))
+  ;; (which-func-update-1 (selected-window)))
+
+(fset 'which-func-update 'which-func-update-fset)
+
 ;;-----------------------------------------------------------hook-----------------------------------------------------------;;
 (c-add-style "gzj"
 			 '("stroustrup"
@@ -1773,6 +1790,7 @@ If FULL is t, copy full file name."
 			(setup-program-keybindings)
 			(flycheck-mode 1)
 			(yas-glo-on)
+			(hs-minor-mode 1)
 			))
 
 (dolist (hook '(c-mode-common-hook lua-mode-hook objc-mode-hook project-buffer-mode-hook))
@@ -1823,7 +1841,14 @@ If FULL is t, copy full file name."
 
 (add-hook 'font-lock-mode-hook
 		  (lambda () "DOCSTRING" (interactive)
-			(remove-dos-eol)))
+			(remove-dos-eol)
+			(when which-function-mode
+			  (setq mode-line-misc-info (delete '(which-func-mode
+												 ("" which-func-format " ")) mode-line-misc-info))
+			  (setq mode-line-front-space (append '(which-func-mode
+													("" which-func-format " ")) mode-line-front-space))
+			  )
+			))
 
 ;;-----------------------------------------------------------热键-----------------------------------------------------------;;
 
