@@ -524,12 +524,26 @@
 (recent-jump-small-mode)
 (global-set-key (kbd "<M-left>") 'recent-jump-small-backward)
 (global-set-key (kbd "<M-right>") 'recent-jump-small-forward)
-(add-to-list 'rjs-command-ignore 'mwheel-scroll)
+;; (add-to-list 'rjs-command-ignore 'mwheel-scroll)
+(add-to-list 'rjs-command-ignore 'mouse-drag-region)
+
+(defvar rjs-command-ignore-last
+  '(recent-jump-backward
+    recent-jump-forward
+    recent-jump-small-backward
+    recent-jump-small-forward
+	mwheel-scroll
+	mouse-drag-region))
+
+(defun is-mwheeling()
+  (and (eq last-command 'mwheel-scroll) (eq this-command 'mwheel-scroll)))
+
 (defun rjs-pre-command-fset ()
   "每个命令执行前执行这个函数"
-  (unless (or (active-minibuffer-window) isearch-mode (uninterested-buffer (current-buffer)))
+  (unless (or (active-minibuffer-window) isearch-mode (uninterested-buffer (current-buffer) t) (is-mwheeling))
     (unless (memq this-command rjs-command-ignore)
       (let ((position (list (buffer-file-name) (current-buffer) (point))))
+		;; (princ (format " this %S pos:%S" this-command position))
         (unless rjs-position-before
           (setq rjs-position-before position))
         (setq rjs-position-pre-command position))
@@ -542,19 +556,61 @@
               (while list
                 (ring-insert rjs-ring (car list))
                 (pop list))))))))
+
+
 (defun rjs-post-command-fset ()
   "每个命令执行后执行这个函数"
-  (let ((position (list (buffer-file-name) (current-buffer) (point))))
-	(unless (or (uninterested-buffer (current-buffer)) (memq last-command rjs-command-ignore))
+  (unless (or (active-minibuffer-window) isearch-mode (uninterested-buffer (current-buffer) t) (is-mwheeling))
+	(unless (memq this-command rjs-command-ignore)
+	  (let ((position (list (buffer-file-name) (current-buffer) (point))))
+		;; (princ (format " last %S this %S pos:%S pre:%S before:%S" last-command this-command position rjs-position-pre-command rjs-position-before))
+		(if (eq this-command 'mwheel-scroll)
+			(rj-insert-point rjs-ring position))
 		(if (or (and rjs-position-pre-command
 					 (rj-insert-big-jump-point rjs-ring rjs-line-threshold rjs-column-threshold rjs-position-pre-command position rjs-position-pre-command))
 				(and rjs-position-before
 					 (rj-insert-big-jump-point rjs-ring rjs-line-threshold rjs-column-threshold rjs-position-before position rjs-position-before)))
-			(setq rjs-position-before nil))))
+			(setq rjs-position-before nil)))))
   (setq rjs-position-pre-command nil))
+
+(defun recent-jump-small-backward-fset (arg)
+  "跳到命令执行前的位置"
+  (interactive "p")
+  (let ((index rjs-index)
+        (last-is-rjs (memq last-command '(recent-jump-small-backward recent-jump-small-forward))))
+    (if (ring-empty-p rjs-ring)
+        (message (if (> arg 0) "Can't backward, ring is empty" "Can't forward, ring is empty"))
+      (if last-is-rjs
+          (setq index (+ index arg))
+        (setq index arg)
+		(unless (uninterested-buffer (current-buffer) t)
+		  (unless (memq last-command rjs-command-ignore-last)
+			(let ((position (list (buffer-file-name) (current-buffer) (point))))
+			  (setq rj-position-before nil)
+			  (unless (rj-insert-big-jump-point rjs-ring rjs-line-threshold rjs-column-threshold (ring-ref rjs-ring 0) position)
+				(ring-remove rjs-ring 0)
+				(ring-insert rjs-ring position))))))
+      (if (>= index (ring-length rjs-ring))
+          (message "Can't backward, reach bottom of ring")
+        (if (<= index -1)
+            (message "Can't forward, reach top of ring")
+          (let* ((position (ring-ref rjs-ring index))
+				 (file (nth 0 position))
+				 (buffer (nth 1 position)))
+            (if (not (or file (buffer-live-p buffer)))
+                (progn
+                  (ring-remove rjs-ring index)
+                  (message "要跳转的位置所在的buffer为无文件关联buffer, 但该buffer已被删除"))
+              (if file
+                  (find-file (nth 0 position))
+                (assert (buffer-live-p buffer))
+                (switch-to-buffer (nth 1 position)))
+              (goto-char (nth 2 position))
+              (setq rjs-index index))))))))
+
 (fset 'rjs-pre-command 'rjs-pre-command-fset)
 (fset 'rjs-post-command 'rjs-post-command-fset)
-
+(fset 'recent-jump-small-backward 'recent-jump-small-backward-fset)
 
 ;; bookmark
 (autoload 'bm-toggle   "bm" "Toggle bookmark in current buffer." t)
@@ -1668,27 +1724,30 @@ If FULL is t, copy full file name."
 
 (global-set-key (kbd "C-_") 'set-c-word-mode)
 
-(defun uninterested-buffer (buffer)
-  (or (eq (buffer-local-value 'major-mode buffer) 'ag-mode)
-	  (eq (buffer-local-value 'major-mode buffer) 'semantic-symref-results-mode)
-	  (eq (buffer-local-value 'major-mode buffer) 'diff-mode)
-	  (eq (buffer-local-value 'major-mode buffer) 'vc-dir-mode)
-	  (eq (buffer-local-value 'major-mode buffer) 'vc-svn-log-view-mode)
-	  (eq (buffer-local-value 'major-mode buffer) 'ediff-meta-mode)
-	  (eq (buffer-local-value 'major-mode buffer) 'occur-mode)
-	  (string-match-p "ag dired pattern" (buffer-name buffer))
-	  (string-match-p "\*vc\*" (buffer-name buffer))
-	  (string-match-p "\*Backtrace\*" (buffer-name buffer))
-	  (string-match-p "\*Completions\*" (buffer-name buffer))
-	  (string-match-p "\*Help\*" (buffer-name buffer))
-	  (string-match-p "\*Customize\*" (buffer-name buffer))
-	  (string-match-p "\*Cedet\*" (buffer-name buffer))
-	  (string-match-p "\*Annotate\*" (buffer-name buffer))
-	  (string-match-p "\*Compile-Log\*" (buffer-name buffer))
-	  (string-match-p "\*GTAGS SELECT\*" (buffer-name buffer))
-	  (string-match-p "\*Calc\*" (buffer-name buffer))
-	  (string-match-p "\*magit" (buffer-name buffer))
-	  ))
+(defun uninterested-buffer (buffer &optional all)
+  (if all
+	  (or (eq (buffer-local-value 'major-mode buffer) 'dired-mode)
+		  (string-match-p "\*" (buffer-name buffer)))
+	(or (eq (buffer-local-value 'major-mode buffer) 'ag-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'semantic-symref-results-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'diff-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'vc-dir-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'vc-svn-log-view-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'ediff-meta-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'occur-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'Custom-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'help-mode)	
+		(string-match-p "ag dired pattern" (buffer-name buffer))
+		(string-match-p "\*vc\*" (buffer-name buffer))
+		(string-match-p "\*Backtrace\*" (buffer-name buffer))
+		(string-match-p "\*Completions\*" (buffer-name buffer))
+		(string-match-p "\*Cedet\*" (buffer-name buffer))
+		(string-match-p "\*Annotate\*" (buffer-name buffer))
+		(string-match-p "\*Compile-Log\*" (buffer-name buffer))
+		(string-match-p "\*GTAGS SELECT\*" (buffer-name buffer))
+		(string-match-p "\*Calc\*" (buffer-name buffer))
+		(string-match-p "\*magit" (buffer-name buffer))
+		)))
 (defun kill-spec-buffers ()
   ""
   (interactive)
@@ -1730,7 +1789,7 @@ If FULL is t, copy full file name."
 (defun which-func-update-fset ()
   ;; "Update the Which-Function mode display for all windows."
   (walk-windows 'which-func-update-1 nil 'visible))
-  ;; (which-func-update-1 (selected-window)))
+;; (which-func-update-1 (selected-window)))
 
 (fset 'which-func-update 'which-func-update-fset)
 
@@ -1896,7 +1955,7 @@ If FULL is t, copy full file name."
 			(remove-dos-eol)
 			(when which-function-mode
 			  (setq mode-line-misc-info (delete '(which-func-mode
-												 ("" which-func-format " ")) mode-line-misc-info))
+												  ("" which-func-format " ")) mode-line-misc-info))
 			  (setq mode-line-front-space (append '(which-func-mode
 													("" which-func-format " ")) mode-line-front-space))
 			  )
@@ -1914,6 +1973,11 @@ If FULL is t, copy full file name."
 (define-key isearch-mode-map "\M-o" 'isearch-occur)
 (define-key isearch-mode-map "\M-w" 'isearch-toggle-word)
 (define-key isearch-mode-map "\M-/" 'isearch-complete)
+
+;; occur按键
+(define-key occur-mode-map "p" 'occur-prev)
+(define-key occur-mode-map "n" 'occur-next)
+(define-key occur-mode-map (kbd "SPC") 'occur-mode-display-occurrence)
 
 ;; 搜索光标下的单词
 (global-set-key (kbd "<f8>") 'isearch-forward-symbol-at-point)
