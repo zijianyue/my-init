@@ -524,6 +524,37 @@
 (recent-jump-small-mode)
 (global-set-key (kbd "<M-left>") 'recent-jump-small-backward)
 (global-set-key (kbd "<M-right>") 'recent-jump-small-forward)
+(add-to-list 'rjs-command-ignore 'mwheel-scroll)
+(defun rjs-pre-command-fset ()
+  "每个命令执行前执行这个函数"
+  (unless (or (active-minibuffer-window) isearch-mode (uninterested-buffer (current-buffer)))
+    (unless (memq this-command rjs-command-ignore)
+      (let ((position (list (buffer-file-name) (current-buffer) (point))))
+        (unless rjs-position-before
+          (setq rjs-position-before position))
+        (setq rjs-position-pre-command position))
+      (if (memq last-command '(recent-jump-small-backward recent-jump-small-forward))
+          (progn
+            (let ((index (1- rjs-index)) (list nil))
+              (while (> index 0)
+                (push (ring-ref rjs-ring index) list)
+                (setq index (1- index)))
+              (while list
+                (ring-insert rjs-ring (car list))
+                (pop list))))))))
+(defun rjs-post-command-fset ()
+  "每个命令执行后执行这个函数"
+  (let ((position (list (buffer-file-name) (current-buffer) (point))))
+	(unless (or (uninterested-buffer (current-buffer)) (memq last-command rjs-command-ignore))
+		(if (or (and rjs-position-pre-command
+					 (rj-insert-big-jump-point rjs-ring rjs-line-threshold rjs-column-threshold rjs-position-pre-command position rjs-position-pre-command))
+				(and rjs-position-before
+					 (rj-insert-big-jump-point rjs-ring rjs-line-threshold rjs-column-threshold rjs-position-before position rjs-position-before)))
+			(setq rjs-position-before nil))))
+  (setq rjs-position-pre-command nil))
+(fset 'rjs-pre-command 'rjs-pre-command-fset)
+(fset 'rjs-post-command 'rjs-post-command-fset)
+
 
 ;; bookmark
 (autoload 'bm-toggle   "bm" "Toggle bookmark in current buffer." t)
