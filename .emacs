@@ -285,6 +285,13 @@
    (quote
 	(" hl-p" " yas" " hs" " Ifdef" " pair" " HelmGtags" " GG" " company" " ElDoc" " Irony" " AC" " FA" " GitGutter" " Gtags" " Anzu")))
  '(rscope-keymap-prefix "p")
+ '(rtags-find-file-case-insensitive t)
+ '(rtags-find-file-prefer-exact-match nil)
+ '(rtags-rc-log-enabled t)
+ '(rtags-show-containing-function t)
+ '(rtags-symbolnames-case-insensitive t)
+ '(rtags-tracking t)
+ '(rtags-verbose-results t)
  '(save-place t nil (saveplace))
  '(semantic-c-dependency-system-include-path
    (quote
@@ -672,7 +679,7 @@
 	 (define-key helm-gtags-mode-map (kbd "M-.") nil)
 	 (define-key helm-gtags-mode-map (kbd "C-c s") nil)
 	 (define-key helm-gtags-mode-map (kbd "C-c t") nil)
-	 (define-key helm-gtags-mode-map (kbd "C-c m") 'helm-gtags-find-symbol)
+	 (define-key helm-gtags-mode-map (kbd "C-c w") 'helm-gtags-find-symbol)
 	 (define-key helm-gtags-mode-map (kbd "C-\\") 'helm-gtags-dwim)
 	 (define-key helm-gtags-mode-map (kbd "C-<") 'helm-gtags-previous-history)
 	 (define-key helm-gtags-mode-map (kbd "C->") 'helm-gtags-next-history)
@@ -704,22 +711,6 @@
 (defadvice cscope-bury-buffer (after cscope-bury-buffer-after activate)
   ""
   (jump-to-register :prev-win-layout))
-;; (defun cscope-prompt-for-symbol-fset (prompt extract-filename)
-;;   "make cscope-no-mouse-prompts work"
-;;   (let (sym)
-;;     (setq sym (cscope-extract-symbol-at-cursor extract-filename))
-;;     (if (or (not sym)
-;; 			(string= sym "")
-;; 			(not cscope-no-mouse-prompts)
-;; 			;; Always prompt for symbol in dired mode.
-;; 			(eq major-mode 'dired-mode)
-;; 			)
-;; 		(setq sym (read-from-minibuffer prompt sym))
-;;       sym)
-;;     )
-;;   )
-
-;; (fset 'cscope-prompt-for-symbol 'cscope-prompt-for-symbol-fset) ;fset 直接覆盖原函数
 
 (defun rscope-all-symbol-assignments-fset (symbol)
   "10 -> 9"
@@ -1371,7 +1362,7 @@ If FULL is t, copy full file name."
   (let* ((tag (button-get button 'tag))
 		 (kill-flag t)
 		 (all-buff-list (buffer-list))
-		 (buff (semantic-tag-buffer tag))
+		 (buff (semantic-tag-buffer-fset tag))
 		 (hits (semantic--tag-get-property tag :hit))
 		 (state (button-get button 'state))
 		 (text nil))
@@ -1442,6 +1433,18 @@ If FULL is t, copy full file name."
 		(kill-buffer buff))
 	))
 
+(defun semantic-tag-buffer-fset (tag)
+  "打开文件不记入recentf"
+  (let ((buff (semantic-tag-in-buffer-p tag)))
+    (if buff
+		buff
+      ;; TAG has an originating file, read that file into a buffer, and
+      ;; return it.
+	  (if (semantic--tag-get-property tag :filename)
+		  (save-match-data
+			(semantic-find-file-noselect (semantic--tag-get-property tag :filename) t))
+		;; TAG is not in Emacs right now, no buffer is available.
+		))))
 
 (defun semantic-symref-fset ()
   ""
@@ -1634,30 +1637,32 @@ If FULL is t, copy full file name."
 
 (global-set-key (kbd "C-_") 'set-c-word-mode)
 
+(defun uninterested-buffer (buffer)
+  (or (eq (buffer-local-value 'major-mode buffer) 'ag-mode)
+	  (eq (buffer-local-value 'major-mode buffer) 'semantic-symref-results-mode)
+	  (eq (buffer-local-value 'major-mode buffer) 'diff-mode)
+	  (eq (buffer-local-value 'major-mode buffer) 'vc-dir-mode)
+	  (eq (buffer-local-value 'major-mode buffer) 'vc-svn-log-view-mode)
+	  (eq (buffer-local-value 'major-mode buffer) 'ediff-meta-mode)
+	  (eq (buffer-local-value 'major-mode buffer) 'occur-mode)
+	  (string-match-p "ag dired pattern" (buffer-name buffer))
+	  (string-match-p "\*vc\*" (buffer-name buffer))
+	  (string-match-p "\*Backtrace\*" (buffer-name buffer))
+	  (string-match-p "\*Completions\*" (buffer-name buffer))
+	  (string-match-p "\*Help\*" (buffer-name buffer))
+	  (string-match-p "\*Customize\*" (buffer-name buffer))
+	  (string-match-p "\*Cedet\*" (buffer-name buffer))
+	  (string-match-p "\*Annotate\*" (buffer-name buffer))
+	  (string-match-p "\*Compile-Log\*" (buffer-name buffer))
+	  (string-match-p "\*GTAGS SELECT\*" (buffer-name buffer))
+	  (string-match-p "\*Calc\*" (buffer-name buffer))
+	  (string-match-p "\*magit" (buffer-name buffer))
+	  ))
 (defun kill-spec-buffers ()
   ""
   (interactive)
   (dolist (buffer (buffer-list))
-    (when (or (eq (buffer-local-value 'major-mode buffer) 'ag-mode)
-			  (eq (buffer-local-value 'major-mode buffer) 'semantic-symref-results-mode)
-			  (eq (buffer-local-value 'major-mode buffer) 'diff-mode)
-			  (eq (buffer-local-value 'major-mode buffer) 'vc-dir-mode)
-			  (eq (buffer-local-value 'major-mode buffer) 'vc-svn-log-view-mode)
-			  (eq (buffer-local-value 'major-mode buffer) 'ediff-meta-mode)
-			  (eq (buffer-local-value 'major-mode buffer) 'occur-mode)
-			  (string-match-p "ag dired pattern" (buffer-name buffer))
-			  (string-match-p "\*vc\*" (buffer-name buffer))
-			  (string-match-p "\*Backtrace\*" (buffer-name buffer))
-			  (string-match-p "\*Completions\*" (buffer-name buffer))
-			  (string-match-p "\*Help\*" (buffer-name buffer))
-			  (string-match-p "\*Customize\*" (buffer-name buffer))
-			  (string-match-p "\*Cedet\*" (buffer-name buffer))
-			  (string-match-p "\*Annotate\*" (buffer-name buffer))
-			  (string-match-p "\*Compile-Log\*" (buffer-name buffer))
-			  (string-match-p "\*GTAGS SELECT\*" (buffer-name buffer))
-			  (string-match-p "\*Calc\*" (buffer-name buffer))
-			  (string-match-p "\*magit" (buffer-name buffer))
-			  )
+    (when (uninterested-buffer buffer)
       (kill-buffer buffer))))
 
 (global-set-key (kbd "<C-S-f9>") 'kill-spec-buffers)
