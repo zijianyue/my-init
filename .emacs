@@ -285,13 +285,6 @@
    (quote
 	(" hl-p" " yas" " hs" " Ifdef" " pair" " HelmGtags" " GG" " company" " ElDoc" " Irony" " AC" " FA" " GitGutter" " Gtags" " Anzu")))
  '(rscope-keymap-prefix "p")
- '(rtags-find-file-case-insensitive t)
- '(rtags-find-file-prefer-exact-match nil)
- '(rtags-rc-log-enabled t)
- '(rtags-show-containing-function t)
- '(rtags-symbolnames-case-insensitive t)
- '(rtags-tracking t)
- '(rtags-verbose-results t)
  '(save-place t nil (saveplace))
  '(semantic-c-dependency-system-include-path
    (quote
@@ -327,50 +320,24 @@
  '(zjl-hl-local-variable-reference-face ((t (:foreground "dark slate gray"))))
  '(zjl-hl-member-reference-face ((t (:foreground "dark goldenrod" :slant normal :weight normal)))))
 ;;-----------------------------------------------------------plugin begin-----------------------------------------------------------;;
-;; ggtags
-(autoload 'ggtags-mode "ggtags" "" t)
-(eval-after-load "ggtags"
-  '(progn
-	 (remove-function (local 'eldoc-documentation-function) 'ggtags-eldoc-function)
-	 (define-key ggtags-mode-map (kbd "M-.") nil)
-	 (define-key ggtags-mode-map (kbd "M-,") nil)
-	 ;; (define-key ggtags-mode-map (kbd "M-]") 'ggtags-find-tag-dwim)
-	 ;; (define-key ggtags-mode-map (kbd "C-M-]") 'ggtags-find-reference)
-	 (define-key ggtags-mode-map (kbd "C-M-.") nil)
-	 (define-key ggtags-mode-map [S-down-mouse-1] 'ignore)
-	 (define-key ggtags-mode-map [S-down-mouse-3] 'ignore)
-	 ;; (define-key ggtags-mode-map (kbd "<S-mouse-1>") 'ggtags-find-tag-mouse)
-	 ;; (define-key ggtags-mode-map (kbd "<S-mouse-3>") 'ggtags-prev-mark)
-	 ;; (define-key ggtags-mode-map (kbd "<C-S-mouse-3>") 'ggtags-next-mark)
-	 (define-key ggtags-highlight-tag-map [S-down-mouse-1] 'ignore)
-	 (define-key ggtags-highlight-tag-map [S-down-mouse-3] 'ignore)
-	 ;; (define-key ggtags-highlight-tag-map (kbd "<S-mouse-1>") 'ggtags-find-tag-mouse)
-	 ;; (define-key ggtags-highlight-tag-map (kbd "<S-mouse-3>") 'ggtags-prev-mark)
-	 ;; (define-key ggtags-highlight-tag-map (kbd "<C-S-mouse-3>") 'ggtags-next-mark)
-	 (define-key ggtags-mode-map (kbd "M-?") 'ggtags-show-definition)
-	 (define-key ggtags-highlight-tag-map (kbd "<mouse-2>") 'ggtags-show-definition)
-	 (define-key ggtags-mode-map (kbd "C-c p") 'ggtags-find-file)
-	 (setq ggtags-mode-line-project-name nil)
-	 ))
-
 ;; gtags
 (setq gtags-suggested-key-mapping nil)
 (setq gtags-disable-pushy-mouse-mapping t)
 (autoload 'gtags-mode "gtags" nil t)
 (eval-after-load "gtags"
   '(progn
-	 (define-key gtags-mode-map [S-down-mouse-1] 'ignore)
-	 (define-key gtags-mode-map [S-down-mouse-3] 'ignore)
-	 (define-key gtags-mode-map (kbd "<S-mouse-3>") 'gtags-pop-stack)
-	 (define-key gtags-mode-map (kbd "<S-mouse-1>") 'gtags-find-tag-by-event)
+	 (define-key gtags-mode-map [C-down-mouse-1] 'ignore)
+	 (define-key gtags-mode-map [C-down-mouse-3] 'ignore)
+	 (define-key gtags-mode-map (kbd "<C-mouse-3>") 'gtags-pop-stack)
+	 (define-key gtags-mode-map (kbd "<C-mouse-1>") 'gtags-find-tag-by-event)
 	 (define-key gtags-mode-map (kbd "C-c i") 'gtags-find-with-idutils)
 	 (define-key gtags-select-mode-map "p" 'previous-line)
 	 (define-key gtags-select-mode-map "n" 'next-line)
 	 (define-key gtags-select-mode-map "q" 'kill-this-buffer)
-	 (define-key gtags-select-mode-map [S-down-mouse-3] 'ignore)
-	 (define-key gtags-select-mode-map [S-down-mouse-1] 'ignore)
-	 (define-key gtags-select-mode-map (kbd "<S-mouse-3>") 'gtags-pop-stack)
-	 (define-key gtags-select-mode-map (kbd "<S-mouse-1>") 'gtags-select-tag-by-event)
+	 (define-key gtags-select-mode-map [C-down-mouse-3] 'ignore)
+	 (define-key gtags-select-mode-map [C-down-mouse-1] 'ignore)
+	 (define-key gtags-select-mode-map (kbd "<C-mouse-3>") 'gtags-pop-stack)
+	 (define-key gtags-select-mode-map (kbd "<C-mouse-1>") 'gtags-select-tag-by-event)
 	 ))
 
 ;; 选中单位
@@ -1047,8 +1014,8 @@
            (unless (string= (buffer-name) "*sdcv*")
              (setq kid-sdcv-window-configuration (current-window-configuration))
              (switch-to-buffer-other-window "*sdcv*")
-             (local-set-key (kbd "d") 'kid-sdcv-to-buffer)
-             (local-set-key (kbd "q") (lambda ()
+             (local-set-key (kbd ";") 'kid-sdcv-to-buffer)
+             (local-set-key (kbd "`") (lambda ()
                                         (interactive)
 										(quit-window t))));; quit-window t 可以关闭窗口并恢复原先窗口布局,但是buffer被kill
            (goto-char (point-min))))))))
