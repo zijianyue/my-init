@@ -238,6 +238,8 @@
  '(git-gutter:handled-backends (quote (git hg bzr svn)))
  '(git-gutter:update-interval 2)
  '(global-auto-revert-mode t)
+ '(global-hl-line-mode t)
+ '(global-hl-line-sticky-flag t)
  '(grep-template "grep <X> <C> -nH -F <R> <F>")
  '(gtags-ignore-case nil)
  '(helm-ag-base-command "ag --nocolor --nogroup -S -Q ")
@@ -302,6 +304,7 @@
  '(switch-window-shortcut-style (quote (quote qwerty)))
  '(tab-width 4)
  '(tabbar-cycle-scope (quote tabs))
+ '(tool-bar-mode nil)
  '(undo-outer-limit 20000000)
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
  '(user-full-name "gezijian")
@@ -314,7 +317,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(bm-face ((t (:background "peach puff"))))
  '(helm-lisp-show-completion ((t (:background "navajo white"))))
  '(helm-selection-line ((t (:background "light steel blue" :underline t))))
  '(zjl-hl-local-variable-reference-face ((t (:foreground "dark slate gray"))))
@@ -415,6 +417,8 @@
 (setq ac-trigger-commands
       (cons 'autopair-backspace ac-trigger-commands))
 (global-set-key (kbd "C-x /") 'ac-complete-filename)
+(global-set-key (kbd "M-RET") 'ac-complete-semantic)
+
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
   (setq ac-sources (delete 'ac-source-gtags ac-sources))
   (setq ac-sources (delete 'ac-source-words-in-same-mode-buffers ac-sources))
@@ -430,7 +434,7 @@
 	 ;; (require 'ac-irony)
 	 (message "auto-complete-config")
 
-	 (define-key ac-mode-map  (kbd "M-RET") 'auto-complete)
+	 ;; (define-key ac-mode-map  (kbd "M-RET") 'auto-complete)
 	 (define-key ac-completing-map  (kbd "M-s") 'ac-isearch)
 
 	 (ac-config-default)
@@ -438,7 +442,7 @@
 	 (add-to-list 'ac-modes 'objc-mode)
 
 	 (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
-	 (setq-default ac-sources '(ac-source-dictionary))
+	 ;; (setq-default ac-sources '(ac-source-dictionary))
 	 ;; (define-key irony-mode-map (kbd "M-p") 'ac-complete-irony-async)
 	 ))
 
@@ -589,6 +593,17 @@
 (global-set-key (kbd "<f2>")   'bm-next)
 (global-set-key (kbd "<S-f2>") 'bm-previous)
 (setq bm-cycle-all-buffers t)
+(defface bm-face
+  '((((class grayscale)
+      (background light)) (:background "DimGray"))
+    (((class grayscale)
+      (background dark))  (:background "LightGray"))
+    (((class color)
+      (background light)) (:background "peach puff"))
+    (((class color)
+      (background dark))  (:background "dark slate gray")))
+  "Face used to highlight current line."
+  :group 'bm)
 
 ;; 更多的语法高亮
 (eval-after-load "cc-mode"
@@ -851,7 +866,54 @@
 
 ;; (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
 ;; (add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode)
+(defun diff-hl-changes-fset ()
+  (let* ((file buffer-file-name)
+         (backend (vc-backend file)))
+    (when backend
+      (let ((state (if (eq 'SVN backend)
+					   (vc-svn-state file)
+					 (vc-state file backend))))
+        (cond
+         ((or (eq state 'edited)
+              (and (eq state 'up-to-date)
+                   ;; VC state is stale in after-revert-hook.
+                   (or revert-buffer-in-progress-p
+                       ;; Diffing against an older revision.
+                       diff-hl-reference-revision)))
+          (let* ((buf-name " *diff-hl* ")
+                 diff-auto-refine-mode
+                 res)
+            (diff-hl-with-diff-switches
+             (vc-call-backend backend 'diff (list file)
+                              diff-hl-reference-revision nil
+                              buf-name))
+            (with-current-buffer buf-name
+              (goto-char (point-min))
+              (unless (eobp)
+                (ignore-errors
+                  (diff-beginning-of-hunk t))
+                (while (looking-at diff-hunk-header-re-unified)
+                  (let ((line (string-to-number (match-string 3)))
+                        (len (let ((m (match-string 4)))
+                               (if m (string-to-number m) 1)))
+                        (beg (point)))
+                    (diff-end-of-hunk)
+                    (let* ((inserts (diff-count-matches "^\\+" beg (point)))
+                           (deletes (diff-count-matches "^-" beg (point)))
+                           (type (cond ((zerop deletes) 'insert)
+                                       ((zerop inserts) 'delete)
+                                       (t 'change))))
+                      (when (eq type 'delete)
+                        (setq len 1)
+                        (cl-incf line))
+                      (push (list line len type) res))))))
+            (nreverse res)))
+         ((eq state 'added)
+          `((1 ,(line-number-at-pos (point-max)) insert)))
+         ((eq state 'removed)
+          `((1 ,(line-number-at-pos (point-max)) delete))))))))
 
+(fset 'diff-hl-changes 'diff-hl-changes-fset)
 ;; wgrep
 (autoload 'wgrep-setup "wgrep")
 (add-hook 'grep-setup-hook 'wgrep-setup)
@@ -1076,7 +1138,10 @@
 (fset 'on-modifying-buffer 'on-modifying-buffer-fset)
 (fset 'after-modifying-buffer 'after-modifying-buffer-fset)
 
-
+(defadvice enable-theme(after enable-theme-after activate)
+  (tabbar-install-faces))
+(defadvice disable-theme(after disable-theme-after activate)
+  (tabbar-install-faces))
 
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
@@ -1416,7 +1481,7 @@ If FULL is t, copy full file name."
   (let* ((tag (button-get button 'tag))
 		 (kill-flag t)
 		 (all-buff-list (buffer-list))
-		 (buff (semantic-tag-buffer-fset tag))
+		 (buff (semantic-tag-buffer tag))
 		 (hits (semantic--tag-get-property tag :hit))
 		 (state (button-get button 'state))
 		 (text nil))
@@ -1488,7 +1553,7 @@ If FULL is t, copy full file name."
 	))
 
 (defun semantic-tag-buffer-fset (tag)
-  "打开文件不记入recentf"
+  "打开文件不记入recentf，并且打开较快，用完后最好手动kill"
   (let ((buff (semantic-tag-in-buffer-p tag)))
     (if buff
 		buff
@@ -1499,6 +1564,36 @@ If FULL is t, copy full file name."
 			(semantic-find-file-noselect (semantic--tag-get-property tag :filename) t))
 		;; TAG is not in Emacs right now, no buffer is available.
 		))))
+
+(fset 'semantic-tag-buffer 'semantic-tag-buffer-fset)
+
+(define-overloadable-function semantic-documentation-for-tag-fset (&optional tag nosnarf)
+  "生成完doc后把buffer删除"
+  (if (not tag) (setq tag (semantic-current-tag)))
+  (save-excursion
+    (when (semantic-tag-with-position-p tag)
+      (set-buffer (semantic-tag-buffer tag)))
+    (:override
+     ;; No override.  Try something simple to find documentation nearby
+     (save-excursion
+       (semantic-go-to-tag tag)
+       (let ((doctmp (semantic-tag-docstring tag (current-buffer))))
+		 (setq retval(or
+					  ;; Is there doc in the tag???
+					  doctmp
+					  ;; Check just before the definition.
+					  (when (semantic-tag-with-position-p tag)
+						(semantic-documentation-comment-preceeding-tag tag nosnarf))
+					  ;;  Let's look for comments either after the definition, but before code:
+					  ;; Not sure yet.  Fill in something clever later....
+					  nil))
+		 (kill-buffer)
+		 retval
+		 )))))
+
+(eval-after-load "doc"
+  '(progn
+	 (fset 'semantic-documentation-for-tag 'semantic-documentation-for-tag-fset)))
 
 (defun semantic-symref-fset ()
   ""
@@ -1723,6 +1818,7 @@ If FULL is t, copy full file name."
       (kill-buffer buffer))))
 
 (global-set-key (kbd "<C-S-f9>") 'kill-spec-buffers)
+;; 也可以用clean-buffer-list,midnight-mode
 
 ;; reuse buffer in DIRED
 (defadvice dired-find-file (around dired-find-file-single-buffer activate)
@@ -1886,6 +1982,7 @@ If FULL is t, copy full file name."
 			(define-key dired-mode-map "/" 'isearch-forward)
 			(define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
 			(define-key dired-mode-map "c" 'create-known-ede-project)
+			(define-key dired-mode-map (kbd "M-s") 'er/expand-region)
 			(diff-hl-dired-mode)
 			(dired-async-mode 1)
 			))
