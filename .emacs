@@ -2060,7 +2060,7 @@ If FULL is t, copy full file name."
 (global-set-key (kbd "M-2") 'split-window-below)
 (global-set-key (kbd "M-3") 'split-window-right)
 (global-set-key (kbd "M-4") 'delete-window)
-(global-set-key (kbd "C-S-k") 'kill-this-buffer)
+(global-set-key (kbd "C-S-w") 'kill-this-buffer)
 (global-set-key (kbd "<M-S-down>") 'windmove-down)
 (global-set-key (kbd "<M-S-up>") 'windmove-up)
 (global-set-key (kbd "<M-S-left>") 'windmove-left)
