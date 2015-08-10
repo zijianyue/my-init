@@ -110,7 +110,7 @@
 (setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
 ;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
 
-(global-set-key (kbd "M-]") 'semantic-ia-show-summary)
+(global-set-key (kbd "M-p") 'semantic-ia-show-summary)
 ;; semantic-ia-show-doc 备用
 
 ;;修改标题栏，显示buffer的名字
@@ -354,10 +354,12 @@
 ;; stl(解析vector map等)
 (setq stl-base-dir "c:/Program Files (x86)/Microsoft Visual Studio 8/VC/include")
 (setq stl-base-dir-12 "c:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include")
+(setq stl-base-dir-11 "c:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/include")
 
 ;; 设置成c++文件类型
 (add-to-list 'auto-mode-alist (cons stl-base-dir 'c++-mode))
 (add-to-list 'auto-mode-alist (cons stl-base-dir-12 'c++-mode))
+(add-to-list 'auto-mode-alist (cons stl-base-dir-11 'c++-mode))
 ;; (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 (add-to-list 'auto-mode-alist '("\\.hpp\\'" . c++-mode))
 
@@ -730,7 +732,7 @@
 (global-set-key (kbd "<C-apps>") 'helm-for-files)
 (global-set-key (kbd "<S-apps>") 'helm-resume)
 (global-set-key (kbd "<M-apps>") 'helm-ag-this-file)
-(global-set-key (kbd "M-p") 'helm-swoop)
+(global-set-key (kbd "M-]") 'helm-swoop)
 
 (global-set-key (kbd "C-c b") 'helm-gtags-find-files)
 (global-set-key (kbd "C-c d") 'helm-gtags-find-tag)
@@ -813,11 +815,45 @@
 	 (add-hook 'irony-mode-hook 'irony-eldoc)
 	 (setq w32-pipe-read-delay 0)
 	 (setq process-adaptive-read-buffering nil)
+	 (fset 'irony--send-parse-request 'irony--send-parse-request-fset)
 	 ))
 (eval-after-load "flycheck"
   '(progn
 	 (require 'flycheck-irony )
 	 (add-to-list 'flycheck-checkers 'irony)))
+
+(defun irony--send-parse-request-fset (request callback &rest args)
+  "Send a request that acts on the current buffer to irony-server.
+
+This concerns mainly irony-server commands that do some work on a
+translation unit for libclang, the unsaved buffer data are taken
+care of."
+  (let ((process (irony--get-server-process-create))
+        (argv (append (list request
+                            "--num-unsaved=1"
+                            (irony--get-buffer-path-for-server))
+                      args))
+        (compile-options (irony--adjust-compile-options)))
+    (when (and process (process-live-p process))
+      (irony--server-process-push-callback process callback)
+      ;; skip narrowing to compute buffer size and content
+      (irony--without-narrowing
+        (process-send-string process
+                             (format "%s\n%s\n%s\n%d\n"
+                                     (combine-and-quote-strings argv)
+                                     (combine-and-quote-strings compile-options)
+                                     buffer-file-name
+                                     (irony--buffer-size-in-bytes)))
+
+        (setq last-time (float-time))
+        (process-send-string process (string-as-unibyte (buffer-substring-no-properties (point-min) (point-max))))
+
+        (message "send buffer %f" (- (float-time) last-time))
+        ;; (process-send-region process (point-min) (point-max))
+        ;; always make sure to finish with a newline (required by irony-server
+        ;; to play nice with line buffering even when the file doesn't end with
+        ;; a newline)
+        (process-send-string process "\n")))))
 
 ;; 行号性能改善
 (require 'nlinum )
@@ -1087,7 +1123,7 @@
 ;; ac-clang
 ;; (setq ac-clang-debug-log-buffer-p t)
 ;; (setq ac-clang-debug-log-buffer-size (* 1024 1024))
-(require 'ac-clang)
+(require 'ac-clang);也受^M的影响
 (eval-after-load "ac-clang"
   '(progn
 	 (setq ac-clang-async-autocompletion-manualtrigger-key "M-n")
@@ -1145,7 +1181,7 @@
 
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
-;;-----------------------------------------------------------define func begin-----------------------------------------------------------;;
+;;-----------------------------------------------------------define func begin----------------------------------------------------;;
 ;; 资源管理器中打开
 (defun open-in-desktop-select (&optional dired)
   (interactive "P")
@@ -1828,6 +1864,17 @@ If FULL is t, copy full file name."
 
 (fset 'which-func-update 'which-func-update-fset)
 
+(defun unix-to-dos-trim-M ()
+  (interactive)
+  (unless (eq buffer-file-coding-system 'chinese-gbk-dos)
+	(set-buffer-file-coding-system 'chinese-gbk-dos t))
+  (save-excursion
+	(beginning-of-buffer)
+	(while (re-search-forward "\^M" nil t)
+	  (replace-match "" nil nil)))
+  (save-buffer))
+(global-set-key (kbd "C-c m") 'unix-to-dos-trim-M)
+;;-----------------------------------------------------------define func end------------------------------------------------;;
 ;;-----------------------------------------------------------hook-----------------------------------------------------------;;
 (c-add-style "gzj"
 			 '("stroustrup"
