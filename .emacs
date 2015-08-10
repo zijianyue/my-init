@@ -1567,34 +1567,6 @@ If FULL is t, copy full file name."
 
 (fset 'semantic-tag-buffer 'semantic-tag-buffer-fset)
 
-(define-overloadable-function semantic-documentation-for-tag-fset (&optional tag nosnarf)
-  "生成完doc后把buffer删除"
-  (if (not tag) (setq tag (semantic-current-tag)))
-  (save-excursion
-    (when (semantic-tag-with-position-p tag)
-      (set-buffer (semantic-tag-buffer tag)))
-    (:override
-     ;; No override.  Try something simple to find documentation nearby
-     (save-excursion
-       (semantic-go-to-tag tag)
-       (let ((doctmp (semantic-tag-docstring tag (current-buffer))))
-		 (setq retval(or
-					  ;; Is there doc in the tag???
-					  doctmp
-					  ;; Check just before the definition.
-					  (when (semantic-tag-with-position-p tag)
-						(semantic-documentation-comment-preceeding-tag tag nosnarf))
-					  ;;  Let's look for comments either after the definition, but before code:
-					  ;; Not sure yet.  Fill in something clever later....
-					  nil))
-		 (kill-buffer)
-		 retval
-		 )))))
-
-(eval-after-load "doc"
-  '(progn
-	 (fset 'semantic-documentation-for-tag 'semantic-documentation-for-tag-fset)))
-
 (defun semantic-symref-fset ()
   ""
   (interactive)
@@ -2055,12 +2027,12 @@ If FULL is t, copy full file name."
 (global-set-key (kbd "<C-M-f7>") 'kill-find)
 
 ;; 窗口管理
-(global-set-key (kbd "<M-f4>") 'kill-buffer-and-window)
+(global-set-key (kbd "C-S-w") 'kill-buffer-and-window)
 (global-set-key (kbd "M-1") 'delete-other-windows)
 (global-set-key (kbd "M-2") 'split-window-below)
 (global-set-key (kbd "M-3") 'split-window-right)
 (global-set-key (kbd "M-4") 'delete-window)
-(global-set-key (kbd "C-S-w") 'kill-this-buffer)
+(global-set-key (kbd "<M-f4>") 'kill-this-buffer)
 (global-set-key (kbd "<M-S-down>") 'windmove-down)
 (global-set-key (kbd "<M-S-up>") 'windmove-up)
 (global-set-key (kbd "<M-S-left>") 'windmove-left)
