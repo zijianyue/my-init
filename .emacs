@@ -95,7 +95,7 @@
 
 (add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode t)
 ;; (add-to-list 'semantic-default-submodes 'global-semantic-stickyfunc-mode t)
-(add-to-list 'semantic-default-submodes 'global-semantic-highlight-edits-mode t)
+;; (add-to-list 'semantic-default-submodes 'global-semantic-highlight-edits-mode t)
 
 (global-srecode-minor-mode t)
 (semantic-mode t)
@@ -238,7 +238,6 @@
  '(git-gutter:handled-backends (quote (git hg bzr svn)))
  '(git-gutter:update-interval 2)
  '(global-auto-revert-mode t)
- '(global-hl-line-mode t)
  '(global-hl-line-sticky-flag t)
  '(grep-template "grep <X> <C> -nH -F <R> <F>")
  '(gtags-ignore-case nil)
@@ -309,7 +308,6 @@
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
  '(user-full-name "gezijian")
  '(vc-svn-program "C:\\Program Files\\TortoiseSVN\\bin\\svn")
- '(which-function-mode t)
  '(whitespace-line-column 120)
  '(winner-mode t))
 (custom-set-faces
@@ -1873,7 +1871,7 @@ If FULL is t, copy full file name."
 	(while (re-search-forward "\^M" nil t)
 	  (replace-match "" nil nil)))
   (save-buffer))
-(global-set-key (kbd "C-c m") 'unix-to-dos-trim-M)
+(global-set-key (kbd "C-c m") 'unix-to-dos-trim-M) ;注意在大于200K的文件中替换时会卡住，要c-g后反复用此命令
 ;;-----------------------------------------------------------define func end------------------------------------------------;;
 ;;-----------------------------------------------------------hook-----------------------------------------------------------;;
 (c-add-style "gzj"
@@ -1974,6 +1972,7 @@ If FULL is t, copy full file name."
 			(abbrev-mode 0)
 			(flycheck-mode 1)
 			(yas-glo-on)
+			(setq-local which-function-mode t)
 			;; (superword-mode)                ;连字符不分割单词,影响move和edit，但是鼠标双击选择不管用 ，相对subword-mode
 			))
 
@@ -1984,6 +1983,7 @@ If FULL is t, copy full file name."
 			(flycheck-mode 1)
 			(yas-glo-on)
 			(hs-minor-mode 1)
+			(setq-local which-function-mode t)
 			))
 
 (dolist (hook '(c-mode-common-hook lua-mode-hook objc-mode-hook project-buffer-mode-hook))
