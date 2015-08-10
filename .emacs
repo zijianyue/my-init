@@ -308,6 +308,7 @@
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
  '(user-full-name "gezijian")
  '(vc-svn-program "C:\\Program Files\\TortoiseSVN\\bin\\svn")
+ '(which-function-mode t)
  '(whitespace-line-column 120)
  '(winner-mode t))
 (custom-set-faces
@@ -1084,7 +1085,7 @@ care of."
 (global-set-key (kbd "<C-f10>") 'purpose-mode)
 
 ;; func args
-(require 'function-args )
+(autoload 'fa-show "function-args" nil t)
 (global-set-key (kbd "<M-S-return>") 'fa-show)
 
 ;; 星际译王
@@ -1119,11 +1120,11 @@ care of."
 (global-set-key (kbd "<M-f11>") 'kid-sdcv-to-buffer)
 
 ;; ac-clang
-;; (setq ac-clang-debug-log-buffer-p t)
-;; (setq ac-clang-debug-log-buffer-size (* 1024 1024))
-(require 'ac-clang);也受^M的影响
-(eval-after-load "ac-clang"
+(eval-after-load "cc-mode"
   '(progn
+	 ;; (setq ac-clang-debug-log-buffer-p t)
+	 ;; (setq ac-clang-debug-log-buffer-size (* 1024 1024))
+	 (require 'ac-clang);也受^M的影响
 	 (setq ac-clang-async-autocompletion-manualtrigger-key "M-n")
 	 (setq w32-pipe-read-delay 0)          ;; <- Windows Only
 	 (when (ac-clang-initialize)
@@ -1972,7 +1973,6 @@ If FULL is t, copy full file name."
 			(abbrev-mode 0)
 			(flycheck-mode 1)
 			(yas-glo-on)
-			(setq-local which-function-mode t)
 			;; (superword-mode)                ;连字符不分割单词,影响move和edit，但是鼠标双击选择不管用 ，相对subword-mode
 			))
 
@@ -1983,7 +1983,6 @@ If FULL is t, copy full file name."
 			(flycheck-mode 1)
 			(yas-glo-on)
 			(hs-minor-mode 1)
-			(setq-local which-function-mode t)
 			))
 
 (dolist (hook '(c-mode-common-hook lua-mode-hook objc-mode-hook project-buffer-mode-hook))
