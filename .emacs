@@ -104,6 +104,9 @@
 ;; let cedet call ctags to find things which cedet can not find
 ;; (semantic-load-enable-all-ectags-support)
 ;; (semantic-load-enable-primary-ectags-support)
+;; (semantic-ectags-add-language-support lua-mode "lua" "f")
+;; (add-hook 'lua-mode-hook 'semantic-ectags-simple-setup)
+
 (semanticdb-enable-gnu-global-databases 'c-mode)
 (semanticdb-enable-gnu-global-databases 'c++-mode)
 (set-default 'semantic-case-fold t)
@@ -233,6 +236,7 @@
  '(flycheck-check-syntax-automatically nil)
  '(flycheck-emacs-lisp-load-path (quote inherit))
  '(flycheck-indication-mode (quote right-fringe))
+ '(flymake-fringe-indicator-position (quote right-fringe))
  '(frame-resize-pixelwise t)
  '(ggtags-highlight-tag-delay 16)
  '(git-gutter:handled-backends (quote (git hg bzr svn)))
@@ -793,14 +797,22 @@
 ;; flycheck
 (autoload 'flycheck-mode "flycheck" nil t)
 (global-set-key (kbd "M-g l") 'flycheck-list-errors)
-(global-set-key (kbd "<M-f5>") 'flycheck-buffer)
+;; (global-set-key (kbd "<M-f5>") 'flycheck-buffer)
+(global-set-key (kbd "<M-f5>") (lambda () "" (interactive)
+								 (require 'irony-cdb nil t)
+								 (require 'irony-eldoc )
+								 (irony-mode)
+								 (irony--mode-exit)
+								 (flycheck-mode 1)
+								 (flycheck-buffer)
+								 ))
 
 ;; irony-mode
-(eval-after-load "cc-mode"
-  '(progn
-	 (require 'irony-cdb nil t)
-	 (require 'irony-eldoc )
-	 ))
+;; (eval-after-load "cc-mode"
+;;   '(progn
+;; 	 (require 'irony-cdb nil t)
+;; 	 (require 'irony-eldoc )
+;; 	 ))
 
 (eval-after-load "irony"
   '(progn
@@ -814,12 +826,10 @@
 	 (add-hook 'irony-mode-hook 'irony-eldoc)
 	 (setq w32-pipe-read-delay 0)
 	 (setq process-adaptive-read-buffering nil)
+	 (require 'flycheck-irony )
+	 (add-to-list 'flycheck-checkers 'irony)
 	 (fset 'irony--send-parse-request 'irony--send-parse-request-fset)
 	 ))
-(eval-after-load "flycheck"
-  '(progn
-	 (require 'flycheck-irony )
-	 (add-to-list 'flycheck-checkers 'irony)))
 
 (defun irony--send-parse-request-fset (request callback &rest args)
   "Send a request that acts on the current buffer to irony-server.
@@ -1064,12 +1074,13 @@ care of."
 	 
 	 (fset 'ag-dired-regexp 'ag-dired-regexp-fset)
 
+	 (defvar ag-search-cnt 0 "search cnt")
 	 (defun ag/buffer-name-fset (search-string directory regexp)
 	   "Return a buffer name formatted according to ag.el conventions."
 	   (cond
 		(ag-reuse-buffers "*ag search*")
-		(regexp (format "*ag search regexp:%s %s*" search-string  buffer-file-name))
-		(:else (format "*ag search text:%s %s*" search-string  buffer-file-name))))
+		(regexp (format "*ag regexp:%s %d*" search-string (setq ag-search-cnt (1+ ag-search-cnt))))
+		(:else (format "*ag:%s %d*" search-string (setq ag-search-cnt (1+ ag-search-cnt))))))
 	 (fset 'ag/buffer-name 'ag/buffer-name-fset)
 	 ))
 
@@ -1111,11 +1122,12 @@ care of."
            (unless (string= (buffer-name) "*sdcv*")
              (setq kid-sdcv-window-configuration (current-window-configuration))
              (switch-to-buffer-other-window "*sdcv*")
-             (local-set-key (kbd ";") 'kid-sdcv-to-buffer)
-             (local-set-key (kbd "`") (lambda ()
+             (local-set-key (kbd "RET") 'kid-sdcv-to-buffer)
+             (local-set-key (kbd ",") (lambda ()
                                         (interactive)
 										(quit-window t))));; quit-window t 可以关闭窗口并恢复原先窗口布局,但是buffer被kill
-           (goto-char (point-min))))))))
+           (goto-char (point-min))
+		   (open-line 1)))))))
 
 (global-set-key (kbd "<M-f11>") 'kid-sdcv-to-buffer)
 
@@ -1134,7 +1146,13 @@ care of."
 										(define-key ac-mode-map (kbd "M-.") 'ac-clang-jump-smart)
 										(define-key ac-mode-map (kbd "M-,") nil)
 										(define-key ac-mode-map (kbd "C-c `") 'ac-clang-diagnostics)
+										(define-key ac-mode-map (kbd "M-g j") 'flymake-goto-next-error)
+										(define-key ac-mode-map (kbd "M-g k") 'flymake-goto-prev-error)
 										)))
+	 ;; minibuf中显示flymake信息
+	 ;; (custom-set-variables
+	 ;;  '(help-at-pt-display-when-idle '(flymake-overlay)))
+
 	 (defadvice ac-clang-activate (after ac-clang-activate-after activate)
 	   ""
 	   (setq ac-sources ac-clang--ac-sources-backup)
@@ -1143,6 +1161,7 @@ care of."
 	 (defadvice ac-clang-jump-smart (before ac-clang-jump-smart-mru activate)
 	   ""
 	   (ring-insert semantic-tags-location-ring (point-marker)))))
+
 
 ;; 显示搜索index
 (require 'anzu)
@@ -1170,8 +1189,19 @@ care of."
   ;; (tabbar-display-update)
   )
 
+(defun tabbar-buffer-tab-label-fset (tab)
+  "shorten tab name"
+  (let ((label  (if tabbar--buffer-show-groups
+                    (format "[%s]" (tabbar-tab-tabset tab))
+                  (format "%s" (tabbar-tab-value tab)))))
+      (tabbar-shorten
+       label (max 1 (/ (window-width)
+                       (length (tabbar-view
+                                (tabbar-current-tabset))))))))
+
 (fset 'on-modifying-buffer 'on-modifying-buffer-fset)
 (fset 'after-modifying-buffer 'after-modifying-buffer-fset)
+(fset 'tabbar-buffer-tab-label 'tabbar-buffer-tab-label-fset)
 
 (defadvice enable-theme(after enable-theme-after activate)
   (tabbar-install-faces))
@@ -1787,6 +1817,7 @@ If FULL is t, copy full file name."
   (modify-syntax-entry ?- ".")			;-作为标点符号，起到分隔单词作用
   (modify-syntax-entry ?& ".")
   (modify-syntax-entry ?< ".")
+  (modify-syntax-entry ?> ".")
   (modify-syntax-entry ?= ".")
   (modify-syntax-entry ?_ "w")
   (setq bm-cycle-all-buffers nil))
@@ -1965,13 +1996,13 @@ If FULL is t, copy full file name."
 			(hide-ifdef-mode 1)
 			(setq-local ac-auto-start nil)
 			(setq-local indent-tabs-mode nil)
-			(irony-mode)
-			(irony--mode-exit)
+			;; (irony-mode)
+			;; (irony--mode-exit)
 			;; (ggtags-mode 1)
 			(eldoc-mode 0)
 			;; (company-mode 1)
 			(abbrev-mode 0)
-			(flycheck-mode 1)
+			;; (flycheck-mode 1)
 			(yas-glo-on)
 			;; (superword-mode)                ;连字符不分割单词,影响move和edit，但是鼠标双击选择不管用 ，相对subword-mode
 			))
@@ -2024,7 +2055,7 @@ If FULL is t, copy full file name."
 ;; gtags symref 的结果都设置为C语法，主要为了highlight-symbol能正确
 (eval-after-load "cc-mode"
   '(progn
-	 (dolist (hook '(gtags-select-mode-hook semantic-symref-results-mode-hook cscope-list-entry-hook rscope-list-entry-hook))
+	 (dolist (hook '(gtags-select-mode-hook semantic-symref-results-mode-hook cscope-list-entry-hook rscope-list-entry-hook ag-mode-hook))
 	   (add-hook hook
 				 (lambda()
 				   (setq truncate-lines t)
