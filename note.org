@@ -139,3 +139,4 @@ Looking up host "myHost")
 *.dir-locals.el具体实现有关函数hack-dir-local-variables
 * c-forward-conditional是#if #end之间移动，不能带else，c-up-conditional是不同深度的#之间内外移动，可以带else
 * sdcv词典放的位置 ~\.stardict\dic
+* cscope处理不了文件中有extern c
