@@ -140,3 +140,5 @@ Looking up host "myHost")
 * c-forward-conditional是#if #end之间移动，不能带else，c-up-conditional是不同深度的#之间内外移动，可以带else
 * sdcv词典放的位置 ~\.stardict\dic
 * cscope处理不了文件中有extern c
+* 编译rtags要在cygwin中装cmake openssl-dev libclang-static ncurse make.
+* cygwin中装libglib是给sdcv用的
