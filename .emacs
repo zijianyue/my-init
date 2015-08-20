@@ -254,7 +254,7 @@
    (quote
 	(helm-source-buffers-list helm-source-bookmarks helm-source-recentf)))
  '(helm-gtags-auto-update t)
- '(helm-gtags-cache-max-result-size 204857600)
+ '(helm-gtags-cache-max-result-size 504857600)
  '(helm-gtags-cache-select-result t)
  '(helm-gtags-display-style (quote detail))
  '(helm-gtags-ignore-case t)
@@ -427,12 +427,14 @@
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
   (setq ac-sources (delete 'ac-source-gtags ac-sources))
   (setq ac-sources (delete 'ac-source-words-in-same-mode-buffers ac-sources))
+  (setq ac-sources (delete 'ac-source-abbrev ac-sources))
   ;; (setq ac-sources (append '(ac-source-c-headers) ac-sources))
   ;; (setq ac-sources (append '(ac-source-irony) ac-sources))
   (setq ac-sources (append '(ac-source-semantic) ac-sources))
   (setq ac-sources (append '(ac-source-semantic-raw) ac-sources)) ;;会干扰->成员的补全
   ;; (setq ac-sources (append '(ac-source-imenu) ac-sources)) ;;会干扰->成员的补全
   )
+  
 (eval-after-load "auto-complete-config"
   '(progn
 	 ;; (require 'auto-complete-c-headers )
@@ -446,7 +448,7 @@
 	 
 	 (add-to-list 'ac-modes 'objc-mode)
 
-	 (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
+	 ;; (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
 	 ;; (setq-default ac-sources '(ac-source-dictionary))
 	 ;; (define-key irony-mode-map (kbd "M-p") 'ac-complete-irony-async)
 	 ))
@@ -769,13 +771,16 @@
 ;; (back-button-mode 1)
 
 ;; cscope
-(require 'xcscope )
-(cscope-setup)
-(require 'rscope )
-(setq cscope-suppress-user-symbol-prompt t)
-(define-key cscope-minor-mode-keymap [(shift button3)] nil)
-(define-key cscope-minor-mode-keymap [mouse-3] nil)
-(define-key cscope-minor-mode-keymap [S-mouse-3] nil)
+;; (require 'xcscope )
+;; (cscope-setup)
+;; (require 'rscope )
+(eval-after-load "xcscope"
+  '(progn
+	 (setq cscope-suppress-user-symbol-prompt t)
+	 (define-key cscope-minor-mode-keymap [(shift button3)] nil)
+	 (define-key cscope-minor-mode-keymap [mouse-3] nil)
+	 (define-key cscope-minor-mode-keymap [S-mouse-3] nil)))
+
 
 (defadvice cscope-call (before cscope-call-mru activate)
   ""
@@ -804,6 +809,7 @@
 								 (irony-mode)
 								 (irony--mode-exit)
 								 (flycheck-mode 1)
+								 (eldoc-mode 0)
 								 (flycheck-buffer)
 								 ))
 
@@ -829,6 +835,9 @@
 	 (require 'flycheck-irony )
 	 (add-to-list 'flycheck-checkers 'irony)
 	 (fset 'irony--send-parse-request 'irony--send-parse-request-fset)
+	 (require 'irony-cdb nil t)
+	 (require 'irony-eldoc )
+	 (eldoc-mode 0)
 	 ))
 
 (defun irony--send-parse-request-fset (request callback &rest args)
@@ -847,22 +856,22 @@ care of."
       (irony--server-process-push-callback process callback)
       ;; skip narrowing to compute buffer size and content
       (irony--without-narrowing
-        (process-send-string process
-                             (format "%s\n%s\n%s\n%d\n"
-                                     (combine-and-quote-strings argv)
-                                     (combine-and-quote-strings compile-options)
-                                     buffer-file-name
-                                     (irony--buffer-size-in-bytes)))
+	   (process-send-string process
+							(format "%s\n%s\n%s\n%d\n"
+									(combine-and-quote-strings argv)
+									(combine-and-quote-strings compile-options)
+									buffer-file-name
+									(irony--buffer-size-in-bytes)))
 
-        (setq last-time (float-time))
-        (process-send-string process (string-as-unibyte (buffer-substring-no-properties (point-min) (point-max))))
+	   (setq last-time (float-time))
+	   (process-send-string process (string-as-unibyte (buffer-substring-no-properties (point-min) (point-max))))
 
-        (message "send buffer %f" (- (float-time) last-time))
-        ;; (process-send-region process (point-min) (point-max))
-        ;; always make sure to finish with a newline (required by irony-server
-        ;; to play nice with line buffering even when the file doesn't end with
-        ;; a newline)
-        (process-send-string process "\n")))))
+	   (message "send buffer %f" (- (float-time) last-time))
+	   ;; (process-send-region process (point-min) (point-max))
+	   ;; always make sure to finish with a newline (required by irony-server
+	   ;; to play nice with line buffering even when the file doesn't end with
+	   ;; a newline)
+	   (process-send-string process "\n")))))
 
 ;; 行号性能改善
 (require 'nlinum )
@@ -1174,40 +1183,39 @@ care of."
 ;; (autoload 'helm-projectile-pt "helm-pt" nil t)
 
 ;; tabbar
+(require 'tabbar )
+(tabbar-mode)
 (global-set-key (kbd "<C-tab>") 'tabbar-forward-tab)
 (global-set-key (kbd "<C-S-tab>") 'tabbar-backward-tab)
 
-(require 'tabbar-ruler)
-(defun on-modifying-buffer-fset ()
-  (set-buffer-modified-p (buffer-modified-p))
-  (tabbar-set-template tabbar-current-tabset nil)
-  ;; (tabbar-display-update)
-  )
-(defun after-modifying-buffer-fset (begin end length)
-  (set-buffer-modified-p (buffer-modified-p))
-  (tabbar-set-template tabbar-current-tabset nil)
-  ;; (tabbar-display-update)
-  )
+;; (require 'tabbar-ruler)
+;; (defun on-modifying-buffer-fset ()
+;;   (set-buffer-modified-p (buffer-modified-p))
+;;   (tabbar-set-template tabbar-current-tabset nil)
+;;   ;; (tabbar-display-update)
+;;   )
+;; (defun on-saving-buffer-fset ()
+;;   (tabbar-set-template tabbar-current-tabset nil))
 
-(defun tabbar-buffer-tab-label-fset (tab)
-  "shorten tab name"
-  (let ((label  (if tabbar--buffer-show-groups
-                    (format "[%s]" (tabbar-tab-tabset tab))
-                  (format "%s" (tabbar-tab-value tab)))))
-      (tabbar-shorten
-       label (max 1 (/ (window-width)
-                       (length (tabbar-view
-                                (tabbar-current-tabset))))))))
+;; (defun after-modifying-buffer-fset (begin end length)
+;;   (set-buffer-modified-p (buffer-modified-p))
+;;   (tabbar-set-template tabbar-current-tabset nil)
+;;   ;; (tabbar-display-update)
+;;   )
 
-(fset 'on-modifying-buffer 'on-modifying-buffer-fset)
-(fset 'after-modifying-buffer 'after-modifying-buffer-fset)
-(fset 'tabbar-buffer-tab-label 'tabbar-buffer-tab-label-fset)
+;; (fset 'on-modifying-buffer 'on-modifying-buffer-fset)
+;; (fset 'after-modifying-buffer 'after-modifying-buffer-fset)
+;; (fset 'on-saving-buffer 'on-saving-buffer-fset)
 
-(defadvice enable-theme(after enable-theme-after activate)
-  (tabbar-install-faces))
-(defadvice disable-theme(after disable-theme-after activate)
-  (tabbar-install-faces))
+;; (defadvice enable-theme(after enable-theme-after activate)
+;;   (tabbar-install-faces))
+;; (defadvice disable-theme(after disable-theme-after activate)
+;;   (tabbar-install-faces))
 
+(defun tabbar-ruler-group-user-buffers-helper-dired ()
+  (list (cond ((string-equal "*" (substring (buffer-name) 0 1)) "emacs's buffers")
+			  (t "user's buffers"))))
+(setq tabbar-buffer-groups-function 'tabbar-ruler-group-user-buffers-helper-dired)
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin----------------------------------------------------;;
@@ -1384,6 +1392,7 @@ If FULL is t, copy full file name."
 (defun setup-program-keybindings()
   (interactive)
   (local-set-key (kbd "<f12>") 'semantic-ia-fast-jump)
+  (local-set-key (kbd "<S-f12>") 'semantic-complete-jump)
   (local-set-key (kbd "M-`") 'ia-fast-jump-other)
   (local-set-key (kbd "<C-f12>") 'semantic-symref-just-symbol)
   (local-set-key (kbd "<M-S-f12>") 'semantic-symref-anything)
@@ -1820,7 +1829,7 @@ If FULL is t, copy full file name."
   (modify-syntax-entry ?> ".")
   (modify-syntax-entry ?= ".")
   (modify-syntax-entry ?_ "w")
-  (setq bm-cycle-all-buffers nil))
+  (setq-local bm-cycle-all-buffers nil))
 
 (global-set-key (kbd "C-_") 'set-c-word-mode)
 
@@ -2169,3 +2178,5 @@ If FULL is t, copy full file name."
 	 (define-key vc-dir-mode-map (kbd "d") 'vc-diff)))
 ;; server-start
 (global-set-key (kbd "<C-lwindow>") 'server-start)
+;; Calc
+(global-set-key (kbd "C-c a") 'calc)
