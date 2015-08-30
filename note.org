@@ -142,3 +142,5 @@ Looking up host "myHost")
 * cscope处理不了文件中有extern c
 * 编译rtags要在cygwin中装cmake openssl-dev libclang-static ncurse make.
 * cygwin中装libglib是给sdcv用的
+* m-q 自动换行的用法
+先设置(setq-default fill-column 80)，或者用快捷键c-x f，然后选中一段文字m-q
