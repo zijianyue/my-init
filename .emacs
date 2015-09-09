@@ -217,6 +217,9 @@
  '(compilation-skip-threshold 2)
  '(confirm-kill-emacs (quote y-or-n-p))
  '(cscope-edit-single-match nil)
+ '(cscope-indexer-ignored-directories
+   (quote
+	("CVS" "RCS" "SCCS" ".git" ".hg" ".bzr" ".cdv" ".pc" ".svn" "_MTN" "_darcs" "_sgbak" "debian")))
  '(cscope-no-mouse-prompts t)
  '(cscope-option-use-inverted-index t)
  '(cua-mode t nil (cua-base))
@@ -234,8 +237,10 @@
  '(fa-insert-method (quote name-and-parens-and-hint))
  '(fci-eol-char 32)
  '(flycheck-check-syntax-automatically nil)
+ '(flycheck-checker-error-threshold nil)
  '(flycheck-emacs-lisp-load-path (quote inherit))
  '(flycheck-indication-mode (quote right-fringe))
+ '(flycheck-navigation-minimum-level (quote error))
  '(flymake-fringe-indicator-position (quote right-fringe))
  '(frame-resize-pixelwise t)
  '(ggtags-highlight-tag-delay 16)
@@ -322,6 +327,7 @@
  ;; If there is more than one, they won't work right.
  '(helm-lisp-show-completion ((t (:background "navajo white"))))
  '(helm-selection-line ((t (:background "light steel blue" :underline t))))
+ '(tabbar-modified ((t (:inherit tabbar-default :foreground "dark red" :box (:line-width 1 :color "white" :style released-button)))))
  '(zjl-hl-local-variable-reference-face ((t (:foreground "dark slate gray"))))
  '(zjl-hl-member-reference-face ((t (:foreground "dark goldenrod" :slant normal :weight normal)))))
 ;;-----------------------------------------------------------plugin begin-----------------------------------------------------------;;
@@ -390,7 +396,7 @@
 	(setq root-file "./GTAGS"))
   (create-spec-ede-project root-file t)
   ;; (find-sln root-file)
-  (cscope-set-initial-directory (file-name-directory root-file))
+  ;; (cscope-set-initial-directory (file-name-directory root-file))
   (message "Known EDE Project Created." ))
 
 (defun create-unknown-ede-project(&optional select)
@@ -400,7 +406,7 @@
 	(setq root-file "./GTAGS"))
   (create-spec-ede-project root-file nil)
   ;; (find-sln root-file)
-  (cscope-set-initial-directory (file-name-directory root-file))
+  ;; (cscope-set-initial-directory (file-name-directory root-file))
   (message "UnKnown EDE Project Created." ))
 
 (global-set-key (kbd "C-c e") 'create-known-ede-project)
@@ -422,7 +428,7 @@
 (setq ac-trigger-commands
       (cons 'autopair-backspace ac-trigger-commands))
 (global-set-key (kbd "C-x /") 'ac-complete-filename)
-(global-set-key (kbd "M-RET") 'ac-complete-semantic)
+(global-set-key (kbd "M-RET") 'auto-complete)
 
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
   (setq ac-sources (delete 'ac-source-gtags ac-sources))
@@ -613,14 +619,12 @@
   :group 'bm)
 
 ;; 更多的语法高亮
-(eval-after-load "cc-mode"
-  '(progn
-	 (require 'zjl-c-hl-aggressive )
-	 ;; (require 'semantic/bovine/c nil 'noerror)
-	 ;; (require 'zjl-hl)
-	 ;; (zjl-hl-enable-global 'c-mode)
-	 ;; (zjl-hl-enable-global 'c++-mode)
-	 ))
+(defface zjl-c-hl-function-call-face
+  '((t (:foreground "SpringGreen4" :bold t)))
+  "*Face used for link privilege indicator (l) in dired buffers."
+  :group 'zjl-c-faces)
+(defvar zjl-c-hl-function-call-face 'zjl-c-hl-function-call-face)
+
 
 ;; 显示列竖线
 (autoload 'fci-mode "fill-column-indicator" "" t)
@@ -814,11 +818,11 @@
 								 ))
 
 ;; irony-mode
-;; (eval-after-load "cc-mode"
-;;   '(progn
-;; 	 (require 'irony-cdb nil t)
-;; 	 (require 'irony-eldoc )
-;; 	 ))
+(eval-after-load "cc-mode"
+  '(progn
+	 (require 'irony-cdb nil t)
+	 (require 'irony-eldoc )
+	 ))
 
 (eval-after-load "irony"
   '(progn
@@ -856,22 +860,22 @@ care of."
       (irony--server-process-push-callback process callback)
       ;; skip narrowing to compute buffer size and content
       (irony--without-narrowing
-	   (process-send-string process
-							(format "%s\n%s\n%s\n%d\n"
-									(combine-and-quote-strings argv)
-									(combine-and-quote-strings compile-options)
-									buffer-file-name
-									(irony--buffer-size-in-bytes)))
+		(process-send-string process
+							 (format "%s\n%s\n%s\n%d\n"
+									 (combine-and-quote-strings argv)
+									 (combine-and-quote-strings compile-options)
+									 buffer-file-name
+									 (irony--buffer-size-in-bytes)))
 
-	   (setq last-time (float-time))
-	   (process-send-string process (string-as-unibyte (buffer-substring-no-properties (point-min) (point-max))))
+		(setq last-time (float-time))
+		(process-send-string process (string-as-unibyte (buffer-substring-no-properties (point-min) (point-max))))
 
-	   (message "send buffer %f" (- (float-time) last-time))
-	   ;; (process-send-region process (point-min) (point-max))
-	   ;; always make sure to finish with a newline (required by irony-server
-	   ;; to play nice with line buffering even when the file doesn't end with
-	   ;; a newline)
-	   (process-send-string process "\n")))))
+		(message "send buffer %f" (- (float-time) last-time))
+		;; (process-send-region process (point-min) (point-max))
+		;; always make sure to finish with a newline (required by irony-server
+		;; to play nice with line buffering even when the file doesn't end with
+		;; a newline)
+		(process-send-string process "\n")))))
 
 ;; 行号性能改善
 (require 'nlinum )
@@ -1146,6 +1150,7 @@ care of."
 	 ;; (setq ac-clang-debug-log-buffer-p t)
 	 ;; (setq ac-clang-debug-log-buffer-size (* 1024 1024))
 	 (require 'ac-clang);也受^M的影响
+	 (setq ac-clang-async-autocompletion-automatically-p nil)
 	 (setq ac-clang-async-autocompletion-manualtrigger-key "M-n")
 	 (setq w32-pipe-read-delay 0)          ;; <- Windows Only
 	 (when (ac-clang-initialize)
@@ -1161,7 +1166,7 @@ care of."
 	 ;; minibuf中显示flymake信息
 	 ;; (custom-set-variables
 	 ;;  '(help-at-pt-display-when-idle '(flymake-overlay)))
-
+	 (fset 'ac-clang-activate 'ac-clang-activate-fset)
 	 (defadvice ac-clang-activate (after ac-clang-activate-after activate)
 	   ""
 	   (setq ac-sources ac-clang--ac-sources-backup)
@@ -1171,6 +1176,38 @@ care of."
 	   ""
 	   (ring-insert semantic-tags-location-ring (point-marker)))))
 
+(defun ac-clang-activate-fset ()
+  (interactive)
+
+  (remove-hook 'first-change-hook 'ac-clang-activate t)
+
+  (unless ac-clang--activate-p
+    ;; (if ac-clang--activate-buffers
+    ;;  (ac-clang-update-cflags)
+    ;;   (ac-clang-initialize))
+
+    (setq ac-clang--activate-p t)
+    (setq ac-clang--session-name (buffer-file-name))
+    (setq ac-clang--suspend-p nil)
+    (setq ac-clang--ac-sources-backup ac-sources)
+    (setq ac-sources '(ac-source-clang-async))
+    (push (current-buffer) ac-clang--activate-buffers)
+
+    (ac-clang--send-create-session-request)
+
+	(while ac-clang-async-autocompletion-automatically-p
+	  (local-set-key (kbd ".") 'ac-clang-async-autocomplete-autotrigger)
+	  (local-set-key (kbd ">") 'ac-clang-async-autocomplete-autotrigger)
+	  (local-set-key (kbd ":") 'ac-clang-async-autocomplete-autotrigger))
+    (local-set-key (kbd ac-clang-async-autocompletion-manualtrigger-key) 'ac-clang-async-autocomplete-manualtrigger)
+
+    (add-hook 'before-save-hook 'ac-clang-suspend nil t)
+    ;; (add-hook 'after-save-hook 'ac-clang-deactivate nil t)
+    ;; (add-hook 'first-change-hook 'ac-clang-activate nil t)
+    ;; (add-hook 'before-save-hook 'ac-clang-reparse-buffer nil t)
+    ;; (add-hook 'after-save-hook 'ac-clang-reparse-buffer nil t)
+    (add-hook 'before-revert-hook 'ac-clang-deactivate nil t)
+    (add-hook 'kill-buffer-hook 'ac-clang-deactivate nil t)))
 
 ;; 显示搜索index
 (require 'anzu)
@@ -1187,30 +1224,6 @@ care of."
 (tabbar-mode)
 (global-set-key (kbd "<C-tab>") 'tabbar-forward-tab)
 (global-set-key (kbd "<C-S-tab>") 'tabbar-backward-tab)
-
-;; (require 'tabbar-ruler)
-;; (defun on-modifying-buffer-fset ()
-;;   (set-buffer-modified-p (buffer-modified-p))
-;;   (tabbar-set-template tabbar-current-tabset nil)
-;;   ;; (tabbar-display-update)
-;;   )
-;; (defun on-saving-buffer-fset ()
-;;   (tabbar-set-template tabbar-current-tabset nil))
-
-;; (defun after-modifying-buffer-fset (begin end length)
-;;   (set-buffer-modified-p (buffer-modified-p))
-;;   (tabbar-set-template tabbar-current-tabset nil)
-;;   ;; (tabbar-display-update)
-;;   )
-
-;; (fset 'on-modifying-buffer 'on-modifying-buffer-fset)
-;; (fset 'after-modifying-buffer 'after-modifying-buffer-fset)
-;; (fset 'on-saving-buffer 'on-saving-buffer-fset)
-
-;; (defadvice enable-theme(after enable-theme-after activate)
-;;   (tabbar-install-faces))
-;; (defadvice disable-theme(after disable-theme-after activate)
-;;   (tabbar-install-faces))
 
 (defun tabbar-ruler-group-user-buffers-helper-dired ()
   (list (cond ((string-equal "*" (substring (buffer-name) 0 1)) "emacs's buffers")
@@ -1887,14 +1900,23 @@ If FULL is t, copy full file name."
 ;; 大文件处理
 (defun check-large-file-hook ()
   ""
-  (when (< (* 200 1024) (buffer-size))
-	(nlinum-mode -1)
+  (when (< (* 400 1024) (buffer-size))
+	;; (nlinum-mode -1)
+	;; (diff-hl-mode -1)
+	(setq-local jit-lock-context-time 5)
+	(setq-local jit-lock-defer-time 5)
+	(setq-local font-lock-maximum-decoration 2)
+	(font-lock-refresh-defaults)
+	(font-lock-add-keywords nil
+							'(("\\(\\_<\\(\\w\\|\\s_\\)+\\_>\\)[ 	]*("
+							   1  zjl-c-hl-function-call-face keep))
+							1)
+	;; (font-lock-mode -1 )
 	;; (jit-lock-mode nil)
 	))
-
 ;; 大文件不开semantic
-(add-to-list 'semantic-inhibit-functions
-             (lambda () (< (* 400 1024) (buffer-size))))
+;; (add-to-list 'semantic-inhibit-functions
+;;              (lambda () (< (* 400 1024) (buffer-size))))
 
 (defun which-func-update-fset ()
   ;; "Update the Which-Function mode display for all windows."
@@ -2005,14 +2027,19 @@ If FULL is t, copy full file name."
 			(hide-ifdef-mode 1)
 			(setq-local ac-auto-start nil)
 			(setq-local indent-tabs-mode nil)
-			;; (irony-mode)
-			;; (irony--mode-exit)
+			(irony-mode)
+			(irony--mode-exit)
 			;; (ggtags-mode 1)
 			(eldoc-mode 0)
-			;; (company-mode 1)
+			(company-mode 1)
 			(abbrev-mode 0)
 			;; (flycheck-mode 1)
 			(yas-glo-on)
+			(check-large-file-hook)
+			(font-lock-add-keywords nil
+									'(("\\(\\_<\\(\\w\\|\\s_\\)+\\_>\\)[ 	]*("
+									   1  zjl-c-hl-function-call-face keep))
+									1)
 			;; (superword-mode)                ;连字符不分割单词,影响move和edit，但是鼠标双击选择不管用 ，相对subword-mode
 			))
 
@@ -2020,7 +2047,7 @@ If FULL is t, copy full file name."
 		  (lambda ()
 			(modify-syntax-entry ?- "w")
 			(setup-program-keybindings)
-			(flycheck-mode 1)
+			;; (flycheck-mode 1)
 			(yas-glo-on)
 			(hs-minor-mode 1)
 			))
