@@ -997,7 +997,7 @@ care of."
 
 (global-set-key (kbd "<f9>") 'ag-this-file)
 (global-set-key (kbd "<C-f9>") 'my-ag)
-(global-set-key (kbd "<S-f9>") 'ag-dired-regexp)
+(global-set-key (kbd "<S-f9>") 'ag-dired)
 ;; C-c C-k 停止ag-dired
 
 (autoload 'wgrep-ag-setup "wgrep-ag")
