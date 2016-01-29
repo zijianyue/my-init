@@ -1100,7 +1100,8 @@ care of."
 ;; magit
 (setenv "GIT_ASKPASS" "git-gui--askpass") ;解决git push不提示密码的问题
 ;; 要想保存密码不用每次输入得修改.git-credentials和.gitconfig
-(require 'magit-autoloads)
+;; (require 'magit-autoloads)
+(require 'magit)
 (global-set-key (kbd "C-x g") 'magit-status)
 (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
 
