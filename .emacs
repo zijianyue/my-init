@@ -107,8 +107,8 @@
 ;; (semantic-ectags-add-language-support lua-mode "lua" "f")
 ;; (add-hook 'lua-mode-hook 'semantic-ectags-simple-setup)
 
-(semanticdb-enable-gnu-global-databases 'c-mode)
-(semanticdb-enable-gnu-global-databases 'c++-mode)
+;; (semanticdb-enable-gnu-global-databases 'c-mode) ;;会导致访问\\这种目录中的文件并且里面没有GTAGS文件时挂死
+;; (semanticdb-enable-gnu-global-databases 'c++-mode)
 (set-default 'semantic-case-fold t)
 (setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
 ;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
@@ -265,7 +265,7 @@
  '(helm-gtags-ignore-case t)
  '(helm-gtags-maximum-candidates 2000)
  '(helm-gtags-suggested-key-mapping t)
- '(helm-gtags-update-interval-second nil)
+ '(helm-gtags-update-interval-second 10)
  '(helm-semantic-display-style
    (quote
 	((python-mode . semantic-format-tag-summarize)
@@ -287,6 +287,7 @@
  '(mode-require-final-newline nil)
  '(moo-select-method (quote helm))
  '(mouse-wheel-progressive-speed nil)
+ '(org-log-done (quote time))
  '(org-src-fontify-natively t)
  '(password-cache-expiry nil)
  '(pcmpl-gnu-tarfile-regexp "")
@@ -299,7 +300,7 @@
  '(semantic-c-dependency-system-include-path
    (quote
 	("C:/Program Files (x86)/Microsoft Visual Studio 8/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/PlatformSDK/Include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/atlmfc/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/SDK/v2.0/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/atlmfc/include" "C:/cygwin/usr/include" "D:/linux/linux-3.18.3/include/uapi")))
- '(semantic-idle-scheduler-idle-time 2)
+ '(semantic-idle-scheduler-idle-time 5)
  '(semantic-idle-scheduler-max-buffer-size 200000)
  '(semantic-imenu-bucketize-file nil)
  '(semantic-imenu-summary-function (quote semantic-format-tag-abbreviate))
@@ -325,6 +326,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(dired-async-message ((t (:foreground "indian red"))))
+ '(dired-async-mode-message ((t (:foreground "chocolate"))))
  '(helm-lisp-show-completion ((t (:background "navajo white"))))
  '(helm-selection-line ((t (:background "light steel blue" :underline t))))
  '(tabbar-modified ((t (:inherit tabbar-default :foreground "dark red" :box (:line-width 1 :color "white" :style released-button)))))
@@ -431,14 +434,14 @@
 (global-set-key (kbd "M-RET") 'auto-complete)
 
 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
-  (setq ac-sources (delete 'ac-source-gtags ac-sources))
-  (setq ac-sources (delete 'ac-source-words-in-same-mode-buffers ac-sources))
-  (setq ac-sources (delete 'ac-source-abbrev ac-sources))
-  ;; (setq ac-sources (append '(ac-source-c-headers) ac-sources))
-  ;; (setq ac-sources (append '(ac-source-irony) ac-sources))
-  (setq ac-sources (append '(ac-source-semantic) ac-sources))
-  (setq ac-sources (append '(ac-source-semantic-raw) ac-sources)) ;;会干扰->成员的补全
-  ;; (setq ac-sources (append '(ac-source-imenu) ac-sources)) ;;会干扰->成员的补全
+  (setq-local ac-sources (delete 'ac-source-gtags ac-sources))
+  (setq-local ac-sources (delete 'ac-source-words-in-same-mode-buffers ac-sources))
+  (setq-local ac-sources (delete 'ac-source-abbrev ac-sources))
+  ;; (setq-local ac-sources (append '(ac-source-c-headers) ac-sources))
+  ;; (setq-local ac-sources (append '(ac-source-irony) ac-sources))
+  (setq-local ac-sources (append '(ac-source-semantic) ac-sources))
+  (setq-local ac-sources (append '(ac-source-semantic-raw) ac-sources)) ;;会干扰->成员的补全
+  ;; (setq-local ac-sources (append '(ac-source-imenu) ac-sources)) ;;会干扰->成员的补全
   )
   
 (eval-after-load "auto-complete-config"
@@ -744,6 +747,7 @@
 (global-set-key (kbd "M-]") 'helm-swoop)
 
 (global-set-key (kbd "C-c b") 'helm-gtags-find-files)
+(global-set-key (kbd "C-c B") 'gtags-find-file)
 (global-set-key (kbd "C-c d") 'helm-gtags-find-tag)
 (global-set-key (kbd "<f6>") 'helm-gtags-select-path)
 (global-set-key (kbd "<f7>") 'helm-gtags-select)
@@ -752,6 +756,7 @@
 
 (eval-after-load "helm-gtags"
   '(progn
+	 (gtags-mode 1)
 	 (define-key helm-gtags-mode-map (kbd "C-]") nil)
 	 (define-key helm-gtags-mode-map (kbd "C-t") nil)
 	 (define-key helm-gtags-mode-map (kbd "M-*") nil)
@@ -838,44 +843,10 @@
 	 (setq process-adaptive-read-buffering nil)
 	 (require 'flycheck-irony )
 	 (add-to-list 'flycheck-checkers 'irony)
-	 (fset 'irony--send-parse-request 'irony--send-parse-request-fset)
 	 (require 'irony-cdb nil t)
 	 (require 'irony-eldoc )
 	 (eldoc-mode 0)
 	 ))
-
-(defun irony--send-parse-request-fset (request callback &rest args)
-  "Send a request that acts on the current buffer to irony-server.
-
-This concerns mainly irony-server commands that do some work on a
-translation unit for libclang, the unsaved buffer data are taken
-care of."
-  (let ((process (irony--get-server-process-create))
-        (argv (append (list request
-                            "--num-unsaved=1"
-                            (irony--get-buffer-path-for-server))
-                      args))
-        (compile-options (irony--adjust-compile-options)))
-    (when (and process (process-live-p process))
-      (irony--server-process-push-callback process callback)
-      ;; skip narrowing to compute buffer size and content
-      (irony--without-narrowing
-		(process-send-string process
-							 (format "%s\n%s\n%s\n%d\n"
-									 (combine-and-quote-strings argv)
-									 (combine-and-quote-strings compile-options)
-									 buffer-file-name
-									 (irony--buffer-size-in-bytes)))
-
-		(setq last-time (float-time))
-		(process-send-string process (string-as-unibyte (buffer-substring-no-properties (point-min) (point-max))))
-
-		(message "send buffer %f" (- (float-time) last-time))
-		;; (process-send-region process (point-min) (point-max))
-		;; always make sure to finish with a newline (required by irony-server
-		;; to play nice with line buffering even when the file doesn't end with
-		;; a newline)
-		(process-send-string process "\n")))))
 
 ;; 行号性能改善
 (require 'nlinum )
@@ -1100,8 +1071,7 @@ care of."
 ;; magit
 (setenv "GIT_ASKPASS" "git-gui--askpass") ;解决git push不提示密码的问题
 ;; 要想保存密码不用每次输入得修改.git-credentials和.gitconfig
-;; (require 'magit-autoloads)
-(require 'magit)
+(require 'magit-autoloads)
 (global-set-key (kbd "C-x g") 'magit-status)
 (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
 
@@ -1213,7 +1183,7 @@ care of."
 ;; 显示搜索index
 (require 'anzu)
 (global-anzu-mode +1)
-(setq anzu-search-threshold 1000) ;;防止大文件搜索时很卡
+(setq anzu-search-threshold 500) ;;防止大文件搜索时很卡
 (global-set-key (kbd "M-%") 'anzu-query-replace)
 (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
 
@@ -1230,6 +1200,10 @@ care of."
   (list (cond ((string-equal "*" (substring (buffer-name) 0 1)) "emacs's buffers")
 			  (t "user's buffers"))))
 (setq tabbar-buffer-groups-function 'tabbar-ruler-group-user-buffers-helper-dired)
+
+
+(autoload 'swift-mode "swift-mode" nil t)
+
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin----------------------------------------------------;;
@@ -1837,12 +1811,15 @@ If FULL is t, copy full file name."
   (interactive)
   ;; (require 'cc-mode)
   ;; (set-syntax-table c++-mode-syntax-table)
-  (modify-syntax-entry ?- ".")			;-作为标点符号，起到分隔单词作用
+  ;; (modify-syntax-entry ?- ".")			;-作为标点符号，起到分隔单词作用
   (modify-syntax-entry ?& ".")
+  (modify-syntax-entry ?$ ".")
   (modify-syntax-entry ?< ".")
   (modify-syntax-entry ?> ".")
   (modify-syntax-entry ?= ".")
+  (modify-syntax-entry ?/ ".")
   (modify-syntax-entry ?_ "w")
+  (modify-syntax-entry ?- "w")
   (setq-local bm-cycle-all-buffers nil))
 
 (global-set-key (kbd "C-_") 'set-c-word-mode)
@@ -1901,7 +1878,7 @@ If FULL is t, copy full file name."
 ;; 大文件处理
 (defun check-large-file-hook ()
   ""
-  (when (< (* 400 1024) (buffer-size))
+  (when (< (* 200 1024) (buffer-size))
 	;; (nlinum-mode -1)
 	;; (diff-hl-mode -1)
 	(setq-local jit-lock-context-time 5)
@@ -1936,6 +1913,13 @@ If FULL is t, copy full file name."
 	  (replace-match "" nil nil)))
   (save-buffer))
 (global-set-key (kbd "C-c m") 'unix-to-dos-trim-M) ;注意在大于200K的文件中替换时会卡住，要c-g后反复用此命令
+
+;; 选中当前行
+(defun select-current-line ()
+  "Select the current line"
+  (interactive)
+  (end-of-line) ; move to end of line
+  (set-mark (line-beginning-position)))
 ;;-----------------------------------------------------------define func end------------------------------------------------;;
 ;;-----------------------------------------------------------hook-----------------------------------------------------------;;
 (c-add-style "gzj"
@@ -2208,3 +2192,4 @@ If FULL is t, copy full file name."
 (global-set-key (kbd "<C-lwindow>") 'server-start)
 ;; Calc
 (global-set-key (kbd "C-c a") 'calc)
+(put 'narrow-to-region 'disabled nil)
