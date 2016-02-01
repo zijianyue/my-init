@@ -133,6 +133,10 @@ Looking up host "myHost")
 ** 安装pygments
 先安装python 2.7 或 3.4
 再打开cmd 切换到pygments根目录执行c:\python34\python.exe setup.py install即可，有可能得先下载setuptools
+确认版本
+C:\Users\g00280886>C:\Python34\Scripts\pygmentize.exe -V
+Pygments version 2.1, (c) 2006-2015 by Georg Brandl.
+
 ** win7拒绝访问sendto文件夹
 在我的电脑的地址栏输入shell:sendto即可
 
