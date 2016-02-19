@@ -7,3 +7,12 @@
 	helper = store
 [http]
 	postBuffer = 500000000
+[core]
+	editor = d:/emacs/bin/emacsclientw.exe
+	preloadindex = true
+	fscache = true
+[gc]
+	auto = 256
+[i18n]
+    commitencoding = gb2312
+    logoutputencoding = gb2312
