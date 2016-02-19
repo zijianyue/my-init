@@ -112,6 +112,7 @@ git config --global credential.helper store
 安装官方git，选路径时选第2个，即把git/cmd/添加到PATH中，这样就可以使用git命令
 又不会引起其他命令的混乱
 
+** git push 前要先打开pageant才能加载ssh 的key，对于SSH下载下来的文件这样才能push成功
 
 * 其他
 ** pscp problem when called from bash 
