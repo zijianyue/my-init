@@ -107,7 +107,6 @@ git config --global credential.helper store
 
     helper = store
     
-
 ** git的PATH设置
 安装官方git，选路径时选第2个，即把git/cmd/添加到PATH中，这样就可以使用git命令
 又不会引起其他命令的混乱
