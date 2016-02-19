@@ -4,8 +4,10 @@
 [push]
 	default = simple
 [credential]
+	保存密码
 	helper = store
 [http]
+	更改提交buffer大小限制
 	postBuffer = 500000000
 [core]
 	editor = d:/emacs/bin/emacsclientw.exe
@@ -13,6 +15,10 @@
 	fscache = true
 [gc]
 	auto = 256
-[i18n]
+[i18n]  防止中文乱码
     commitencoding = gb2312
     logoutputencoding = gb2312
+[filter "lfs"] 解除大文件限制
+	clean = git lfs clean %f
+	smudge = git lfs smudge %f
+	required = true
