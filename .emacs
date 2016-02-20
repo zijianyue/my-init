@@ -283,6 +283,11 @@
  '(jit-lock-defer-time 0.5)
  '(large-file-warning-threshold 20000000)
  '(ls-lisp-verbosity nil)
+ '(magit-cygwin-mount-points
+   (quote
+	(("/usr/bin/" . "c:/cygwin/bin/")
+	 ("/usr/lib/" . "c:/cygwin/lib/")
+	 ("/" . "c:/cygwin/"))))
  '(make-backup-files nil)
  '(mode-require-final-newline nil)
  '(moo-select-method (quote helm))
@@ -1071,7 +1076,8 @@
 ;; magit
 (setenv "GIT_ASKPASS" "git-gui--askpass") ;解决git push不提示密码的问题
 ;; 要想保存密码不用每次输入得修改.git-credentials和.gitconfig
-(require 'magit-autoloads)
+(require 'magit)
+(require 'ssh-agency)
 (global-set-key (kbd "C-x g") 'magit-status)
 (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
 
