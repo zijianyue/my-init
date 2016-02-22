@@ -908,20 +908,9 @@
 					   (vc-svn-state file)
 					 (vc-state file backend))))
         (cond
-         ((or (eq state 'edited)
-              (and (eq state 'up-to-date)
-                   ;; VC state is stale in after-revert-hook.
-                   (or revert-buffer-in-progress-p
-                       ;; Diffing against an older revision.
-                       diff-hl-reference-revision)))
-          (let* ((buf-name " *diff-hl* ")
-                 diff-auto-refine-mode
-                 res)
-            (diff-hl-with-diff-switches
-             (vc-call-backend backend 'diff (list file)
-                              diff-hl-reference-revision nil
-                              buf-name))
-            (with-current-buffer buf-name
+		 ((diff-hl-modified-p state)
+		  (let* (diff-auto-refine-mode res)
+			(with-current-buffer (diff-hl-changes-buffer file backend)
               (goto-char (point-min))
               (unless (eobp)
                 (ignore-errors
@@ -1075,6 +1064,8 @@
 
 ;; magit
 (setenv "GIT_ASKPASS" "git-gui--askpass") ;解决git push不提示密码的问题
+(setenv "SSH_ASKPASS" "git-gui--askpass")
+(setenv "GIT_SSH" "c:/Program Files (x86)/PuTTY/plink.exe")
 ;; 要想保存密码不用每次输入得修改.git-credentials和.gitconfig
 (require 'magit)
 (require 'ssh-agency)
@@ -1895,8 +1886,12 @@ If FULL is t, copy full file name."
 							'(("\\(\\_<\\(\\w\\|\\s_\\)+\\_>\\)[ 	]*("
 							   1  zjl-c-hl-function-call-face keep))
 							1)
+	(font-lock-add-keywords
+	 nil
+	 '((my-c-mode-font-lock-if0 (0 shadow prepend))) 'add-to-end)
 	;; (font-lock-mode -1 )
 	;; (jit-lock-mode nil)
+	(diff-hl-mode -1)
 	))
 ;; 大文件不开semantic
 ;; (add-to-list 'semantic-inhibit-functions
