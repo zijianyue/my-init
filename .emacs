@@ -1882,16 +1882,16 @@ If FULL is t, copy full file name."
 	(setq-local jit-lock-defer-time 5)
 	(setq-local font-lock-maximum-decoration 2)
 	(font-lock-refresh-defaults)
-	(font-lock-add-keywords nil
-							'(("\\(\\_<\\(\\w\\|\\s_\\)+\\_>\\)[ 	]*("
-							   1  zjl-c-hl-function-call-face keep))
-							1)
-	(font-lock-add-keywords
-	 nil
-	 '((my-c-mode-font-lock-if0 (0 shadow prepend))) 'add-to-end)
+	;; (font-lock-add-keywords nil
+	;; 						'(("\\(\\_<\\(\\w\\|\\s_\\)+\\_>\\)[ 	]*("
+	;; 						   1  zjl-c-hl-function-call-face keep))
+	;; 						1)
+	;; (font-lock-add-keywords
+	;;  nil
+	;;  '((my-c-mode-font-lock-if0 (0 shadow prepend))) 'add-to-end)
 	;; (font-lock-mode -1 )
 	;; (jit-lock-mode nil)
-	(diff-hl-mode -1)
+	;; (diff-hl-mode -1)
 	))
 ;; 大文件不开semantic
 ;; (add-to-list 'semantic-inhibit-functions
