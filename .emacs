@@ -848,11 +848,48 @@
 	 (setq process-adaptive-read-buffering nil)
 	 (require 'flycheck-irony )
 	 (add-to-list 'flycheck-checkers 'irony)
+	 (fset 'irony--send-parse-request 'irony--send-parse-request-fset)
 	 (require 'irony-cdb nil t)
 	 (require 'irony-eldoc )
 	 (eldoc-mode 0)
 	 ))
 
+
+(defun irony--send-parse-request-fset (request callback &rest args)
+  "Send a request that acts on the current buffer to irony-server.
+
+This concerns mainly irony-server commands that do some work on a
+translation unit for libclang, the unsaved buffer data are taken
+care of."
+  (let ((process (irony--get-server-process-create))
+        (argv (append (list request
+                            "--num-unsaved=1"
+                            (irony--get-buffer-path-for-server))
+                      args))
+        (compile-options (irony--adjust-compile-options)))
+    (when (and process (process-live-p process))
+      (irony--server-process-push-callback process callback)
+      ;; skip narrowing to compute buffer size and content
+      (irony--without-narrowing
+	   ;; always make sure to finish with a newline (required by irony-server
+	   ;; to play nice with line buffering even when the file doesn't end with
+	   ;; a newline)
+	   ;;
+	   ;; it is important to send the request atomically rather than using
+	   ;; multiple process-send calls. On Windows at least, if the request is
+	   ;; not atomic, content from subsequent requests can get intermixed with
+	   ;; earlier requests. This may be because of how Emacs behaves when the
+	   ;; buffers to communicate with processes are full (see
+	   ;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Input-to-Processes.html).
+	   (message "send buffer")
+
+	   (process-send-string process
+							(format "%s\n%s\n%s\n%d\n%s\n"
+									(combine-and-quote-strings argv)
+									(combine-and-quote-strings compile-options)
+									buffer-file-name
+									(irony--buffer-size-in-bytes)
+									(string-as-unibyte (buffer-substring-no-properties (point-min) (point-max)))))))))
 ;; 行号性能改善
 (require 'nlinum )
 (global-nlinum-mode 1)
@@ -1067,6 +1104,13 @@
 (setenv "SSH_ASKPASS" "git-gui--askpass")
 (setenv "GIT_SSH" "c:/Program Files (x86)/PuTTY/plink.exe")
 ;; 要想保存密码不用每次输入得修改.git-credentials和.gitconfig
+
+(defun my-git-commit-hook ()
+  (set-buffer-file-coding-system 'utf-8-unix))
+(add-hook 'magit-mode-hook 'my-git-commit-hook)
+(add-hook 'magit-status-mode-hook 'my-git-commit-hook)
+(add-hook 'git-commit-mode-hook 'my-git-commit-hook)
+
 (require 'magit)
 (require 'ssh-agency)
 (global-set-key (kbd "C-x g") 'magit-status)
