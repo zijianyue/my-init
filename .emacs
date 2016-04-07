@@ -113,7 +113,7 @@
 (setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
 ;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
 
-(global-set-key (kbd "M-p") 'semantic-ia-show-summary)
+;; (global-set-key (kbd "M-p") 'semantic-ia-show-summary)
 ;; semantic-ia-show-doc 备用
 
 ;;修改标题栏，显示buffer的名字
@@ -453,7 +453,7 @@
   '(progn
 	 ;; (require 'auto-complete-c-headers )
 	 ;; (require 'ac-irony)
-	 (message "auto-complete-config")
+	 ;; (message "auto-complete-config")
 
 	 ;; (define-key ac-mode-map  (kbd "M-RET") 'auto-complete)
 	 (define-key ac-completing-map  (kbd "M-s") 'ac-isearch)
@@ -471,13 +471,13 @@
 (autoload 'company-mode "company" nil t)
 (eval-after-load "company"
   '(progn
-	 (require 'company-irony nil t )
+	 ;; (require 'company-irony nil t )
 	 (require 'company-c-headers nil t )
 	 (setq company-async-timeout 15)
 	 ;; (add-hook 'after-init-hook 'global-company-mode)
 	 (add-to-list 'company-backends 'company-irony)
 	 (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
-	 (global-set-key (kbd "<S-return>") 'company-complete)
+	 ;; (global-set-key (kbd "<S-return>") 'company-complete)
 	 (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
 	 (define-key company-active-map (kbd "M-s") 'company-filter-candidates)
 	 ;; (add-to-list 'company-backends 'company-c-headers)
@@ -638,21 +638,21 @@
 (autoload 'fci-mode "fill-column-indicator" "" t)
 (global-set-key (kbd "C-:") 'fci-mode)
 (setq fci-rule-column 120)
-(defun fci-all-window-refresh ()
-  (setq proced-buf-list nil)	;保存已经处理过的buf
-  (walk-windows
-   #'(lambda (w)
-	   (select-window w)
-	   (if (or (eq major-mode 'c-mode)
-			   (eq major-mode 'c++-mode))
-		   (progn 
-			 (unless (and (memq (window-buffer) proced-buf-list)
-						  (>= (window-width w) fci-rule-column))
-			   (push (window-buffer) proced-buf-list)
-			   (turn-on-fci-mode)
-			   (if (< (window-width w) fci-rule-column)
-				   (turn-off-fci-mode))))))
-   0))
+;; (defun fci-all-window-refresh ()
+;;   (setq proced-buf-list nil)	;保存已经处理过的buf
+;;   (walk-windows
+;;    #'(lambda (w)
+;; 	   (select-window w)
+;; 	   (if (or (eq major-mode 'c-mode)
+;; 			   (eq major-mode 'c++-mode))
+;; 		   (progn 
+;; 			 (unless (and (memq (window-buffer) proced-buf-list)
+;; 						  (>= (window-width w) fci-rule-column))
+;; 			   (push (window-buffer) proced-buf-list)
+;; 			   (turn-on-fci-mode)
+;; 			   (if (< (window-width w) fci-rule-column)
+;; 				   (turn-off-fci-mode))))))
+;;    0))
 (eval-after-load "fill-column-indicator"
   '(progn
 	 ;; 避免破坏 auto complete
@@ -780,9 +780,6 @@
 (add-hook 'helm-update-hook
 		  (lambda ()
 			(setq truncate-lines t)))
-;; back button
-;; (require 'back-button)
-;; (back-button-mode 1)
 
 ;; cscope
 ;; (require 'xcscope )
@@ -818,12 +815,12 @@
 (global-set-key (kbd "M-g l") 'flycheck-list-errors)
 ;; (global-set-key (kbd "<M-f5>") 'flycheck-buffer)
 (global-set-key (kbd "<M-f5>") (lambda () "" (interactive)
-								 (require 'irony-cdb nil t)
-								 (require 'irony-eldoc )
-								 (irony-mode)
-								 (irony--mode-exit)
-								 (flycheck-mode 1)
-								 (eldoc-mode 0)
+								 ;; (require 'irony-cdb nil t)
+								 ;; (require 'irony-eldoc )
+								 ;; (irony-mode)
+								 ;; (irony--mode-exit)
+								 (unless (flycheck-mode) (flycheck-mode 1))
+								 ;; (eldoc-mode 0)
 								 (flycheck-buffer)
 								 ))
 
@@ -831,7 +828,7 @@
 (eval-after-load "cc-mode"
   '(progn
 	 (require 'irony-cdb nil t)
-	 (require 'irony-eldoc )
+	 ;; (require 'irony-eldoc )
 	 ))
 
 (eval-after-load "irony"
@@ -843,15 +840,15 @@
 		 'irony-completion-at-point-async))
 	 (add-hook 'irony-mode-hook 'my-irony-mode-hook)
 	 (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-	 (add-hook 'irony-mode-hook 'irony-eldoc)
+	 ;; (add-hook 'irony-mode-hook 'irony-eldoc)
 	 (setq w32-pipe-read-delay 0)
 	 (setq process-adaptive-read-buffering nil)
 	 (require 'flycheck-irony )
 	 (add-to-list 'flycheck-checkers 'irony)
 	 (fset 'irony--send-parse-request 'irony--send-parse-request-fset)
 	 (require 'irony-cdb nil t)
-	 (require 'irony-eldoc )
-	 (eldoc-mode 0)
+	 ;; (require 'irony-eldoc )
+	 ;; (eldoc-mode 0)
 	 ))
 
 
@@ -980,8 +977,8 @@ care of."
 (setq wgrep-enable-key "r")
 
 ;; refactor
-(autoload 'srefactor-refactor-at-point "srefactor" nil t)
-(global-set-key (kbd "C-.") 'srefactor-refactor-at-point)
+;; (autoload 'srefactor-refactor-at-point "srefactor" nil t)
+;; (global-set-key (kbd "C-.") 'srefactor-refactor-at-point)
 
 ;; 括号
 (require 'autopair)
@@ -1111,8 +1108,11 @@ care of."
 (add-hook 'magit-status-mode-hook 'my-git-commit-hook)
 (add-hook 'git-commit-mode-hook 'my-git-commit-hook)
 
-(require 'magit)
-(require 'ssh-agency)
+;; (require 'magit)
+(autoload 'magit-status "magit" nil t)
+(autoload 'magit-dispatch-popup "magit" nil t)
+
+;; (require 'ssh-agency)
 (global-set-key (kbd "C-x g") 'magit-status)
 (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
 
@@ -1121,8 +1121,8 @@ care of."
 (global-set-key (kbd "<C-f10>") 'purpose-mode)
 
 ;; func args
-(autoload 'fa-show "function-args" nil t)
-(global-set-key (kbd "<M-S-return>") 'fa-show)
+;; (autoload 'fa-show "function-args" nil t)
+;; (global-set-key (kbd "<M-S-return>") 'fa-show)
 
 ;; 星际译王
 (defun kid-sdcv-to-buffer (&optional input)
@@ -1179,11 +1179,7 @@ care of."
 	 ;; (custom-set-variables
 	 ;;  '(help-at-pt-display-when-idle '(flymake-overlay)))
 	 (fset 'ac-clang-activate 'ac-clang-activate-fset)
-	 (defadvice ac-clang-activate (after ac-clang-activate-after activate)
-	   ""
-	   (setq ac-sources ac-clang--ac-sources-backup)
-	   (setq ac-sources (append '(ac-source-clang-async) ac-sources))
-	   )
+
 	 (defadvice ac-clang-jump-smart (before ac-clang-jump-smart-mru activate)
 	   ""
 	   (ring-insert semantic-tags-location-ring (point-marker)))))
@@ -1202,7 +1198,9 @@ care of."
     (setq ac-clang--session-name (buffer-file-name))
     (setq ac-clang--suspend-p nil)
     (setq ac-clang--ac-sources-backup ac-sources)
-    (setq ac-sources '(ac-source-clang-async))
+    ;; (setq ac-sources '(ac-source-clang-async))
+	(setq ac-sources (append '(ac-source-clang-async) ac-sources))
+
     (push (current-buffer) ac-clang--activate-buffers)
 
     (ac-clang--send-create-session-request)
@@ -1224,7 +1222,7 @@ care of."
 ;; 显示搜索index
 (require 'anzu)
 (global-anzu-mode +1)
-(setq anzu-search-threshold 500) ;;防止大文件搜索时很卡
+(setq anzu-search-threshold 200) ;;防止大文件搜索时很卡
 (global-set-key (kbd "M-%") 'anzu-query-replace)
 (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
 
@@ -1245,6 +1243,35 @@ care of."
 
 (autoload 'swift-mode "swift-mode" nil t)
 
+;; ycmd
+(require 'ycmd-next-error)
+(autoload 'ycmd-mode "ycmd" nil t)
+(eval-after-load "ycmd"
+  '(progn
+	 (set-variable 'ycmd-server-command '("C:/Python27/python.exe" "-u" "D:/ycmd/ycmd"))
+	 (set-variable 'ycmd-global-config "~/.ycm_extra_conf.py")
+	 (setq ycmd-extra-conf-handler 'load)
+	 (require 'company-ycmd)
+	 (company-ycmd-setup)
+	 ;; (require 'flycheck-ycmd)
+	 ;; Make sure the flycheck cache sees the parse results
+	 ;; (add-hook 'ycmd-file-parse-result-hook 'flycheck-ycmd--cache-parse-results)
+	 ;; Add the ycmd checker to the list of available checkers
+	 ;; (add-to-list 'flycheck-checkers 'ycmd)
+	 ;; (require 'ycmd-eldoc)
+	 ;; (add-hook 'ycmd-mode-hook 'ycmd-eldoc-setup)
+	 (setq url-show-status nil)
+	 (setq ycmd-request-message-level -1)
+	 (setq ycmd-force-semantic-completion t)
+
+	 (global-set-key (kbd "M-.") 'ycmd-goto)
+	 (global-set-key (kbd "M-p") 'ycmd-get-parent)
+	 (global-set-key (kbd "C-.") 'ycmd-get-type)
+
+	 (defadvice ycmd-goto (before ycmd-goto-mru activate)
+	   ""
+	   (ring-insert semantic-tags-location-ring (point-marker)))
+	 ))
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin----------------------------------------------------;;
@@ -1802,7 +1829,7 @@ If FULL is t, copy full file name."
   ""
   (ring-insert semantic-tags-location-ring (point-marker)))
 
-(defadvice ag (before ag-mru activate)
+(defadvice my-ag (before ag-mru activate)
   ""
   (ring-insert semantic-tags-location-ring (point-marker)))
 
@@ -2059,9 +2086,9 @@ If FULL is t, copy full file name."
 			(setq-local indent-tabs-mode nil)
 			(irony-mode)
 			(irony--mode-exit)
-			;; (ggtags-mode 1)
 			(eldoc-mode 0)
 			(company-mode 1)
+			(ycmd-mode 1)
 			(abbrev-mode 0)
 			;; (flycheck-mode 1)
 			(yas-glo-on)
