@@ -1,1 +1,30 @@
+--- 
++++ 
+@@ -97,24 +97,24 @@
+ ;; (add-to-list 'semantic-default-submodes 'global-semantic-stickyfunc-mode t)
+ ;; (add-to-list 'semantic-default-submodes 'global-semantic-highlight-edits-mode t)
+ 
+ (global-srecode-minor-mode t)
+ (semantic-mode t)
+ (global-ede-mode t)
+-(setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
++;; (setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
+ ;; let cedet call ctags to find things which cedet can not find
+ ;; (semantic-load-enable-all-ectags-support)
+ ;; (semantic-load-enable-primary-ectags-support)
+ ;; (semantic-ectags-add-language-support lua-mode "lua" "f")
+ ;; (add-hook 'lua-mode-hook 'semantic-ectags-simple-setup)
+ 
+ ;; (semanticdb-enable-gnu-global-databases 'c-mode) ;;会导致访问\\这种目录中的文件并且里面没有GTAGS文件时挂死
+ ;; (semanticdb-enable-gnu-global-databases 'c++-mode)
+ (set-default 'semantic-case-fold t)
+ (setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
+-;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils))) ;用gtags帮助cedet找头文件
++;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
+ 
+ ;; (global-set-key (kbd "M-p") 'semantic-ia-show-summary)
+ ;; semantic-ia-show-doc 备用
+ 
+ ;;修改标题栏，显示buffer的名字
+ (setq frame-title-format "%b [%+] %f")
 
