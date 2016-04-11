@@ -1,0 +1,175 @@
+@@ -1145,41 +1085,34 @@
+ 	 ))
+ 
+ ;; magit
+ (setenv "GIT_ASKPASS" "git-gui--askpass") ;解决git push不提示密码的问题
+ (setenv "SSH_ASKPASS" "git-gui--askpass")
+ (setenv "GIT_SSH" "c:/Program Files (x86)/PuTTY/plink.exe")
++;; 要想保存密码不用每次输入得修改.git-credentials和.gitconfig
+ 
+-;; 解决magit和服务器的乱码问题，不需要在.gitconfig中改118n的配置(比如配置成gb2312)
+ (defun my-git-commit-hook ()
+   (set-buffer-file-coding-system 'utf-8-unix))
+ (add-hook 'magit-mode-hook 'my-git-commit-hook)
+ (add-hook 'magit-status-mode-hook 'my-git-commit-hook)
+ (add-hook 'git-commit-mode-hook 'my-git-commit-hook)
+ 
+-;; 要想保存密码不用每次输入得修改.git-credentials和.gitconfig
+ ;; (require 'magit)
+ (autoload 'magit-status "magit" nil t)
+ (autoload 'magit-dispatch-popup "magit" nil t)
+-(autoload 'magit-blame "magit" nil t)
+-(autoload 'magit-log-buffer-file "magit" nil t)
+ 
++;; (require 'ssh-agency)
+ (global-set-key (kbd "C-x g") 'magit-status)
+ (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
+-(global-set-key (kbd "C-x t g") 'magit-blame)
+-(global-set-key (kbd "C-x t l") 'magit-log-buffer-file)
+ 
+-
+ ;; purpose
+ (autoload 'purpose-mode "window-purpose" nil t)
+ (global-set-key (kbd "<C-f10>") 'purpose-mode)
+ 
+ ;; func args
+ ;; (autoload 'fa-show "function-args" nil t)
+-;; (autoload 'moo-jump-local "function-args" nil t)
+-
+ ;; (global-set-key (kbd "<M-S-return>") 'fa-show)
+ 
+ ;; 星际译王
+ (defun kid-sdcv-to-buffer (&optional input)
+   (interactive "P")
+   (let ((word (if mark-active
+@@ -1209,75 +1142,73 @@
+            (goto-char (point-min))
+ 		   (open-line 1)))))))
+ 
+ (global-set-key (kbd "<M-f11>") 'kid-sdcv-to-buffer)
+ 
+ ;; ac-clang
+-;; (eval-after-load "cc-mode"
+-;;   '(progn
+-;; 	 ;; (setq ac-clang-debug-log-buffer-p t)
+-;; 	 ;; (setq ac-clang-debug-log-buffer-size (* 1024 1024))
+-;; 	 (require 'ac-clang);也受^M的影响
+-;; 	 (setq ac-clang-async-autocompletion-automatically-p nil)
+-;; 	 (setq ac-clang-async-autocompletion-manualtrigger-key "M-n")
+-;; 	 (setq w32-pipe-read-delay 0)          ;; <- Windows Only
+-;; 	 (when (ac-clang-initialize)
+-;; 	   (add-hook 'c-mode-common-hook '(lambda ()
+-;; 										;; (setq ac-clang-cflags CFLAGS)
+-;; 										(ac-clang-activate-after-modify)
+-;; 										;; (define-key ac-mode-map (kbd "M-.") 'ac-clang-jump-smart)
+-;; 										(define-key ac-mode-map (kbd "M-.") nil)
+-;; 										(define-key ac-mode-map (kbd "M-,") nil)
+-;; 										(define-key ac-mode-map (kbd "C-c `") 'ac-clang-diagnostics)
+-;; 										(define-key ac-mode-map (kbd "M-g j") 'flymake-goto-next-error)
+-;; 										(define-key ac-mode-map (kbd "M-g k") 'flymake-goto-prev-error)
+-;; 										)))
+-;; 	 ;; minibuf中显示flymake信息
+-;; 	 ;; (custom-set-variables
+-;; 	 ;;  '(help-at-pt-display-when-idle '(flymake-overlay)))
+-;; 	 (defun ac-clang-activate-fset ()
+-;; 	   (interactive)
++(eval-after-load "cc-mode"
++  '(progn
++	 ;; (setq ac-clang-debug-log-buffer-p t)
++	 ;; (setq ac-clang-debug-log-buffer-size (* 1024 1024))
++	 (require 'ac-clang);也受^M的影响
++	 (setq ac-clang-async-autocompletion-automatically-p nil)
++	 (setq ac-clang-async-autocompletion-manualtrigger-key "M-n")
++	 (setq w32-pipe-read-delay 0)          ;; <- Windows Only
++	 (when (ac-clang-initialize)
++	   (add-hook 'c-mode-common-hook '(lambda ()
++										;; (setq ac-clang-cflags CFLAGS)
++										(ac-clang-activate-after-modify)
++										(define-key ac-mode-map (kbd "M-.") 'ac-clang-jump-smart)
++										(define-key ac-mode-map (kbd "M-,") nil)
++										(define-key ac-mode-map (kbd "C-c `") 'ac-clang-diagnostics)
++										(define-key ac-mode-map (kbd "M-g j") 'flymake-goto-next-error)
++										(define-key ac-mode-map (kbd "M-g k") 'flymake-goto-prev-error)
++										)))
++	 ;; minibuf中显示flymake信息
++	 ;; (custom-set-variables
++	 ;;  '(help-at-pt-display-when-idle '(flymake-overlay)))
++	 (fset 'ac-clang-activate 'ac-clang-activate-fset)
++
++	 (defadvice ac-clang-jump-smart (before ac-clang-jump-smart-mru activate)
++	   ""
++	   (ring-insert semantic-tags-location-ring (point-marker)))))
++
++(defun ac-clang-activate-fset ()
++  (interactive)
+ 
+-;; 	   (remove-hook 'first-change-hook 'ac-clang-activate t)
++  (remove-hook 'first-change-hook 'ac-clang-activate t)
+ 
+-;; 	   (unless ac-clang--activate-p
+-;; 		 ;; (if ac-clang--activate-buffers
+-;; 		 ;;  (ac-clang-update-cflags)
+-;; 		 ;;   (ac-clang-initialize))
++  (unless ac-clang--activate-p
++    ;; (if ac-clang--activate-buffers
++    ;;  (ac-clang-update-cflags)
++    ;;   (ac-clang-initialize))
+ 
+-;; 		 (setq ac-clang--activate-p t)
+-;; 		 (setq ac-clang--session-name (buffer-file-name))
+-;; 		 (setq ac-clang--suspend-p nil)
+-;; 		 (setq ac-clang--ac-sources-backup ac-sources)
+-;; 		 ;; (setq ac-sources '(ac-source-clang-async))
+-;; 		 (setq ac-sources (append '(ac-source-clang-async) ac-sources))
+-;; 		 (push (current-buffer) ac-clang--activate-buffers)
++    (setq ac-clang--activate-p t)
++    (setq ac-clang--session-name (buffer-file-name))
++    (setq ac-clang--suspend-p nil)
++    (setq ac-clang--ac-sources-backup ac-sources)
++    ;; (setq ac-sources '(ac-source-clang-async))
++	(setq ac-sources (append '(ac-source-clang-async) ac-sources))
++
++    (push (current-buffer) ac-clang--activate-buffers)
+ 
+-;; 		 (ac-clang--send-create-session-request)
++    (ac-clang--send-create-session-request)
+ 
+-;; 		 (while ac-clang-async-autocompletion-automatically-p
+-;; 		   (local-set-key (kbd ".") 'ac-clang-async-autocomplete-autotrigger)
+-;; 		   (local-set-key (kbd ">") 'ac-clang-async-autocomplete-autotrigger)
+-;; 		   (local-set-key (kbd ":") 'ac-clang-async-autocomplete-autotrigger))
+-;; 		 (local-set-key (kbd ac-clang-async-autocompletion-manualtrigger-key) 'ac-clang-async-autocomplete-manualtrigger)
++	(while ac-clang-async-autocompletion-automatically-p
++	  (local-set-key (kbd ".") 'ac-clang-async-autocomplete-autotrigger)
++	  (local-set-key (kbd ">") 'ac-clang-async-autocomplete-autotrigger)
++	  (local-set-key (kbd ":") 'ac-clang-async-autocomplete-autotrigger))
++    (local-set-key (kbd ac-clang-async-autocompletion-manualtrigger-key) 'ac-clang-async-autocomplete-manualtrigger)
+ 
+-;; 		 (add-hook 'before-save-hook 'ac-clang-suspend nil t)
+-;; 		 ;; (add-hook 'after-save-hook 'ac-clang-deactivate nil t)
+-;; 		 ;; (add-hook 'first-change-hook 'ac-clang-activate nil t)
+-;; 		 ;; (add-hook 'before-save-hook 'ac-clang-reparse-buffer nil t)
+-;; 		 ;; (add-hook 'after-save-hook 'ac-clang-reparse-buffer nil t)
+-;; 		 (add-hook 'before-revert-hook 'ac-clang-deactivate nil t)
+-;; 		 (add-hook 'kill-buffer-hook 'ac-clang-deactivate nil t)))
+-
+-;; 	 (fset 'ac-clang-activate 'ac-clang-activate-fset)
+-	 
+-;; 	 (defadvice ac-clang-jump-smart (before ac-clang-jump-smart-mru activate)
+-;; 	   ""
+-;; 	   (ring-insert semantic-tags-location-ring (point-marker)))))
+-
+-
++    (add-hook 'before-save-hook 'ac-clang-suspend nil t)
++    ;; (add-hook 'after-save-hook 'ac-clang-deactivate nil t)
++    ;; (add-hook 'first-change-hook 'ac-clang-activate nil t)
++    ;; (add-hook 'before-save-hook 'ac-clang-reparse-buffer nil t)
++    ;; (add-hook 'after-save-hook 'ac-clang-reparse-buffer nil t)
++    (add-hook 'before-revert-hook 'ac-clang-deactivate nil t)
++    (add-hook 'kill-buffer-hook 'ac-clang-deactivate nil t)))
+ 
+ ;; 显示搜索index
+ (require 'anzu)
+ (global-anzu-mode +1)
+ (setq anzu-search-threshold 200) ;;防止大文件搜索时很卡
+ (global-set-key (kbd "M-%") 'anzu-query-replace)
