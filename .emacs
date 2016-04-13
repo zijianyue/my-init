@@ -93,14 +93,14 @@
 ;; (require 'semantic/decorate )
 ;; (require 'srecode)
 
-(add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode t)
+;; (add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode t)
 ;; (add-to-list 'semantic-default-submodes 'global-semantic-stickyfunc-mode t)
 ;; (add-to-list 'semantic-default-submodes 'global-semantic-highlight-edits-mode t)
 
 (global-srecode-minor-mode t)
 (semantic-mode t)
 (global-ede-mode t)
-;; (setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
+(setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
 ;; let cedet call ctags to find things which cedet can not find
 ;; (semantic-load-enable-all-ectags-support)
 ;; (semantic-load-enable-primary-ectags-support)
@@ -111,7 +111,7 @@
 ;; (semanticdb-enable-gnu-global-databases 'c++-mode)
 (set-default 'semantic-case-fold t)
 (setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
-;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)))
+;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)));用gtags帮助cedet找头文件
 
 ;; (global-set-key (kbd "M-p") 'semantic-ia-show-summary)
 ;; semantic-ia-show-doc 备用
@@ -188,6 +188,7 @@
 ;; (setq split-height-threshold 0)
 
 ;; 自动添加的设置
+(setq hi-lock-face-defaults '("hi-yellow" "hi-pink" "hi-green" "hi-blue" "hi-black-b" "hi-blue-b" "hi-red-b" "hi-green-b"))
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -210,9 +211,10 @@
  '(bookmark-sort-flag nil)
  '(column-number-mode t)
  '(company-idle-delay 0)
- '(company-minimum-prefix-length 100)
+ '(company-minimum-prefix-length 99)
  '(company-tooltip-align-annotations t)
  '(company-transformers (quote (company-sort-by-occurrence)))
+ '(company-ycmd-request-sync-timeout 0)
  '(compilation-scroll-output t)
  '(compilation-skip-threshold 2)
  '(confirm-kill-emacs (quote y-or-n-p))
@@ -252,6 +254,7 @@
  '(gtags-ignore-case nil)
  '(helm-ag-base-command "ag --nocolor --nogroup -S -Q ")
  '(helm-ag-fuzzy-match t)
+ '(helm-always-two-windows t)
  '(helm-buffer-max-length 40)
  '(helm-candidate-number-limit 2000)
  '(helm-case-fold-search t)
@@ -305,7 +308,7 @@
  '(semantic-c-dependency-system-include-path
    (quote
 	("C:/Program Files (x86)/Microsoft Visual Studio 8/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/PlatformSDK/Include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/atlmfc/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/SDK/v2.0/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/atlmfc/include" "C:/cygwin/usr/include" "D:/linux/linux-3.18.3/include/uapi")))
- '(semantic-idle-scheduler-idle-time 5)
+ '(semantic-idle-scheduler-idle-time 10)
  '(semantic-idle-scheduler-max-buffer-size 200000)
  '(semantic-imenu-bucketize-file nil)
  '(semantic-imenu-summary-function (quote semantic-format-tag-abbreviate))
@@ -325,7 +328,14 @@
  '(vc-svn-program "C:\\Program Files\\TortoiseSVN\\bin\\svn")
  '(which-function-mode t)
  '(whitespace-line-column 120)
- '(winner-mode t))
+ '(winner-mode t)
+ '(ycmd-delete-process-delay 7)
+ '(ycmd-idle-change-delay 3)
+ '(ycmd-min-num-chars-for-completion 4)
+ '(ycmd-parse-conditions (quote (save idle-change mode-enabled)))
+ '(ycmd-seed-identifiers-with-keywords t)
+ '(ycmd-server-args (quote ("--idle_suicide_seconds=10800")))
+ '(ycmd-startup-timeout 5))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -423,7 +433,6 @@
 (create-spec-ede-project "e:/projects/tempspace/test4c/GTAGS" nil)
 (create-spec-ede-project "e:/projects/eNavi2_800X480_ChangeUI/GTAGS" t)
 (create-spec-ede-project "e:/projects/Clarion_13MY_Dev_For_MM/GTAGS" t)
-(create-spec-ede-project "e:/rtags-master/src/GTAGS" nil)
 
 
 ;;auto-complete
@@ -471,16 +480,29 @@
 (autoload 'company-mode "company" nil t)
 (eval-after-load "company"
   '(progn
-	 ;; (require 'company-irony nil t )
+	 (require 'company-irony nil t )
 	 (require 'company-c-headers nil t )
 	 (setq company-async-timeout 15)
 	 ;; (add-hook 'after-init-hook 'global-company-mode)
 	 (add-to-list 'company-backends 'company-irony)
 	 (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
-	 ;; (global-set-key (kbd "<S-return>") 'company-complete)
+	 ;; (global-set-key (kbd "<S-return>") 'company-complete-common)
+	 (global-set-key (kbd "<C-S-return>") 'company-irony)
 	 (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
 	 (define-key company-active-map (kbd "M-s") 'company-filter-candidates)
 	 ;; (add-to-list 'company-backends 'company-c-headers)
+	 (defun toggle-company-complete-id (&optional args)
+	   (interactive "P")
+	   (message "company complete id afte %s char" args)
+	   (if args
+		   (setq company-minimum-prefix-length args))
+	   (progn
+		 (if (eq company-minimum-prefix-length 99)
+			 (progn
+			   (setq company-minimum-prefix-length 3))
+		   (progn
+			 (setq company-minimum-prefix-length 99))
+		   )))
 	 ))
 
 ;;yasnippet
@@ -720,6 +742,8 @@
 (autoload 'helm-semantic-or-imenu "helm-config" nil t)
 (autoload 'helm-for-files "helm-config" nil t)
 (autoload 'helm-resume "helm-config" nil t)
+(autoload 'helm-M-x "helm-config" nil t)
+
 (autoload 'helm-gtags-mode "helm-gtags" nil t)
 (autoload 'helm-gtags-select "helm-gtags" nil t)
 (autoload 'helm-gtags-select-path "helm-gtags" nil t)
@@ -750,6 +774,7 @@
 (global-set-key (kbd "<S-apps>") 'helm-resume)
 (global-set-key (kbd "<M-apps>") 'helm-ag-this-file)
 (global-set-key (kbd "M-]") 'helm-swoop)
+(global-set-key (kbd "C-M-x") 'helm-M-x)
 
 (global-set-key (kbd "C-c b") 'helm-gtags-find-files)
 (global-set-key (kbd "C-c B") 'gtags-find-file)
@@ -781,7 +806,38 @@
 		  (lambda ()
 			(setq truncate-lines t)))
 
-;; cscope
+;; cflow 只能显示calling tree
+;; (autoload 'cflow-mode "cflow-mode")
+
+;; (setq auto-mode-alist (append auto-mode-alist
+;; 							  '(("\\.cflow$" . cflow-mode))))
+;; (defvar cmd nil nil)
+;; (defvar cflow-buf nil nil)
+;; (defvar cflow-buf-name nil nil)
+
+;; (defun yyc/cflow-function (function-name)
+;;   "Get call graph of inputed function. "
+;; 										;(interactive "sFunction name:\n")
+;;   (interactive (list (car (senator-jump-interactive "Function name: "
+;;                                                     nil nil nil))))
+;;   (setq cmd (format "cflow  -bT --number --main=%s %s" function-name buffer-file-name))
+;;   (setq cflow-buf-name (format "**cflow-%s:%s**"
+;;                                (file-name-nondirectory buffer-file-name)
+;;                                function-name))
+;;   (setq cflow-buf (get-buffer-create cflow-buf-name))
+;;   (set-buffer cflow-buf)
+;;   (setq buffer-read-only nil)
+;;   (erase-buffer)
+;;   (insert (shell-command-to-string cmd))
+;;   (pop-to-buffer cflow-buf)
+;;   (goto-char (point-min))
+;;   (cflow-mode)
+;;   (toggle-truncate-lines 1)
+;;   )
+
+;; (global-set-key (kbd "<C-f11>") 'yyc/cflow-function)
+
+;; cscope 不能识别extern "C"包裹的函数
 ;; (require 'xcscope )
 ;; (cscope-setup)
 ;; (require 'rscope )
@@ -811,15 +867,15 @@
 (fset 'rscope-all-symbol-assignments 'rscope-all-symbol-assignments-fset)
 
 ;; flycheck
+(defvar package-user-dir "")			;防止check lisp出错
 (autoload 'flycheck-mode "flycheck" nil t)
 (global-set-key (kbd "M-g l") 'flycheck-list-errors)
-;; (global-set-key (kbd "<M-f5>") 'flycheck-buffer)
 (global-set-key (kbd "<M-f5>") (lambda () "" (interactive)
 								 ;; (require 'irony-cdb nil t)
 								 ;; (require 'irony-eldoc )
 								 ;; (irony-mode)
 								 ;; (irony--mode-exit)
-								 (unless (flycheck-mode) (flycheck-mode 1))
+								 (unless flycheck-mode (flycheck-mode 1))
 								 ;; (eldoc-mode 0)
 								 (flycheck-buffer)
 								 ))
@@ -828,7 +884,7 @@
 (eval-after-load "cc-mode"
   '(progn
 	 (require 'irony-cdb nil t)
-	 ;; (require 'irony-eldoc )
+	 (require 'irony-eldoc )
 	 ))
 
 (eval-after-load "irony"
@@ -840,15 +896,15 @@
 		 'irony-completion-at-point-async))
 	 (add-hook 'irony-mode-hook 'my-irony-mode-hook)
 	 (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-	 ;; (add-hook 'irony-mode-hook 'irony-eldoc)
+	 (add-hook 'irony-mode-hook 'irony-eldoc)
 	 (setq w32-pipe-read-delay 0)
 	 (setq process-adaptive-read-buffering nil)
 	 (require 'flycheck-irony )
 	 (add-to-list 'flycheck-checkers 'irony)
 	 (fset 'irony--send-parse-request 'irony--send-parse-request-fset)
 	 (require 'irony-cdb nil t)
-	 ;; (require 'irony-eldoc )
-	 ;; (eldoc-mode 0)
+	 (require 'irony-eldoc )
+	 (eldoc-mode 0)
 	 ))
 
 
@@ -1101,7 +1157,7 @@ care of."
 (setenv "SSH_ASKPASS" "git-gui--askpass")
 (setenv "GIT_SSH" "c:/Program Files (x86)/PuTTY/plink.exe")
 ;; 要想保存密码不用每次输入得修改.git-credentials和.gitconfig
-
+;; 解决magit和服务器的乱码问题，不需要在.gitconfig中改118n的配置(比如配置成gb2312)
 (defun my-git-commit-hook ()
   (set-buffer-file-coding-system 'utf-8-unix))
 (add-hook 'magit-mode-hook 'my-git-commit-hook)
@@ -1111,8 +1167,9 @@ care of."
 ;; (require 'magit)
 (autoload 'magit-status "magit" nil t)
 (autoload 'magit-dispatch-popup "magit" nil t)
+(global-set-key (kbd "C-x t g") 'magit-blame)
+(global-set-key (kbd "C-x t l") 'magit-log-buffer-file)
 
-;; (require 'ssh-agency)
 (global-set-key (kbd "C-x g") 'magit-status)
 (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
 
@@ -1123,6 +1180,7 @@ care of."
 ;; func args
 ;; (autoload 'fa-show "function-args" nil t)
 ;; (global-set-key (kbd "<M-S-return>") 'fa-show)
+;; (autoload 'moo-jump-local "function-args" nil t)
 
 ;; 星际译王
 (defun kid-sdcv-to-buffer (&optional input)
@@ -1157,67 +1215,67 @@ care of."
 (global-set-key (kbd "<M-f11>") 'kid-sdcv-to-buffer)
 
 ;; ac-clang
-(eval-after-load "cc-mode"
-  '(progn
-	 ;; (setq ac-clang-debug-log-buffer-p t)
-	 ;; (setq ac-clang-debug-log-buffer-size (* 1024 1024))
-	 (require 'ac-clang);也受^M的影响
-	 (setq ac-clang-async-autocompletion-automatically-p nil)
-	 (setq ac-clang-async-autocompletion-manualtrigger-key "M-n")
-	 (setq w32-pipe-read-delay 0)          ;; <- Windows Only
-	 (when (ac-clang-initialize)
-	   (add-hook 'c-mode-common-hook '(lambda ()
-										;; (setq ac-clang-cflags CFLAGS)
-										(ac-clang-activate-after-modify)
-										(define-key ac-mode-map (kbd "M-.") 'ac-clang-jump-smart)
-										(define-key ac-mode-map (kbd "M-,") nil)
-										(define-key ac-mode-map (kbd "C-c `") 'ac-clang-diagnostics)
-										(define-key ac-mode-map (kbd "M-g j") 'flymake-goto-next-error)
-										(define-key ac-mode-map (kbd "M-g k") 'flymake-goto-prev-error)
-										)))
-	 ;; minibuf中显示flymake信息
-	 ;; (custom-set-variables
-	 ;;  '(help-at-pt-display-when-idle '(flymake-overlay)))
-	 (fset 'ac-clang-activate 'ac-clang-activate-fset)
+;; (eval-after-load "cc-mode"
+;;   '(progn
+;; 	 ;; (setq ac-clang-debug-log-buffer-p t)
+;; 	 ;; (setq ac-clang-debug-log-buffer-size (* 1024 1024))
+;; 	 (require 'ac-clang);也受^M的影响
+;; 	 (setq ac-clang-async-autocompletion-automatically-p nil)
+;; 	 (setq ac-clang-async-autocompletion-manualtrigger-key "M-n")
+;; 	 (setq w32-pipe-read-delay 0)          ;; <- Windows Only
+;; 	 (when (ac-clang-initialize)
+;; 	   (add-hook 'c-mode-common-hook '(lambda ()
+;; 										;; (setq ac-clang-cflags CFLAGS)
+;; 										(ac-clang-activate-after-modify)
+;; 										(define-key ac-mode-map (kbd "M-.") 'ac-clang-jump-smart)
+;; 										(define-key ac-mode-map (kbd "M-,") nil)
+;; 										(define-key ac-mode-map (kbd "C-c `") 'ac-clang-diagnostics)
+;; 										(define-key ac-mode-map (kbd "M-g j") 'flymake-goto-next-error)
+;; 										(define-key ac-mode-map (kbd "M-g k") 'flymake-goto-prev-error)
+;; 										)))
+;; 	 ;; minibuf中显示flymake信息
+;; 	 ;; (custom-set-variables
+;; 	 ;;  '(help-at-pt-display-when-idle '(flymake-overlay)))
+;; 	 (fset 'ac-clang-activate 'ac-clang-activate-fset)
 
-	 (defadvice ac-clang-jump-smart (before ac-clang-jump-smart-mru activate)
-	   ""
-	   (ring-insert semantic-tags-location-ring (point-marker)))))
+;; 	 (defadvice ac-clang-jump-smart (before ac-clang-jump-smart-mru activate)
+;; 	   ""
+;; 	   (ring-insert semantic-tags-location-ring (point-marker)))))
 
-(defun ac-clang-activate-fset ()
-  (interactive)
+;; (defun ac-clang-activate-fset ()
+;;   (interactive)
 
-  (remove-hook 'first-change-hook 'ac-clang-activate t)
+;;   (remove-hook 'first-change-hook 'ac-clang-activate t)
 
-  (unless ac-clang--activate-p
-    ;; (if ac-clang--activate-buffers
-    ;;  (ac-clang-update-cflags)
-    ;;   (ac-clang-initialize))
+;;   (unless ac-clang--activate-p
+;;     ;; (if ac-clang--activate-buffers
+;;     ;;  (ac-clang-update-cflags)
+;;     ;;   (ac-clang-initialize))
 
-    (setq ac-clang--activate-p t)
-    (setq ac-clang--session-name (buffer-file-name))
-    (setq ac-clang--suspend-p nil)
-    (setq ac-clang--ac-sources-backup ac-sources)
-    ;; (setq ac-sources '(ac-source-clang-async))
-	(setq ac-sources (append '(ac-source-clang-async) ac-sources))
+;;     (setq ac-clang--activate-p t)
+;;     (setq ac-clang--session-name (buffer-file-name))
+;;     (setq ac-clang--suspend-p nil)
+;;     (setq ac-clang--ac-sources-backup ac-sources)
+;;     ;; (setq ac-sources '(ac-source-clang-async))
+;; 	(setq ac-sources (append '(ac-source-clang-async) ac-sources))
 
-    (push (current-buffer) ac-clang--activate-buffers)
+;;     (push (current-buffer) ac-clang--activate-buffers)
 
-    (ac-clang--send-create-session-request)
+;;     (ac-clang--send-create-session-request)
 
-	(while ac-clang-async-autocompletion-automatically-p
-	  (local-set-key (kbd ".") 'ac-clang-async-autocomplete-autotrigger)
-	  (local-set-key (kbd ">") 'ac-clang-async-autocomplete-autotrigger)
-	  (local-set-key (kbd ":") 'ac-clang-async-autocomplete-autotrigger))
-    (local-set-key (kbd ac-clang-async-autocompletion-manualtrigger-key) 'ac-clang-async-autocomplete-manualtrigger)
+;; 	(while ac-clang-async-autocompletion-automatically-p
+;; 	  (local-set-key (kbd ".") 'ac-clang-async-autocomplete-autotrigger)
+;; 	  (local-set-key (kbd ">") 'ac-clang-async-autocomplete-autotrigger)
+;; 	  (local-set-key (kbd ":") 'ac-clang-async-autocomplete-autotrigger))
+;;     (local-set-key (kbd ac-clang-async-autocompletion-manualtrigger-key) 'ac-clang-async-autocomplete-manualtrigger)
 
-    (add-hook 'before-save-hook 'ac-clang-suspend nil t)
-    ;; (add-hook 'after-save-hook 'ac-clang-deactivate nil t)
-    ;; (add-hook 'first-change-hook 'ac-clang-activate nil t)
-    ;; (add-hook 'before-save-hook 'ac-clang-reparse-buffer nil t)
-    ;; (add-hook 'after-save-hook 'ac-clang-reparse-buffer nil t)
-    (add-hook 'before-revert-hook 'ac-clang-deactivate nil t)
-    (add-hook 'kill-buffer-hook 'ac-clang-deactivate nil t)))
+;;     (add-hook 'before-save-hook 'ac-clang-suspend nil t)
+;;     ;; (add-hook 'after-save-hook 'ac-clang-deactivate nil t)
+;;     ;; (add-hook 'first-change-hook 'ac-clang-activate nil t)
+;;     ;; (add-hook 'before-save-hook 'ac-clang-reparse-buffer nil t)
+;;     ;; (add-hook 'after-save-hook 'ac-clang-reparse-buffer nil t)
+;;     (add-hook 'before-revert-hook 'ac-clang-deactivate nil t)
+;;     (add-hook 'kill-buffer-hook 'ac-clang-deactivate nil t)))
 
 ;; 显示搜索index
 (require 'anzu)
@@ -1246,11 +1304,32 @@ care of."
 ;; ycmd
 (require 'ycmd-next-error)
 (autoload 'ycmd-mode "ycmd" nil t)
+(autoload 'global-ycmd-mode "ycmd" nil t)
+(autoload 'ycmd-goto "ycmd" nil t)
+(autoload 'ycmd-get-type "ycmd" nil t)
+(autoload 'company-ycmd "company-ycmd" nil t)
+
+(global-set-key (kbd "M-.") (lambda () "" (interactive)
+							  (unless ycmd-mode (ycmd-mode 1))
+							  (ycmd-goto)
+							  ))
+(global-set-key (kbd "M-p") (lambda () "" (interactive)
+							  (unless ycmd-mode (ycmd-mode 1))
+							  (ycmd-get-parent)
+							  ))
+
+(global-set-key (kbd "<S-return>") 'company-ycmd)
+
+;; -u解决hang的问题
+(set-variable 'ycmd-server-command '("python" "-u" "D:/ycmd/ycmd"))
+(set-variable 'ycmd-global-config "~/.ycm_extra_conf.py")
+;; (set-variable 'ycmd-extra-conf-whitelist '("~/my_projects/*"))
+(setq ycmd-extra-conf-handler 'load)
+
 (eval-after-load "ycmd"
   '(progn
-	 (set-variable 'ycmd-server-command '("C:/Python27/python.exe" "-u" "D:/ycmd/ycmd"))
-	 (set-variable 'ycmd-global-config "~/.ycm_extra_conf.py")
-	 (setq ycmd-extra-conf-handler 'load)
+	 (message "ycmd")
+	 (add-hook 'c-mode-common-hook 'ycmd-mode)
 	 (require 'company-ycmd)
 	 (company-ycmd-setup)
 	 ;; (require 'flycheck-ycmd)
@@ -1262,14 +1341,14 @@ care of."
 	 ;; (add-hook 'ycmd-mode-hook 'ycmd-eldoc-setup)
 	 (setq url-show-status nil)
 	 (setq ycmd-request-message-level -1)
-	 (setq ycmd-force-semantic-completion t)
+	 ;; (setq ycmd-force-semantic-completion t)
 
 	 (global-set-key (kbd "M-.") 'ycmd-goto)
-	 (global-set-key (kbd "M-p") 'ycmd-get-parent)
 	 (global-set-key (kbd "C-.") 'ycmd-get-type)
 
 	 (defadvice ycmd-goto (before ycmd-goto-mru activate)
 	   ""
+	   (message "ycmd-goto")
 	   (ring-insert semantic-tags-location-ring (point-marker)))
 	 ))
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
@@ -1948,16 +2027,16 @@ If FULL is t, copy full file name."
   ""
   (when (< (* 200 1024) (buffer-size))
 	;; (nlinum-mode -1)
-	;; (diff-hl-mode -1)
 	(setq-local jit-lock-context-time 5)
 	(setq-local jit-lock-defer-time 5)
 	(setq-local font-lock-maximum-decoration 2)
 	(font-lock-refresh-defaults)
-	;; (font-lock-add-keywords nil
+	(setq semantic-idle-scheduler-idle-time 20)
+	;; (font-lock-add-keywords nil;这个不要打开，会影响性能
 	;; 						'(("\\(\\_<\\(\\w\\|\\s_\\)+\\_>\\)[ 	]*("
 	;; 						   1  zjl-c-hl-function-call-face keep))
 	;; 						1)
-	;; (font-lock-add-keywords
+	;; (font-lock-add-keywords;这个不要打开，会影响性能
 	;;  nil
 	;;  '((my-c-mode-font-lock-if0 (0 shadow prepend))) 'add-to-end)
 	;; (font-lock-mode -1 )
@@ -2088,7 +2167,6 @@ If FULL is t, copy full file name."
 			(irony--mode-exit)
 			(eldoc-mode 0)
 			(company-mode 1)
-			(ycmd-mode 1)
 			(abbrev-mode 0)
 			;; (flycheck-mode 1)
 			(yas-glo-on)
