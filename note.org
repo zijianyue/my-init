@@ -152,5 +152,5 @@ Pygments version 2.1, (c) 2006-2015 by Georg Brandl.
 系统需求：CMAKE PYTHON34或27
 下载ycmd和third-party
 在ycmd下新建目录ycmd-build，进去后起命令行cmake -G "Visual Studio 14" -DPATH_TO_LLVM_ROOT="C:/Program Files/LLVM" -DUSE_PYTHON2=OFF . ../cpp，成功后会生成一个VS的工程，用VS打开后编译 ycm_core ，成功后会在ycmd根目录下生成 ycm_core.pyd 和 libclang.dll ，这样emacs-ycmd就能用了
-如果有c++ runtime error 把C:\Program Files\CMake\bin下的msvcp120.dll和msvcr120.dll改名，保证全局只有一份
+如果有c++ runtime error 把C:\Program Files\CMake\bin下的msvcp120.dll和msvcr120.dll改名(C:\Program Files\ImageMagick-6.9.1-Q16下还有一份)，保证全局只有一份
 
