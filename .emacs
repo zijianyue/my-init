@@ -104,6 +104,11 @@
 ;; (add-to-list 'semantic-default-submodes 'global-semantic-highlight-edits-mode t)
 
 (global-srecode-minor-mode t)
+
+;; 设置模板路径,把模板放到"~/.emacs.d/.srecode/"，避免拷来拷去
+(setq srecode-map-load-path (list (expand-file-name "~/.emacs.d/.srecode/")
+								  (srecode-map-base-template-dir)
+								  ))
 (semantic-mode t)
 (global-ede-mode t)
 (setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
@@ -1620,8 +1625,6 @@ If FULL is t, copy full file name."
 
 	 (fset 'cedet-gnu-global-search 'cedet-gnu-global-search-fset)
 	 ))
-
-
 
 
 (defun semantic-symref-hit-to-tag-via-buffer-fset (hit searchtxt searchtype &optional open-buffers)
