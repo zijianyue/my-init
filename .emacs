@@ -86,7 +86,13 @@
 (setq ring-bell-function 'ignore)
 
 ;; Load CEDET offical
-(load-file "d:/cedet-git/cedet-devel-load.el")
+(if (eq 24 emacs-major-version)
+	(load-file "d:/cedet-git/cedet-devel-load.el")
+  (progn
+	(require 'semantic )
+	(require 'semantic/decorate )
+	(require 'srecode)))
+
 
 ;; cedet builtin
 ;; (require 'semantic )
@@ -124,58 +130,58 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 
 ;; vc编译设置(2005)
-(setenv "VSINSTALLDIR" "C:\\Program Files (x86)\\Microsoft Visual Studio 8")
-(setenv "VCINSTALLDIR" "C:\\Program Files (x86)\\Microsoft Visual Studio 8\\VC")
-(setenv "FrameworkDir" "C:\\WINDOWS\\Microsoft.NET\\Framework")
-(setenv "FrameworkVersion" "v2.0.50727")
-(setenv "FrameworkSDKDir" "C:\\Program Files (x86)\\Microsoft Visual Studio 8\\SDK\\v2.0")
-(setenv "CommonDevEnvDir" "C:\\Program Files (x86)\\Microsoft Visual Studio 8\\Common7")
-(setenv "DevEnvDir"
-		(concat (getenv "CommonDevEnvDir") "\\IDE"))
-(setenv "PATH"
-		(concat (getenv "DevEnvDir")
-				path-separator
-				(concat (getenv "VCINSTALLDIR") "\\BIN")
-				path-separator
-				(concat (getenv "CommonDevEnvDir") "\\Tools")
-				path-separator
-				(concat (getenv "CommonDevEnvDir") "\\Tools\\bin")
-				path-separator
-				(concat (getenv "VCINSTALLDIR") "\\PlatformSDK\\bin")
-				path-separator
-				(concat (getenv "FrameworkSDKDir") "\\bin")
-				path-separator
-				(concat (getenv "FrameworkDir") "\\" (getenv "FrameworkVersion"))
-				path-separator
-				(concat (getenv "VCINSTALLDIR") "\\VCPackages")
-				path-separator
-				(getenv "PATH")))
-(setenv "INCLUDE"
-		(concat
-		 (concat (getenv "VCINSTALLDIR") "\\ATLMFC\\INCLUDE")
-		 path-separator
-		 (concat (getenv "VCINSTALLDIR") "\\INCLUDE")
-		 path-separator
-		 (concat (getenv "VCINSTALLDIR") "\\PlatformSDK\\include")
-		 path-separator
-		 (concat (getenv "VSINSTALLDIR") "\\SDK\\v2.0\\include")
-		 path-separator
-		 (getenv "INCLUDE")))
-(setenv "LIB" (concat
-			   (concat (getenv "VCINSTALLDIR") "\\ATLMFC\\LIB")
-			   path-separator
-			   (concat (getenv "VCINSTALLDIR") "\\LIB")
-			   path-separator
-			   (concat (getenv "VCINSTALLDIR") "\\PlatformSDK\\lib")
-			   path-separator
-			   (concat (getenv "VSINSTALLDIR") "\\SDK\\v2.0\\lib")
-			   path-separator
-			   (getenv "LIB")))
-(setenv  "LIBPATH"
-		 (concat
-		  (concat (getenv "FrameworkDir") "\\" (getenv "FrameworkVersion"))
-		  path-separator
-		  (concat (getenv "VCINSTALLDIR") "\\ATLMFC\\LIB")))
+;; (setenv "VSINSTALLDIR" "C:\\Program Files (x86)\\Microsoft Visual Studio 8")
+;; (setenv "VCINSTALLDIR" "C:\\Program Files (x86)\\Microsoft Visual Studio 8\\VC")
+;; (setenv "FrameworkDir" "C:\\WINDOWS\\Microsoft.NET\\Framework")
+;; (setenv "FrameworkVersion" "v2.0.50727")
+;; (setenv "FrameworkSDKDir" "C:\\Program Files (x86)\\Microsoft Visual Studio 8\\SDK\\v2.0")
+;; (setenv "CommonDevEnvDir" "C:\\Program Files (x86)\\Microsoft Visual Studio 8\\Common7")
+;; (setenv "DevEnvDir"
+;; 		(concat (getenv "CommonDevEnvDir") "\\IDE"))
+;; (setenv "PATH"
+;; 		(concat (getenv "DevEnvDir")
+;; 				path-separator
+;; 				(concat (getenv "VCINSTALLDIR") "\\BIN")
+;; 				path-separator
+;; 				(concat (getenv "CommonDevEnvDir") "\\Tools")
+;; 				path-separator
+;; 				(concat (getenv "CommonDevEnvDir") "\\Tools\\bin")
+;; 				path-separator
+;; 				(concat (getenv "VCINSTALLDIR") "\\PlatformSDK\\bin")
+;; 				path-separator
+;; 				(concat (getenv "FrameworkSDKDir") "\\bin")
+;; 				path-separator
+;; 				(concat (getenv "FrameworkDir") "\\" (getenv "FrameworkVersion"))
+;; 				path-separator
+;; 				(concat (getenv "VCINSTALLDIR") "\\VCPackages")
+;; 				path-separator
+;; 				(getenv "PATH")))
+;; (setenv "INCLUDE"
+;; 		(concat
+;; 		 (concat (getenv "VCINSTALLDIR") "\\ATLMFC\\INCLUDE")
+;; 		 path-separator
+;; 		 (concat (getenv "VCINSTALLDIR") "\\INCLUDE")
+;; 		 path-separator
+;; 		 (concat (getenv "VCINSTALLDIR") "\\PlatformSDK\\include")
+;; 		 path-separator
+;; 		 (concat (getenv "VSINSTALLDIR") "\\SDK\\v2.0\\include")
+;; 		 path-separator
+;; 		 (getenv "INCLUDE")))
+;; (setenv "LIB" (concat
+;; 			   (concat (getenv "VCINSTALLDIR") "\\ATLMFC\\LIB")
+;; 			   path-separator
+;; 			   (concat (getenv "VCINSTALLDIR") "\\LIB")
+;; 			   path-separator
+;; 			   (concat (getenv "VCINSTALLDIR") "\\PlatformSDK\\lib")
+;; 			   path-separator
+;; 			   (concat (getenv "VSINSTALLDIR") "\\SDK\\v2.0\\lib")
+;; 			   path-separator
+;; 			   (getenv "LIB")))
+;; (setenv  "LIBPATH"
+;; 		 (concat
+;; 		  (concat (getenv "FrameworkDir") "\\" (getenv "FrameworkVersion"))
+;; 		  path-separator
+;; 		  (concat (getenv "VCINSTALLDIR") "\\ATLMFC\\LIB")))
 
 (setq compile-command "devenv.com projects.sln /build \"Debug|Win32\"") ;可以传sln 或vcproj编译工程
 ;; tab补全时忽略大小写
@@ -329,13 +335,14 @@
  '(which-function-mode t)
  '(whitespace-line-column 120)
  '(winner-mode t)
- '(ycmd-delete-process-delay 7)
+ '(ycmd-confirm-fixit nil)
+ '(ycmd-delete-process-delay 15)
  '(ycmd-idle-change-delay 3)
- '(ycmd-min-num-chars-for-completion 4)
- '(ycmd-parse-conditions (quote (save idle-change mode-enabled)))
+ '(ycmd-keepalive-period 300)
+ '(ycmd-parse-conditions (quote (save idle-change buffer-focus)))
  '(ycmd-seed-identifiers-with-keywords t)
  '(ycmd-server-args (quote ("--idle_suicide_seconds=10800")))
- '(ycmd-startup-timeout 5))
+ '(ycmd-startup-timeout 15))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -345,6 +352,7 @@
  '(dired-async-mode-message ((t (:foreground "chocolate"))))
  '(helm-lisp-show-completion ((t (:background "navajo white"))))
  '(helm-selection-line ((t (:background "light steel blue" :underline t))))
+ '(tabbar-default ((t (:inherit variable-pitch :background "gray75" :foreground "gray50" :height 0.9))))
  '(tabbar-modified ((t (:inherit tabbar-default :foreground "dark red" :box (:line-width 1 :color "white" :style released-button)))))
  '(zjl-hl-local-variable-reference-face ((t (:foreground "dark slate gray"))))
  '(zjl-hl-member-reference-face ((t (:foreground "dark goldenrod" :slant normal :weight normal)))))
@@ -884,7 +892,8 @@
 (eval-after-load "cc-mode"
   '(progn
 	 (require 'irony-cdb nil t)
-	 (require 'irony-eldoc )
+	 ;; (require 'irony-eldoc )
+	 ;; (eldoc-mode 0)
 	 ))
 
 (eval-after-load "irony"
@@ -896,15 +905,15 @@
 		 'irony-completion-at-point-async))
 	 (add-hook 'irony-mode-hook 'my-irony-mode-hook)
 	 (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-	 (add-hook 'irony-mode-hook 'irony-eldoc)
+	 ;; (add-hook 'irony-mode-hook 'irony-eldoc)
 	 (setq w32-pipe-read-delay 0)
 	 (setq process-adaptive-read-buffering nil)
 	 (require 'flycheck-irony )
 	 (add-to-list 'flycheck-checkers 'irony)
 	 (fset 'irony--send-parse-request 'irony--send-parse-request-fset)
 	 (require 'irony-cdb nil t)
-	 (require 'irony-eldoc )
-	 (eldoc-mode 0)
+	 ;; (require 'irony-eldoc )
+	 ;; (eldoc-mode 0)
 	 ))
 
 
@@ -1302,29 +1311,35 @@ care of."
 (autoload 'swift-mode "swift-mode" nil t)
 
 ;; ycmd
-(require 'ycmd-next-error)
 (autoload 'ycmd-mode "ycmd" nil t)
 (autoload 'global-ycmd-mode "ycmd" nil t)
-(autoload 'ycmd-goto "ycmd" nil t)
-(autoload 'ycmd-get-type "ycmd" nil t)
-(autoload 'company-ycmd "company-ycmd" nil t)
 
 (global-set-key (kbd "M-.") (lambda () "" (interactive)
+							  (require 'ycmd )
 							  (unless ycmd-mode (ycmd-mode 1))
 							  (ycmd-goto)
 							  ))
 (global-set-key (kbd "M-p") (lambda () "" (interactive)
+							  (require 'ycmd )
 							  (unless ycmd-mode (ycmd-mode 1))
-							  (ycmd-get-parent)
+							  (ycmd-get-type)
 							  ))
 
 (global-set-key (kbd "<S-return>") 'company-ycmd)
+(global-set-key (kbd "C-c p") 'ycmd-parse-buffer)
 
 ;; -u解决hang的问题
 (set-variable 'ycmd-server-command '("python" "-u" "D:/ycmd/ycmd"))
 (set-variable 'ycmd-global-config "~/.ycm_extra_conf.py")
 ;; (set-variable 'ycmd-extra-conf-whitelist '("~/my_projects/*"))
 (setq ycmd-extra-conf-handler 'load)
+(setq url-show-status nil)
+(setq ycmd-request-message-level -1)
+(setq request-message-level -1)
+(defadvice ycmd-goto (before ycmd-goto-mru activate)
+  ""
+  (message "ycmd-goto")
+  (ring-insert semantic-tags-location-ring (point-marker)))
 
 (eval-after-load "ycmd"
   '(progn
@@ -1332,25 +1347,50 @@ care of."
 	 (add-hook 'c-mode-common-hook 'ycmd-mode)
 	 (require 'company-ycmd)
 	 (company-ycmd-setup)
-	 ;; (require 'flycheck-ycmd)
+	 (require 'flycheck-ycmd)
+	 ;; 下面函数有bug，由于路径中存在反斜杠导致flycheck的错误无法显示
+	 (defun flycheck-ycmd--result-to-error-fset (result checker)
+	   "Convert ycmd parse RESULT for CHECKER into a flycheck error object."
+	   (let-alist result
+		 (when (string-equal (replace-regexp-in-string "\\\\" "/" .location.filepath ) (buffer-file-name))
+		   (flycheck-error-new
+			:line .location.line_num
+			:column .location.column_num
+			:buffer (current-buffer)
+			:filename .location.filepath
+			:message (concat .text (when (eq .fixit_available t) " (FixIt)"))
+			:checker checker
+			:level (assoc-default .kind flycheck-ycmd--level-map 'string-equal 'error)))))
+
+	 (fset 'flycheck-ycmd--result-to-error 'flycheck-ycmd--result-to-error-fset)
+	 
+	 (flycheck-ycmd-setup)
+	 (flycheck-mode 1)
 	 ;; Make sure the flycheck cache sees the parse results
 	 ;; (add-hook 'ycmd-file-parse-result-hook 'flycheck-ycmd--cache-parse-results)
 	 ;; Add the ycmd checker to the list of available checkers
 	 ;; (add-to-list 'flycheck-checkers 'ycmd)
 	 ;; (require 'ycmd-eldoc)
 	 ;; (add-hook 'ycmd-mode-hook 'ycmd-eldoc-setup)
-	 (setq url-show-status nil)
-	 (setq ycmd-request-message-level -1)
+
 	 ;; (setq ycmd-force-semantic-completion t)
+	 (defun company-ycmd-complete ()
+	   (interactive)
+	   (let ((ycmd-force-semantic-completion t))
+		 (company-complete)))
+	 
+	 (global-set-key (kbd "C-.") 'ycmd-get-parent)
 
-	 (global-set-key (kbd "M-.") 'ycmd-goto)
-	 (global-set-key (kbd "C-.") 'ycmd-get-type)
 
-	 (defadvice ycmd-goto (before ycmd-goto-mru activate)
-	   ""
-	   (message "ycmd-goto")
-	   (ring-insert semantic-tags-location-ring (point-marker)))
 	 ))
+
+;; imenu list
+(autoload 'imenu-list-minor-mode "imenu-list" nil t)
+(eval-after-load "imenu-list"
+  '(progn
+	 (setq imenu-list-focus-after-activation t)
+	 (setq imenu-list-auto-resize t)))
+(global-set-key (kbd "M-q") #'imenu-list-minor-mode)
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin----------------------------------------------------;;
@@ -1552,32 +1592,36 @@ If FULL is t, copy full file name."
 	 ))
 
 ;; 重写cedet函数 begin
+(eval-after-load "cedet-global"
+  '(progn
+	 (defun cedet-gnu-global-search-fset (searchtext texttype type scope)
+	   "add -s"
+	   (let ((flgs (cond ((eq type 'file)
+						  "-a")
+						 (t "-xa")))
+			 (scopeflgs (cond
+						 ((eq scope 'project)
+						  ""
+						  )
+						 ((eq scope 'target)
+						  "l")))
+			 (stflag (cond ((or (eq texttype 'tagname)
+								(eq texttype 'tagregexp))
+							"")
+						   ((eq texttype 'tagcompletions)
+							"c")
+						   ((eq texttype 'regexp)
+							"g")
+						   ((eq texttype 'symbolname)
+							"s")
+						   (t "r"))))
+		 (cedet-gnu-global-call (list (concat flgs scopeflgs stflag)
+									  searchtext))))
 
-(defun cedet-gnu-global-search-fset (searchtext texttype type scope)
-  "add -s"
-  (let ((flgs (cond ((eq type 'file)
-					 "-a")
-					(t "-xa")))
-		(scopeflgs (cond
-					((eq scope 'project)
-					 ""
-					 )
-					((eq scope 'target)
-					 "l")))
-		(stflag (cond ((or (eq texttype 'tagname)
-						   (eq texttype 'tagregexp))
-					   "")
-					  ((eq texttype 'tagcompletions)
-					   "c")
-					  ((eq texttype 'regexp)
-					   "g")
-					  ((eq texttype 'symbolname)
-					   "s")
-					  (t "r"))))
-    (cedet-gnu-global-call (list (concat flgs scopeflgs stflag)
-								 searchtext))))
+	 (fset 'cedet-gnu-global-search 'cedet-gnu-global-search-fset)
+	 ))
 
-(fset 'cedet-gnu-global-search 'cedet-gnu-global-search-fset)
+
 
 
 (defun semantic-symref-hit-to-tag-via-buffer-fset (hit searchtxt searchtype &optional open-buffers)
@@ -1737,7 +1781,7 @@ If FULL is t, copy full file name."
 						   'mouse-face 'highlight
 						   'face nil
 						   'action 'semantic-symref-rb-goto-match
-						   'tag tag
+						   'tag tag
 						   'line (car hits))
 			(setq text (cdr text)
 				  hits (cdr hits))))))
@@ -2165,7 +2209,6 @@ If FULL is t, copy full file name."
 			(setq-local indent-tabs-mode nil)
 			(irony-mode)
 			(irony--mode-exit)
-			(eldoc-mode 0)
 			(company-mode 1)
 			(abbrev-mode 0)
 			;; (flycheck-mode 1)
