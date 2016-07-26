@@ -1,0 +1,400 @@
+						   dired-listing-switches " '{}' &")))
+		 (with-current-buffer (get-buffer-create buffer-name)
+		   (switch-to-buffer (current-buffer))
+		   (widen)
+		   (kill-all-local-variables)
+		   (if (fboundp 'read-only-mode)
+			   (read-only-mode -1)
+			 (setq buffer-read-only nil))
+		   (let ((inhibit-read-only t)) (erase-buffer))
+		   (setq default-directory dir)
+		   (run-hooks 'dired-before-readin-hook)
+		   (shell-command cmd (current-buffer))
+		   (insert "  " dir ":\n")
+		   (insert "  " cmd "\n")
+		   (dired-mode dir)
+		   (let ((map (make-sparse-keymap)))
+			 (set-keymap-parent map (current-local-map))
+			 (define-key map "\C-c\C-k" 'ag/kill-process)
+			 (use-local-map map))
+		   (set (make-local-variable 'dired-sort-inhibit) t)
+		   (set (make-local-variable 'revert-buffer-function)
+				`(lambda (ignore-auto noconfirm)
+				   (ag-dired-regexp ,orig-dir ,regexp)))
+		   (if (fboundp 'dired-simple-subdir-alist)
+			   (dired-simple-subdir-alist)
+			 (set (make-local-variable 'dired-subdir-alist)
+				  (list (cons default-directory (point-min-marker)))))
+		   (let ((proc (get-buffer-process (current-buffer))))
+			 (set-process-filter proc #'ag/dired-filter)
+			 (set-process-sentinel proc #'ag/dired-sentinel)
+			 ;; Initialize the process marker; it is used by the filter.
+			 (move-marker (process-mark proc) 1 (current-buffer)))
+		   (setq mode-line-process '(":%s")))))
+	 
+	 (fset 'ag-dired-regexp 'ag-dired-regexp-fset)
+
+	 (defvar ag-search-cnt 0 "search cnt")
+	 (defun ag/buffer-name-fset (search-string directory regexp)
+	   "Return a buffer name formatted according to ag.el conventions."
+	   (cond
+		(ag-reuse-buffers "*ag search*")
+		(regexp (format "*ag regexp:%s %d*" search-string (setq ag-search-cnt (1+ ag-search-cnt))))
+		(:else (format "*ag:%s %d*" search-string (setq ag-search-cnt (1+ ag-search-cnt))))))
+	 (fset 'ag/buffer-name 'ag/buffer-name-fset)
+	 ))
+
+;; magit
+(setenv "GIT_ASKPASS" "git-gui--askpass") ;解决git push不提示密码的问题
+(setenv "SSH_ASKPASS" "git-gui--askpass")
+(setenv "GIT_SSH" "c:/Program Files (x86)/PuTTY/plink.exe")
+;; 要想保存密码不用每次输入得修改.git-credentials和.gitconfig
+;; 解决magit和服务器的乱码问题，不需要在.gitconfig中改118n的配置(比如配置成gb2312)
+(defun my-git-commit-hook ()
+  (set-buffer-file-coding-system 'utf-8-unix))
+(add-hook 'magit-mode-hook 'my-git-commit-hook)
+(add-hook 'magit-status-mode-hook 'my-git-commit-hook)
+(add-hook 'git-commit-mode-hook 'my-git-commit-hook)
+
+;; (require 'magit)
+(autoload 'magit-status "magit" nil t)
+(autoload 'magit-dispatch-popup "magit" nil t)
+(autoload 'magit-blame "magit" nil t)
+(autoload 'magit-log-buffer-file "magit" nil t)
+
+(global-set-key (kbd "C-x g") 'magit-status)
+(global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
+(global-set-key (kbd "C-x t g") 'magit-blame)
+(global-set-key (kbd "C-x t l") 'magit-log-buffer-file)
+
+(eval-after-load "magit"
+  '(progn
+	 (defadvice magit-blame-format-time-string (before magit-blame-format-time-strin-bef activate)
+	 	   ""
+	 	   (setq tz 0))))
+
+;; purpose
+(autoload 'purpose-mode "window-purpose" nil t)
+(global-set-key (kbd "<C-f10>") 'purpose-mode)
+
+;; func args
+;; (autoload 'fa-show "function-args" nil t)
+;; (autoload 'moo-jump-local "function-args" nil t)
+
+;; (global-set-key (kbd "<M-S-return>") 'fa-show)
+
+;; 星际译王
+(defun kid-sdcv-to-buffer (&optional input)
+  (interactive "P")
+  (let ((word (if mark-active
+                  (buffer-substring-no-properties (region-beginning) (region-end))
+				(current-word nil t))))
+	(if input
+		(setq word (read-string (format "Search the dictionary for (default %s): " word)
+								nil nil word)))
+    
+    (set-buffer (get-buffer-create "*sdcv*"))
+    (buffer-disable-undo)
+    (erase-buffer)
+	(message "searching for %s ..." word)
+
+    (let ((process (start-process  "sdcv" "*sdcv*"  "sdcv" "-n" "--utf8-input" "--utf8-output" word)))
+      (set-process-sentinel
+       process
+       (lambda (process signal)
+         (when (memq (process-status process) '(exit signal))
+           (unless (string= (buffer-name) "*sdcv*")
+             (setq kid-sdcv-window-configuration (current-window-configuration))
+             (switch-to-buffer-other-window "*sdcv*")
+             (local-set-key (kbd "RET") 'kid-sdcv-to-buffer)
+             (local-set-key (kbd ",") (lambda ()
+                                        (interactive)
+										(quit-window t))));; quit-window t 可以关闭窗口并恢复原先窗口布局,但是buffer被kill
+           (goto-char (point-min))
+		   (open-line 1)))))))
+
+(global-set-key (kbd "<M-f11>") 'kid-sdcv-to-buffer)
+
+;; ac-clang
+;; (eval-after-load "cc-mode"
+;;   '(progn
+;; 	 ;; (setq ac-clang-debug-log-buffer-p t)
+;; 	 ;; (setq ac-clang-debug-log-buffer-size (* 1024 1024))
+;; 	 (require 'ac-clang);也受^M的影响
+;; 	 (setq ac-clang-async-autocompletion-automatically-p nil)
+;; 	 (setq ac-clang-async-autocompletion-manualtrigger-key "M-n")
+;; 	 (setq w32-pipe-read-delay 0)          ;; <- Windows Only
+;; 	 (when (ac-clang-initialize)
+;; 	   (add-hook 'c-mode-common-hook '(lambda ()
+;; 										;; (setq ac-clang-cflags CFLAGS)
+;; 										(ac-clang-activate-after-modify)
+;; 										;; (define-key ac-mode-map (kbd "M-.") 'ac-clang-jump-smart)
+;; 										(define-key ac-mode-map (kbd "M-.") nil)
+;; 										(define-key ac-mode-map (kbd "M-,") nil)
+;; 										(define-key ac-mode-map (kbd "C-c `") 'ac-clang-diagnostics)
+;; 										(define-key ac-mode-map (kbd "M-g j") 'flymake-goto-next-error)
+;; 										(define-key ac-mode-map (kbd "M-g k") 'flymake-goto-prev-error)
+;; 										)))
+;; 	 ;; minibuf中显示flymake信息
+;; 	 ;; (custom-set-variables
+;; 	 ;;  '(help-at-pt-display-when-idle '(flymake-overlay)))
+;; 	 (defun ac-clang-activate-fset ()
+;; 	   (interactive)
+
+;; 	   (remove-hook 'first-change-hook 'ac-clang-activate t)
+
+;; 	   (unless ac-clang--activate-p
+;; 		 ;; (if ac-clang--activate-buffers
+;; 		 ;;  (ac-clang-update-cflags)
+;; 		 ;;   (ac-clang-initialize))
+
+;; 		 (setq ac-clang--activate-p t)
+;; 		 (setq ac-clang--session-name (buffer-file-name))
+;; 		 (setq ac-clang--suspend-p nil)
+;; 		 (setq ac-clang--ac-sources-backup ac-sources)
+;; 		 ;; (setq ac-sources '(ac-source-clang-async))
+;; 		 (setq ac-sources (append '(ac-source-clang-async) ac-sources))
+;; 		 (push (current-buffer) ac-clang--activate-buffers)
+
+;; 		 (ac-clang--send-create-session-request)
+
+;; 		 (while ac-clang-async-autocompletion-automatically-p
+;; 		   (local-set-key (kbd ".") 'ac-clang-async-autocomplete-autotrigger)
+;; 		   (local-set-key (kbd ">") 'ac-clang-async-autocomplete-autotrigger)
+;; 		   (local-set-key (kbd ":") 'ac-clang-async-autocomplete-autotrigger))
+;; 		 (local-set-key (kbd ac-clang-async-autocompletion-manualtrigger-key) 'ac-clang-async-autocomplete-manualtrigger)
+
+;; 		 (add-hook 'before-save-hook 'ac-clang-suspend nil t)
+;; 		 ;; (add-hook 'after-save-hook 'ac-clang-deactivate nil t)
+;; 		 ;; (add-hook 'first-change-hook 'ac-clang-activate nil t)
+;; 		 ;; (add-hook 'before-save-hook 'ac-clang-reparse-buffer nil t)
+;; 		 ;; (add-hook 'after-save-hook 'ac-clang-reparse-buffer nil t)
+;; 		 (add-hook 'before-revert-hook 'ac-clang-deactivate nil t)
+;; 		 (add-hook 'kill-buffer-hook 'ac-clang-deactivate nil t)))
+
+;; 	 (fset 'ac-clang-activate 'ac-clang-activate-fset)
+	 
+;; 	 (defadvice ac-clang-jump-smart (before ac-clang-jump-smart-mru activate)
+;; 	   ""
+;; 	   (ring-insert semantic-tags-location-ring (point-marker)))))
+
+
+
+;; 显示搜索index
+(require 'anzu)
+(global-anzu-mode +1)
+(setq anzu-search-threshold 200) ;;防止大文件搜索时很卡
+(global-set-key (kbd "M-%") 'anzu-query-replace)
+(global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
+
+;; (autoload 'helm-do-pt "helm-pt" nil t)
+;; (autoload 'helm-projectile-pt "helm-pt" nil t)
+
+;; tabbar
+(require 'tabbar )
+(tabbar-mode)
+(global-set-key (kbd "<C-tab>") 'tabbar-forward-tab)
+(global-set-key (kbd "<C-S-tab>") 'tabbar-backward-tab)
+
+(defun tabbar-ruler-group-user-buffers-helper-dired ()
+  (list (cond ((string-equal "*" (substring (buffer-name) 0 1)) "emacs's buffers")
+			  (t "user's buffers"))))
+(setq tabbar-buffer-groups-function 'tabbar-ruler-group-user-buffers-helper-dired)
+
+
+(autoload 'swift-mode "swift-mode" nil t)
+
+;; ycmd
+;; 文件中不能有当前编码无法识别的字符，否则ycmd会出错
+;; 会报(wrong-type-argument number-or-marker-p nil)错误
+;; 解决办法：c-x RET f输入utf-8回车，会提示乱码的位置
+;; (require 'ycmd-next-error)
+
+;; (require 'ycmd)
+;; (add-hook 'after-init-hook #'global-ycmd-mode)
+
+;; (require 'company-ycmd)
+;; (company-ycmd-setup)
+;; (require 'flycheck-ycmd)
+;; (flycheck-ycmd-setup)
+;; (require 'ycmd-eldoc)
+;; (add-hook 'ycmd-mode-hook 'ycmd-eldoc-setup)
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;
+(autoload 'ycmd-mode "ycmd" nil t)
+(autoload 'global-ycmd-mode "ycmd" nil t)
+
+(global-set-key (kbd "M-.") (lambda () "" (interactive)
+							  (require 'ycmd )
+							  (unless ycmd-mode (ycmd-mode 1))
+							  (ycmd-goto)
+							  ))
+(global-set-key (kbd "M-p") (lambda () "" (interactive)
+							  (require 'ycmd )
+							  (unless ycmd-mode (ycmd-mode 1))
+							  (ycmd-get-type)
+							  ))
+
+(global-set-key (kbd "<S-return>") 'company-ycmd)
+(global-set-key (kbd "C-.") 'ycmd-get-parent)	 
+(global-set-key (kbd "C-c p") 'ycmd-parse-buffer)
+(global-set-key (kbd "C-c t") 'ycmd-fixit)
+
+;; -u解决hang的问题
+(set-variable 'ycmd-server-command '("python" "-u" "D:/ycmd/ycmd/"))
+(set-variable 'ycmd-global-config "~/.ycm_extra_conf.py")
+(setq ycmd-extra-conf-handler 'load)
+;; (setq ycmd--log-enabled t)
+(setq url-show-status nil)
+;; (setq ycmd-request-message-level -1)
+(setq request-message-level -1)
+(defadvice ycmd-goto (before ycmd-goto-mru activate)
+  	   ""
+  	   (message "ycmd-goto")
+  	   (ring-insert semantic-tags-location-ring (point-marker)))
+
+(eval-after-load "ycmd"
+  '(progn
+	 (message "ycmd")
+	 (add-hook 'c-mode-common-hook 'ycmd-mode)
+	 (require 'company-ycmd)  
+	 (company-ycmd-setup)
+
+	 (defun company-ycmd-semantic-complete ()
+	   (interactive)
+	   (let ((ycmd-force-semantic-completion t))
+		 (company-complete)))
+	 (global-set-key (kbd "<M-S-return>") 'company-ycmd-semantic-complete)
+	 
+	 (require 'flycheck-ycmd)
+	 ;; 下面函数有bug，由于路径中存在反斜杠导致flycheck的错误无法显示
+	 (defun flycheck-ycmd--result-to-error-fset (result checker)
+	   "Convert ycmd parse RESULT for CHECKER into a flycheck error object."
+	   (let-alist result
+		 (when (string-equal (replace-regexp-in-string "\\\\" "/" .location.filepath ) (buffer-file-name))
+		   (flycheck-error-new
+			:line .location.line_num
+			:column .location.column_num
+			:buffer (current-buffer)
+			:filename .location.filepath
+			:message (concat .text (when (eq .fixit_available t) " (FixIt)"))
+			:checker checker
+			:level (assoc-default .kind flycheck-ycmd--level-map 'string-equal 'error)))))
+	 (fset 'flycheck-ycmd--result-to-error 'flycheck-ycmd--result-to-error-fset)
+	 (flycheck-ycmd-setup)
+	 (flycheck-mode 1)
+
+	 ;; (add-hook 'ycmd-file-parse-result-hook 'flycheck-ycmd--cache-parse-results)
+	 ;; (add-to-list 'flycheck-checkers 'ycmd)
+	 ;; (require 'ycmd-eldoc)
+	 ;; (add-hook 'ycmd-mode-hook 'ycmd-eldoc-setup)
+
+	 ;; (setq ycmd-force-semantic-completion t)
+	 ))
+
+
+
+;; ycmd.el中修改min_num_of_chars_for_completion为2
+;; max_diagnostics_to_display要改大
+
+;; hl-anything
+(autoload 'hl-highlight-thingatpt-local "hl-anything" nil t)
+(autoload 'hl-highlight-thingatpt-global "hl-anything" nil t)
+(autoload 'hl-find-next-thing "hl-anything" nil t)
+(autoload 'hl-find-prev-thing "hl-anything" nil t)
+
+;; (global-set-key (kbd "<M-f8>") 'hl-highlight-thingatpt-local)
+;; (global-set-key (kbd "<f8>") 'hl-find-next-thing)
+;; (global-set-key (kbd "<S-f8>") 'hl-find-prev-thing)
+;; (global-set-key (kbd "<C-f8>") 'hl-unhighlight-all-local)
+
+
+(eval-after-load "hl-anything"
+  '(progn
+	 (hl-highlight-mode 1)
+	 (hl-paren-mode 1)
+	 (setq hl-highlight-cycle-search t)
+	 ))
+
+;; imenu list
+(autoload 'imenu-list-minor-mode "imenu-list" nil t)
+(eval-after-load "imenu-list"
+  '(progn
+	 (setq imenu-list-focus-after-activation t)
+	 (setq imenu-list-auto-resize t)))
+(global-set-key (kbd "M-q") #'imenu-list-minor-mode)
+;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
+
+;;-----------------------------------------------------------define func begin----------------------------------------------------;;
+;; 资源管理器中打开
+(defun open-in-desktop-select (&optional dired)
+  (interactive "P")
+  (let ((file (buffer-name)))
+	(if dired
+		;; (setq file (dired-get-filename 'no-dir)) ;xp
+		(setq file (replace-regexp-in-string "/" "\\\\" (dired-get-filename) )) ;win7
+	  ;; (setq file (file-name-nondirectory (buffer-file-name) )) ;xp
+	  (setq file (replace-regexp-in-string "/" "\\\\" (buffer-file-name) ))) ;win7
+	(call-process-shell-command (concat "explorer" "/select," file))
+	)
+  )
+
+
+(defun open-in-desktop-select-dired(arg)
+  (interactive "P")
+  (open-in-desktop-select t)
+  )
+
+;; toggle hide/show #if
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (define-key c-mode-base-map (kbd "C-{") 'my-hif-toggle-block)
+            ))
+
+;;; for hideif
+(defun my-hif-toggle-block ()
+  "toggle hide/show-ifdef-block --lgfang"
+  (interactive)
+  (require 'hideif)
+  (let* ((top-bottom (hif-find-ifdef-block))
+         (top (car top-bottom)))
+    (goto-char top)
+    (hif-end-of-line)
+    (setq top (point))
+    (if (hif-overlay-at top)
+        (show-ifdef-block)
+      (hide-ifdef-block))))
+
+(defun hif-overlay-at (position)
+  "An imitation of the one in hide-show --lgfang"
+  (let ((overlays (overlays-at position))
+        ov found)
+    (while (and (not found) (setq ov (car overlays)))
+      (setq found (eq (overlay-get ov 'invisible) 'hide-ifdef)
+            overlays (cdr overlays)))
+    found))
+
+;; #if 0灰色
+(defun my-c-mode-font-lock-if0 (limit)
+  (save-restriction
+	(widen)
+	(save-excursion
+	  (goto-char (point-min))
+	  (let ((depth 0) str start start-depth)
+		(while (re-search-forward "^\\s-*#\\s-*\\(if\\|else\\|endif\\)" limit 'move)
+		  (setq str (match-string 1))
+		  (if (string= str "if")
+			  (progn
+				(setq depth (1+ depth))
+				(when (and (null start) (looking-at "\\s-+0"))
+				  (setq start (match-end 0)
+						start-depth depth)))
+			(when (and start (= depth start-depth))
+			  (c-put-font-lock-face start (match-beginning 0) 'shadow)
+			  (setq start nil))
+			(when (string= str "endif")
+			  (setq depth (1- depth)))))
+		(when (and start (> depth 0))
+		  (c-put-font-lock-face start (point) 'shadow)))))
+  nil)
+
