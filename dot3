@@ -1,0 +1,400 @@
+(autoload 'helm-show-kill-ring "helm-config" nil t)
+(autoload 'helm-semantic-or-imenu "helm-config" nil t)
+(autoload 'helm-for-files "helm-config" nil t)
+(autoload 'helm-resume "helm-config" nil t)
+(autoload 'helm-M-x "helm-config" nil t)
+
+(autoload 'helm-gtags-mode "helm-gtags" nil t)
+(autoload 'helm-gtags-select "helm-gtags" nil t)
+(autoload 'helm-gtags-select-path "helm-gtags" nil t)
+(autoload 'helm-gtags-find-tag "helm-gtags" nil t)
+(autoload 'helm-gtags-find-files "helm-gtags" nil t)
+(autoload 'helm-gtags-create-tags "helm-gtags" nil t)
+(autoload 'helm-gtags-update-tags "helm-gtags" nil t)
+
+(define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
+
+(autoload 'helm-occur "helm-gtags" nil t)
+(autoload 'helm-swoop "helm-swoop" nil t)
+(autoload 'helm-swoop-from-isearch "helm-swoop" nil t)
+
+(autoload 'helm-ag-this-file "helm-ag" nil t)
+
+
+(eval-after-load "helm"
+  '(progn
+	 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebihnd tab to do persistent action
+	 (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
+	 (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
+	 ))
+
+(global-set-key (kbd "C-S-v") 'helm-show-kill-ring)
+(global-set-key (kbd "<apps>") 'helm-semantic-or-imenu)
+(global-set-key (kbd "<C-apps>") 'helm-for-files)
+(global-set-key (kbd "<S-apps>") 'helm-resume)
+(global-set-key (kbd "<M-apps>") 'helm-ag-this-file)
+(global-set-key (kbd "M-]") 'helm-swoop)
+(global-set-key (kbd "M-X") 'helm-M-x)
+
+(global-set-key (kbd "C-c b") 'helm-gtags-find-files)
+(global-set-key (kbd "C-c B") 'gtags-find-file)
+(global-set-key (kbd "C-c d") 'helm-gtags-find-tag)
+(global-set-key (kbd "<f6>") 'helm-gtags-select-path)
+(global-set-key (kbd "<f7>") 'helm-gtags-select)
+(global-set-key (kbd "<S-f5>") 'helm-gtags-create-tags)
+(global-set-key (kbd "<f5>") 'helm-gtags-update-tags)
+
+(eval-after-load "helm-gtags"
+  '(progn
+	 (gtags-mode 1)
+	 (define-key helm-gtags-mode-map (kbd "C-]") nil)
+	 (define-key helm-gtags-mode-map (kbd "C-t") nil)
+	 (define-key helm-gtags-mode-map (kbd "M-*") nil)
+	 (define-key helm-gtags-mode-map (kbd "M-,") nil)
+	 (define-key helm-gtags-mode-map (kbd "M-.") nil)
+	 ;; (define-key helm-gtags-mode-map (kbd "C-c s") nil)
+	 (define-key helm-gtags-mode-map (kbd "C-c t") nil)
+	 ;; (define-key helm-gtags-mode-map (kbd "C-c s") 'helm-gtags-find-symbol)
+	 (define-key helm-gtags-mode-map (kbd "C-\\") 'helm-gtags-dwim)
+	 (define-key helm-gtags-mode-map (kbd "C-<") 'helm-gtags-previous-history)
+	 (define-key helm-gtags-mode-map (kbd "C->") 'helm-gtags-next-history)
+	 (define-key helm-gtags-mode-map (kbd "C-|") 'helm-gtags-find-tag-other-window)
+	 (define-key helm-gtags-mode-map (kbd "C-M-,") 'helm-gtags-show-stack)
+	 ))
+
+(add-hook 'helm-update-hook
+		  (lambda ()
+			(setq truncate-lines t)))
+;; 自定义的mru
+(defvar semantic-tags-location-ring (make-ring 30))
+;; cflow 只能显示calling tree
+;; (autoload 'cflow-mode "cflow-mode")
+
+;; (setq auto-mode-alist (append auto-mode-alist
+;; 							  '(("\\.cflow$" . cflow-mode))))
+;; (defvar cmd nil nil)
+;; (defvar cflow-buf nil nil)
+;; (defvar cflow-buf-name nil nil)
+
+;; (defun yyc/cflow-function (function-name)
+;;   "Get call graph of inputed function. "
+;; 										;(interactive "sFunction name:\n")
+;;   (interactive (list (car (senator-jump-interactive "Function name: "
+;;                                                     nil nil nil))))
+;;   (setq cmd (format "cflow  -bT --number --main=%s %s" function-name buffer-file-name))
+;;   (setq cflow-buf-name (format "**cflow-%s:%s**"
+;;                                (file-name-nondirectory buffer-file-name)
+;;                                function-name))
+;;   (setq cflow-buf (get-buffer-create cflow-buf-name))
+;;   (set-buffer cflow-buf)
+;;   (setq buffer-read-only nil)
+;;   (erase-buffer)
+;;   (insert (shell-command-to-string cmd))
+;;   (pop-to-buffer cflow-buf)
+;;   (goto-char (point-min))
+;;   (cflow-mode)
+;;   (toggle-truncate-lines 1)
+;;   )
+
+;; (global-set-key (kbd "<C-f11>") 'yyc/cflow-function)
+
+;; cscope 不能识别extern "C"包裹的函数
+;; (require 'xcscope )
+;; (cscope-setup)
+;; (require 'rscope )
+(eval-after-load "xcscope"
+  '(progn
+	 (setq cscope-suppress-user-symbol-prompt t)
+	 (define-key cscope-minor-mode-keymap [(shift button3)] nil)
+	 (define-key cscope-minor-mode-keymap [mouse-3] nil)
+	 (define-key cscope-minor-mode-keymap [S-mouse-3] nil)))
+
+
+(defadvice cscope-call (before cscope-call-mru activate)
+  ""
+  (ring-insert semantic-tags-location-ring (point-marker))
+  (window-configuration-to-register :prev-win-layout))
+
+(defadvice cscope-bury-buffer (after cscope-bury-buffer-after activate)
+  ""
+  (jump-to-register :prev-win-layout))
+
+(defun rscope-all-symbol-assignments-fset (symbol)
+  "10 -> 9"
+  (interactive (rscope-interactive
+				(list (cons "Find all assignments of symbol: " (current-word)))))
+  (rscope-handle-query (concat "9" symbol "\n")))
+
+(fset 'rscope-all-symbol-assignments 'rscope-all-symbol-assignments-fset)
+
+;; flycheck
+;; (defvar package-user-dir "")			;防止check lisp出错
+(autoload 'flycheck-mode "flycheck" nil t)
+(global-set-key (kbd "M-g l") 'flycheck-list-errors)
+(global-set-key (kbd "<M-f5>") (lambda () "" (interactive)
+								 ;; (require 'irony-cdb nil t)
+								 ;; (irony-mode)
+								 ;; (irony--mode-exit)
+								 (unless flycheck-mode (flycheck-mode 1))
+								 (flycheck-buffer)
+								 ))
+
+;; irony-mode
+(eval-after-load "cc-mode"
+  '(progn
+	 (require 'irony-cdb nil t)
+	 (require 'irony-eldoc )
+	 (eldoc-mode 0)
+	 ))
+
+(eval-after-load "irony"
+  '(progn
+	 (defun my-irony-mode-hook ()
+	   (define-key irony-mode-map [remap completion-at-point]
+		 'irony-completion-at-point-async)
+	   (define-key irony-mode-map [remap complete-symbol]
+		 'irony-completion-at-point-async))
+	 (add-hook 'irony-mode-hook 'my-irony-mode-hook)
+	 (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+	 (add-hook 'irony-mode-hook 'irony-eldoc)
+	 (setq w32-pipe-read-delay 0)
+	 (setq process-adaptive-read-buffering nil)
+	 (require 'flycheck-irony )
+	 (add-to-list 'flycheck-checkers 'irony)
+	 (fset 'irony--send-parse-request 'irony--send-parse-request-fset)
+	 (require 'irony-cdb nil t)
+	 (require 'irony-eldoc )
+	 (eldoc-mode 0)
+	 ))
+
+(defun irony--send-parse-request-fset (request callback &rest args)
+  "Send a request that acts on the current buffer to irony-server.
+This concerns mainly irony-server commands that do some work on a
+translation unit for libclang, the unsaved buffer data are taken
+care of."
+  (let ((process (irony--get-server-process-create))
+        (argv (append (list request
+                            "--num-unsaved=1"
+                            (irony--get-buffer-path-for-server))
+                      args))
+        (compile-options (irony--adjust-compile-options)))
+    (when (and process (process-live-p process))
+      (irony--server-process-push-callback process callback)
+      ;; skip narrowing to compute buffer size and content
+      (irony--without-narrowing
+	   ;; always make sure to finish with a newline (required by irony-server
+	   ;; to play nice with line buffering even when the file doesn't end with
+	   ;; a newline)
+	   ;;
+	   ;; it is important to send the request atomically rather than using
+	   ;; multiple process-send calls. On Windows at least, if the request is
+	   ;; not atomic, content from subsequent requests can get intermixed with
+	   ;; earlier requests. This may be because of how Emacs behaves when the
+	   ;; buffers to communicate with processes are full (see
+	   ;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Input-to-Processes.html).
+	   (message "send buffer")
+	   (process-send-string process
+							(format "%s\n%s\n%s\n%d\n%s\n"
+									(combine-and-quote-strings argv)
+									(combine-and-quote-strings compile-options)
+									buffer-file-name
+									(irony--buffer-size-in-bytes)
+									(string-as-unibyte (buffer-substring-no-properties (point-min) (point-max)))))))))
+;; 行号性能改善
+(require 'nlinum )
+(global-nlinum-mode 1)
+;; Preset `nlinum-format' for minimum width.
+(defun my-nlinum-mode-hook ()
+  (when nlinum-mode
+    (setq-local nlinum-format
+                (concat "%" (number-to-string
+                             ;; Guesstimate number of buffer lines.
+                             (ceiling (log (max 1 (/ (buffer-size) 80)) 10)))
+                        "d"))))
+(add-hook 'nlinum-mode-hook #'my-nlinum-mode-hook)
+;; 避免 “ERROR: Invalid face: linum” error
+(defun initialize-nlinum (&optional frame)
+  (require 'nlinum)
+  (add-hook 'prog-mode-hook 'nlinum-mode))
+(when (daemonp)
+  (add-hook 'window-setup-hook 'initialize-nlinum)
+  (defadvice make-frame (around toggle-nlinum-mode compile activate)
+	(nlinum-mode -1) ad-do-it (nlinum-mode 1)))
+
+;; lua mode
+(autoload 'lua-mode "lua-mode" "Lua editing mode." t)
+(add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
+(add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
+
+;; markdown mode
+(autoload 'markdown-mode "markdown-mode"
+  "Major mode for editing Markdown files" t)
+(add-to-list 'auto-mode-alist '("\\.text\\'" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+
+;; 打开大文件
+(require 'vlf-setup)
+(eval-after-load "vlf"
+  '(progn
+	 (setq vlf-tune-enabled 'stats)
+	 (define-key vlf-prefix-map (kbd "C-c j") vlf-mode-map)))
+
+(defadvice vlf (after vlf-after activate)
+   	   ""
+   	   (remove-dos-eol)
+	   (nlinum-mode 1)
+	   (anzu-mode 1))
+
+;; ace
+(define-key cua--cua-keys-keymap [(meta v)] nil)
+(autoload 'ace-window "ace-window" nil t)
+(autoload 'ace-jump-char-mode "ace-jump-mode" nil t)
+
+(eval-after-load "ace-window"
+  '(progn
+	 (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))))
+
+(eval-after-load "ace-jump-mode"
+  '(progn
+	 (setq ace-jump-mode-move-keys (loop for i from ?a to ?z collect i))))
+
+(global-set-key (kbd "M-v") 'ace-window)
+(global-set-key (kbd "M-j") 'ace-jump-char-mode)
+
+
+;; 查看diff
+(require 'diff-hl-margin )
+(global-diff-hl-mode)
+;; (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+;; (autoload 'diff-hl-dired-mode "diff-hl-margin" nil t)
+;; (autoload 'turn-on-diff-hl-mode "diff-hl-margin" nil t)
+(autoload 'diff-hl-flydiff-mode "diff-hl-flydiff" nil t)
+;; (diff-hl-flydiff-mode 1)
+;; (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
+;; (add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode)
+(defun diff-hl-changes-fset ()
+  (let* ((file buffer-file-name)
+         (backend (vc-backend file)))
+    (when backend
+      (let ((state (cond
+					 ((eq 'SVN backend) (vc-svn-state file))
+					 ((eq 'Git backend) (vc-git-state file))
+					 (t (vc-state file backend))
+					 )))
+        (cond
+         ((diff-hl-modified-p state)
+          (let* (diff-auto-refine-mode res)
+            (with-current-buffer (diff-hl-changes-buffer file backend)
+              (goto-char (point-min))
+              (unless (eobp)
+                (ignore-errors
+                  (diff-beginning-of-hunk t))
+                (while (looking-at diff-hunk-header-re-unified)
+                  (let ((line (string-to-number (match-string 3)))
+                        (len (let ((m (match-string 4)))
+                               (if m (string-to-number m) 1)))
+                        (beg (point)))
+                    (diff-end-of-hunk)
+                    (let* ((inserts (diff-count-matches "^\\+" beg (point)))
+                           (deletes (diff-count-matches "^-" beg (point)))
+                           (type (cond ((zerop deletes) 'insert)
+                                       ((zerop inserts) 'delete)
+                                       (t 'change))))
+                      (when (eq type 'delete)
+                        (setq len 1)
+                        (cl-incf line))
+                      (push (list line len type) res))))))
+            (nreverse res)))
+         ((eq state 'added)
+          `((1 ,(line-number-at-pos (point-max)) insert)))
+         ((eq state 'removed)
+          `((1 ,(line-number-at-pos (point-max)) delete))))))))
+
+(fset 'diff-hl-changes 'diff-hl-changes-fset)
+;; wgrep
+(autoload 'wgrep-setup "wgrep")
+(add-hook 'grep-setup-hook 'wgrep-setup)
+(setq wgrep-enable-key "r")
+
+(autoload 'wgrep-pt-setup "wgrep-pt")
+(add-hook 'pt-search-mode-hook 'wgrep-pt-setup)
+
+;; refactor
+;; (autoload 'srefactor-refactor-at-point "srefactor" nil t)
+;; (global-set-key (kbd "C-.") 'srefactor-refactor-at-point)
+
+;; 括号
+;; (require 'autopair)
+;; (autopair-global-mode)
+
+;; mode line
+(require 'rich-minority)
+(rich-minority-mode 1)
+
+;; pt
+(autoload 'pt-regexp "pt" nil t)
+
+;; fast silver searcher
+(autoload 'my-ag "ag" nil t)
+(autoload 'ag-this-file "ag" nil t)
+(autoload 'ag-dired "ag" nil t)
+(autoload 'ag-dired-regexp "ag" nil t)
+
+(global-set-key (kbd "<f9>") 'ag-this-file)
+(global-set-key (kbd "<C-f9>") 'my-ag)
+(global-set-key (kbd "<S-f6>") 'vc-git-grep) ;速度最快,区分大小写
+(global-set-key (kbd "<S-f9>") 'ag-dired)
+;; C-c C-k 停止ag-dired
+
+(autoload 'wgrep-ag-setup "wgrep-ag")
+(add-hook 'ag-mode-hook 'wgrep-ag-setup)
+
+(eval-after-load "ag"
+  '(progn
+	 (require 'grep )
+	 (defun my-ag (string directory)
+	   ""
+	   (interactive (list (grep-read-regexp)
+						  (read-directory-name "Directory: ")))
+	   (ag/search string directory))
+
+	 (defun my-ag-project (string)
+	   ""
+	   (interactive (list (grep-read-regexp)))
+	   (ag/search string (ag/project-root default-directory)))
+	 
+	 (defun ag-this-file (string file-regex directory)
+	   ""
+	   (interactive (list (grep-read-regexp)
+						  (setq file-regex (list :file-regex
+												 (concat "/" (file-name-nondirectory (buffer-file-name) ) "$")))
+						  (setq directory default-directory)))
+	   (setq arg-bak ag-arguments)
+	   (add-to-list 'ag-arguments "-u")
+	   (apply #'ag/search string directory file-regex)
+	   (setq ag-arguments arg-bak))
+
+	 (defun ag/kill-process-fset ()
+	   ""
+	   (interactive)
+	   (let ((ag (get-buffer-process (current-buffer))))
+		 (and ag (eq (process-status ag) 'run)
+			  ;; (eq (process-filter ag) (function find-dired-filter))
+			  (condition-case nil
+				  (delete-process ag)
+				(error nil)))))
+	 (fset 'ag/kill-process 'ag/kill-process-fset)
+
+	 (defun ag-dired-regexp-fset (dir regexp)
+	   ""
+	   (interactive "DDirectory: \nsFile regexp: ")
+	   (let* ((dired-buffers dired-buffers) ;; do not mess with regular dired buffers
+			  (orig-dir dir)
+			  (dir (file-name-as-directory (expand-file-name dir)))
+			  (buffer-name (if ag-reuse-buffers
+							   "*ag dired*"
+							 (format "*ag dired pattern:%s dir:%s*" regexp dir)))
+			  (cmd (concat ag-executable " --nocolor -ui -g \"" regexp "\" "
+						   (shell-quote-argument dir)
+						   " | grep -v \"^$\" | sed 's:\\\\:\\\\\\\\:g' | xargs -I '{}' ls "
