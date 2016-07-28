@@ -14,6 +14,9 @@
 					(font-spec :family "宋体" :size 16)))
 
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+;; spacemacs theme setting
+(setq spacemacs-theme-comment-bg nil)
+(setq spacemacs-theme-org-highlight t)
 ;;-----------------------------------------------------------设置-----------------------------------------------------------;;
 ;; 只有一个实例
 (server-force-delete)
@@ -27,9 +30,14 @@
 (setenv "LLVM" "C:\\Program Files (x86)\\LLVM\\bin")
 (setenv "CMAKE" "C:\\Program Files (x86)\\CMake\\bin")
 (setenv "GTAGSBIN" "c:\\gtags\\bin")
-(setenv "PYTHON" "C:\\Python34")
+(setenv "PYTHON" "C:\\Python34")		;用27的话ycmd可以使用semantic补全
 (setenv "CYGWIN" "C:\\cygwin\\bin")
+(setenv "CPPCHECK" "C:\\Program Files (x86)\\Cppcheck")
+;; (setenv "LC_ALL" "C")			   ;for diff-hl in emacs25
 ;; (setenv "GTAGSLABEL" "pygments")
+
+;; (setq python-shell-prompt-detect-enabled nil) ;用python27时需要加这个不然有warning
+
 
 (setenv "PATH"
 		(concat
@@ -49,6 +57,8 @@
 		 path-separator
 		 (getenv "CYGWIN")
 		 path-separator
+		 (getenv "CPPCHECK")
+		 path-separator
 		 (getenv "PATH")))
 
 (add-to-list 'exec-path (getenv "MINGW") t)
@@ -58,6 +68,7 @@
 (add-to-list 'exec-path (getenv "GTAGSBIN") t)
 (add-to-list 'exec-path (getenv "PYTHON") t)
 (add-to-list 'exec-path (getenv "CYGWIN") t)
+(add-to-list 'exec-path (getenv "CPPCHECK") t)
 
 
 (defvar site-lisp-dir)
@@ -87,24 +98,17 @@
 
 ;; Load CEDET offical
 (if (eq 24 emacs-major-version)
-	(load-file "d:/cedet-git/cedet-devel-load.el")
-  (progn
+	(load-file "d:/cedet-git/cedet-devel-load.el") ;; Load CEDET offical
+  (progn								;; cedet builtin
 	(require 'semantic )
 	(require 'semantic/decorate )
 	(require 'srecode)))
-
-
-;; cedet builtin
-;; (require 'semantic )
-;; (require 'semantic/decorate )
-;; (require 'srecode)
 
 ;; (add-to-list 'semantic-default-submodes 'global-semantic-decoration-mode t)
 ;; (add-to-list 'semantic-default-submodes 'global-semantic-stickyfunc-mode t)
 ;; (add-to-list 'semantic-default-submodes 'global-semantic-highlight-edits-mode t)
 
 (global-srecode-minor-mode t)
-
 ;; 设置模板路径,把模板放到"~/.emacs.d/.srecode/"，避免拷来拷去
 (setq srecode-map-load-path (list (expand-file-name "~/.emacs.d/.srecode/")
 								  (srecode-map-base-template-dir)
@@ -122,7 +126,7 @@
 ;; (semanticdb-enable-gnu-global-databases 'c++-mode)
 (set-default 'semantic-case-fold t)
 (setq semantic-c-takeover-hideif t)		;帮助hideif识别#if
-;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils)));用gtags帮助cedet找头文件
+;; (setq ede-locate-setup-options (quote (ede-locate-global ede-locate-idutils))) ;用gtags帮助cedet找头文件
 
 ;; (global-set-key (kbd "M-p") 'semantic-ia-show-summary)
 ;; semantic-ia-show-doc 备用
@@ -198,8 +202,9 @@
 (setq split-width-threshold 9999)	;增大向右分割的要求
 ;; (setq split-height-threshold 0)
 
-;; 自动添加的设置
+;; hi lock颜色
 (setq hi-lock-face-defaults '("hi-yellow" "hi-pink" "hi-green" "hi-blue" "hi-black-b" "hi-blue-b" "hi-red-b" "hi-green-b"))
+;; 自动添加的设置
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -221,21 +226,21 @@
  '(bookmark-save-flag 1)
  '(bookmark-sort-flag nil)
  '(column-number-mode t)
- '(company-idle-delay 0)
- '(company-minimum-prefix-length 99)
+ '(company-idle-delay 0.9)
+ '(company-irony-ignore-case t)
+ '(company-show-numbers t)
  '(company-tooltip-align-annotations t)
  '(company-transformers (quote (company-sort-by-occurrence)))
  '(company-ycmd-request-sync-timeout 0)
  '(compilation-scroll-output t)
  '(compilation-skip-threshold 2)
  '(confirm-kill-emacs (quote y-or-n-p))
- '(cscope-edit-single-match nil)
- '(cscope-indexer-ignored-directories
-   (quote
-	("CVS" "RCS" "SCCS" ".git" ".hg" ".bzr" ".cdv" ".pc" ".svn" "_MTN" "_darcs" "_sgbak" "debian")))
- '(cscope-no-mouse-prompts t)
- '(cscope-option-use-inverted-index t)
  '(cua-mode t nil (cua-base))
+ '(custom-enabled-themes (quote (spacemacs-light)))
+ '(custom-safe-themes
+   (quote
+	("fa2b58bb98b62c3b8cf3b6f02f058ef7827a8e497125de0254f56e373abee088" "bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" "92cfc474738101780aafd15a378bb22476af6e8573daa8031a9e4406b69b9eb8" default)))
+ '(diff-hl-flydiff-delay 4)
  '(dired-dwim-target t)
  '(dired-listing-switches "-alh")
  '(dired-recursive-copies (quote always))
@@ -243,12 +248,13 @@
  '(display-time-mode nil)
  '(ediff-split-window-function (quote split-window-horizontally))
  '(electric-indent-mode t)
- '(electric-pair-inhibit-predicate (quote my-electric-pair-conservative-inhibit))
+ '(electric-pair-mode t)
  '(enable-local-variables :all)
  '(eww-search-prefix "http://cn.bing.com/search?q=")
  '(explicit-shell-file-name "bash")
  '(fa-insert-method (quote name-and-parens-and-hint))
  '(fci-eol-char 32)
+ '(fill-column 120)
  '(flycheck-check-syntax-automatically nil)
  '(flycheck-checker-error-threshold nil)
  '(flycheck-emacs-lisp-load-path (quote inherit))
@@ -257,9 +263,12 @@
  '(flymake-fringe-indicator-position (quote right-fringe))
  '(frame-resize-pixelwise t)
  '(ggtags-highlight-tag-delay 16)
+ '(git-commit-fill-column 200)
+ '(git-commit-summary-max-length 200)
  '(git-gutter:handled-backends (quote (git hg bzr svn)))
  '(git-gutter:update-interval 2)
  '(global-auto-revert-mode t)
+ '(global-eldoc-mode nil)
  '(global-hl-line-sticky-flag t)
  '(grep-template "grep <X> <C> -nH -F <R> <F>")
  '(gtags-ignore-case nil)
@@ -275,7 +284,6 @@
  '(helm-gtags-auto-update t)
  '(helm-gtags-cache-max-result-size 504857600)
  '(helm-gtags-cache-select-result t)
- '(helm-gtags-display-style (quote detail))
  '(helm-gtags-ignore-case t)
  '(helm-gtags-maximum-candidates 2000)
  '(helm-gtags-suggested-key-mapping t)
@@ -286,12 +294,14 @@
 	 (c-mode . semantic-format-tag-uml-prototype-default)
 	 (emacs-lisp-mode . semantic-format-tag-abbreviate-emacs-lisp-mode))))
  '(helm-truncate-lines t t)
- '(horizontal-scroll-bar-mode t)
  '(icomplete-show-matches-on-no-input t)
  '(ido-mode (quote both) nil (ido))
  '(imenu-max-item-length 120)
  '(imenu-max-items 1000)
  '(inhibit-startup-screen t)
+ '(irony-completion-trigger-commands
+   (quote
+	(self-insert-command newline-and-indent c-context-line-break c-electric-brace c-electric-paren c-electric-pound c-electric-semi&comma c-electric-star)))
  '(isearch-allow-scroll t)
  '(jit-lock-context-time 1.5)
  '(jit-lock-defer-time 0.5)
@@ -310,6 +320,8 @@
  '(org-src-fontify-natively t)
  '(password-cache-expiry nil)
  '(pcmpl-gnu-tarfile-regexp "")
+ '(powerline-default-separator (quote box))
+ '(powerline-gui-use-vcs-glyph t)
  '(recentf-auto-cleanup 600)
  '(rm-blacklist
    (quote
@@ -321,12 +333,16 @@
 	("C:/Program Files (x86)/Microsoft Visual Studio 8/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/PlatformSDK/Include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/atlmfc/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/SDK/v2.0/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/atlmfc/include" "C:/cygwin/usr/include" "D:/linux/linux-3.18.3/include/uapi")))
  '(semantic-idle-scheduler-idle-time 10)
  '(semantic-idle-scheduler-max-buffer-size 200000)
+ '(semantic-idle-work-update-headers-flag t)
  '(semantic-imenu-bucketize-file nil)
  '(semantic-imenu-summary-function (quote semantic-format-tag-abbreviate))
  '(semantic-lex-spp-use-headers-flag t)
  '(semantic-symref-results-summary-function (quote semantic-format-tag-abbreviate))
+ '(semanticdb-default-save-directory "d:\\semanticdb")
  '(shell-completion-execonly nil)
  '(show-paren-mode t)
+ '(show-paren-when-point-in-periphery t)
+ '(show-paren-when-point-inside-paren t)
  '(size-indication-mode t)
  '(sln-mode-devenv-2008 "Devenv.com")
  '(switch-window-shortcut-style (quote (quote qwerty)))
@@ -337,17 +353,18 @@
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
  '(user-full-name "gezijian")
  '(vc-svn-program "C:\\Program Files\\TortoiseSVN\\bin\\svn")
+ '(vlf-batch-size 5000000)
  '(which-function-mode t)
  '(whitespace-line-column 120)
  '(winner-mode t)
  '(ycmd-confirm-fixit nil)
- '(ycmd-delete-process-delay 15)
+ '(ycmd-delete-process-delay 40)
  '(ycmd-idle-change-delay 3)
- '(ycmd-keepalive-period 300)
- '(ycmd-parse-conditions (quote (save idle-change buffer-focus)))
+ '(ycmd-keepalive-period 3000)
+ '(ycmd-parse-conditions (quote (save buffer-focus)))
  '(ycmd-seed-identifiers-with-keywords t)
  '(ycmd-server-args (quote ("--idle_suicide_seconds=10800")))
- '(ycmd-startup-timeout 15))
+ '(ycmd-startup-timeout 40))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -370,6 +387,7 @@
   '(progn
 	 (define-key gtags-mode-map [C-down-mouse-1] 'ignore)
 	 (define-key gtags-mode-map [C-down-mouse-3] 'ignore)
+	 (define-key gtags-mode-map [mouse-2] 'gtags-find-tag-by-event)
 	 (define-key gtags-mode-map (kbd "<C-mouse-3>") 'gtags-pop-stack)
 	 (define-key gtags-mode-map (kbd "<C-mouse-1>") 'gtags-find-tag-by-event)
 	 (define-key gtags-mode-map (kbd "C-c i") 'gtags-find-with-idutils)
@@ -378,6 +396,7 @@
 	 (define-key gtags-select-mode-map "q" 'kill-this-buffer)
 	 (define-key gtags-select-mode-map [C-down-mouse-3] 'ignore)
 	 (define-key gtags-select-mode-map [C-down-mouse-1] 'ignore)
+	 (define-key gtags-select-mode-map [mouse-2] 'gtags-select-tag-by-event)
 	 (define-key gtags-select-mode-map (kbd "<C-mouse-3>") 'gtags-pop-stack)
 	 (define-key gtags-select-mode-map (kbd "<C-mouse-1>") 'gtags-select-tag-by-event)
 	 ))
@@ -405,19 +424,20 @@
 
 ;; 工程设置
 (defun create-spec-ede-project (root-file known)
-  (if known
-	  (ede-cpp-root-project "code" :file root-file
-							:include-path '( "/include" "/server" "/upf"
-											 "/upf_dubhe/export" "/UPF_SMI/Include" "/Service/TG/MM/RM/Source/PMM")
-							:spp-files '( "Service/TG/MM/RM/Source/PMM/RMPmm_Const.h"
-										  "Service/TG/MM/RM/Include/RM_switch.h"
-										  "Service/TG/MM/RM/Include/RM_Debug.h"
-										  "ede_switch.h" ;ON OFF宏写成(1)(0)的话不能识别
-										  )
-							:spp-table '(("IN" . "")
-										 ("OUT" . "")
-										 ("INOUT" . "") ;如果在函数参数前加上这样的宏会导致无法识别
-										 ))
+  (when (file-exists-p root-file)
+	(if known
+		(ede-cpp-root-project "code" :file root-file
+							  :include-path '( "/include" "/server" "/upf"
+											   "/upf_dubhe/export" "/UPF_SMI/Include" "/Service/TG/MM/RM/Source/PMM")
+							  :spp-files '( "Service/TG/MM/RM/Source/PMM/RMPmm_Const.h"
+											"Service/TG/MM/RM/Include/RM_switch.h"
+											"Service/TG/MM/RM/Include/RM_Debug.h"
+											"ede_switch.h" ;ON OFF宏写成(1)(0)的话不能识别
+											)
+							  :spp-table '(("IN" . "")
+										   ("OUT" . "")
+										   ("INOUT" . "") ;如果在函数参数前加上这样的宏会导致无法识别
+										   )))
 	(ede-cpp-root-project "code" :file root-file)))
 
 (defun create-known-ede-project(&optional select)
@@ -447,7 +467,6 @@
 (create-spec-ede-project "e:/projects/eNavi2_800X480_ChangeUI/GTAGS" t)
 (create-spec-ede-project "e:/projects/Clarion_13MY_Dev_For_MM/GTAGS" t)
 
-
 ;;auto-complete
 (require 'auto-complete-config)
 (setq ac-fuzzy-enable t)
@@ -464,29 +483,17 @@
   (setq-local ac-sources (delete 'ac-source-gtags ac-sources))
   (setq-local ac-sources (delete 'ac-source-words-in-same-mode-buffers ac-sources))
   (setq-local ac-sources (delete 'ac-source-abbrev ac-sources))
-  ;; (setq-local ac-sources (append '(ac-source-c-headers) ac-sources))
-  ;; (setq-local ac-sources (append '(ac-source-irony) ac-sources))
   (setq-local ac-sources (append '(ac-source-semantic) ac-sources))
   (setq-local ac-sources (append '(ac-source-semantic-raw) ac-sources)) ;;会干扰->成员的补全
   ;; (setq-local ac-sources (append '(ac-source-imenu) ac-sources)) ;;会干扰->成员的补全
   )
-  
+
 (eval-after-load "auto-complete-config"
   '(progn
-	 ;; (require 'auto-complete-c-headers )
-	 ;; (require 'ac-irony)
-	 ;; (message "auto-complete-config")
-
-	 ;; (define-key ac-mode-map  (kbd "M-RET") 'auto-complete)
 	 (define-key ac-completing-map  (kbd "M-s") 'ac-isearch)
-
-	 (ac-config-default)
-	 
+	 (ac-config-default) 
 	 (add-to-list 'ac-modes 'objc-mode)
-
 	 ;; (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
-	 ;; (setq-default ac-sources '(ac-source-dictionary))
-	 ;; (define-key irony-mode-map (kbd "M-p") 'ac-complete-irony-async)
 	 ))
 
 ;; company
@@ -494,34 +501,33 @@
 (eval-after-load "company"
   '(progn
 	 (require 'company-irony nil t )
-	 (require 'company-c-headers nil t )
 	 (setq company-async-timeout 15)
 	 ;; (add-hook 'after-init-hook 'global-company-mode)
 	 (add-to-list 'company-backends 'company-irony)
 	 (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
 	 ;; (global-set-key (kbd "<S-return>") 'company-complete-common)
 	 (global-set-key (kbd "<C-S-return>") 'company-irony)
+
 	 (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
 	 (define-key company-active-map (kbd "M-s") 'company-filter-candidates)
-	 ;; (add-to-list 'company-backends 'company-c-headers)
 	 (defun toggle-company-complete-id (&optional args)
 	   (interactive "P")
 	   (message "company complete id afte %s char" args)
 	   (if args
-		   (setq company-minimum-prefix-length args))
-	   (progn
-		 (if (eq company-minimum-prefix-length 99)
+		   (setq-local company-minimum-prefix-length args)
+		 (progn
+		   (if (eq company-minimum-prefix-length 99)
+			   (progn
+				 (setq-local company-minimum-prefix-length 3))
 			 (progn
-			   (setq company-minimum-prefix-length 3))
-		   (progn
-			 (setq company-minimum-prefix-length 99))
-		   )))
+			   (setq-local company-minimum-prefix-length 99))))
+		 ))
 	 ))
 
 ;;yasnippet
 (autoload 'yas-global-mode "yasnippet" nil t)
 (autoload 'yas-minor-mode "yasnippet" nil t)
-(setq yas-snippet-dirs (concat site-lisp-dir "\\yasnippet-master\\snippets"))
+(setq yas-snippet-dirs (concat site-lisp-dir "\\yasnippet\\snippets"))
 
 (setq yas-glo-on nil)
 (defun yas-glo-on ()
@@ -564,6 +570,31 @@
 
 (defun is-mwheeling()
   (and (eq last-command 'mwheel-scroll) (eq this-command 'mwheel-scroll)))
+
+(defun uninterested-buffer (buffer &optional all)
+  (if all
+	  (or (eq (buffer-local-value 'major-mode buffer) 'dired-mode)
+		  (string-match-p "\*" (buffer-name buffer)))
+	(or (eq (buffer-local-value 'major-mode buffer) 'ag-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'semantic-symref-results-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'diff-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'vc-dir-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'vc-svn-log-view-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'ediff-meta-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'occur-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'Custom-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'help-mode)	
+		(string-match-p "ag dired pattern" (buffer-name buffer))
+		(string-match-p "\*vc\*" (buffer-name buffer))
+		(string-match-p "\*Backtrace\*" (buffer-name buffer))
+		(string-match-p "\*Completions\*" (buffer-name buffer))
+		(string-match-p "\*Cedet\*" (buffer-name buffer))
+		(string-match-p "\*Annotate\*" (buffer-name buffer))
+		(string-match-p "\*Compile-Log\*" (buffer-name buffer))
+		(string-match-p "\*GTAGS SELECT\*" (buffer-name buffer))
+		(string-match-p "\*Calc\*" (buffer-name buffer))
+		(string-match-p "\*magit" (buffer-name buffer))
+		)))
 
 (defun rjs-pre-command-fset ()
   "每个命令执行前执行这个函数"
@@ -764,6 +795,10 @@
 (autoload 'helm-gtags-find-files "helm-gtags" nil t)
 (autoload 'helm-gtags-create-tags "helm-gtags" nil t)
 (autoload 'helm-gtags-update-tags "helm-gtags" nil t)
+(autoload 'helm-gtags-dwim "helm-gtags" nil t)
+(autoload 'helm-gtags-find-rtag "helm-gtags" nil t)
+
+(autoload 'gtags-find-file "gtags" nil t)
 
 (define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
 
@@ -787,7 +822,7 @@
 (global-set-key (kbd "<S-apps>") 'helm-resume)
 (global-set-key (kbd "<M-apps>") 'helm-ag-this-file)
 (global-set-key (kbd "M-]") 'helm-swoop)
-(global-set-key (kbd "C-M-x") 'helm-M-x)
+(global-set-key (kbd "M-X") 'helm-M-x)
 
 (global-set-key (kbd "C-c b") 'helm-gtags-find-files)
 (global-set-key (kbd "C-c B") 'gtags-find-file)
@@ -796,6 +831,8 @@
 (global-set-key (kbd "<f7>") 'helm-gtags-select)
 (global-set-key (kbd "<S-f5>") 'helm-gtags-create-tags)
 (global-set-key (kbd "<f5>") 'helm-gtags-update-tags)
+(global-set-key (kbd "C-\\") 'helm-gtags-dwim)
+(global-set-key (kbd "C-c r") 'helm-gtags-find-rtag)
 
 (eval-after-load "helm-gtags"
   '(progn
@@ -805,9 +842,11 @@
 	 (define-key helm-gtags-mode-map (kbd "M-*") nil)
 	 (define-key helm-gtags-mode-map (kbd "M-,") nil)
 	 (define-key helm-gtags-mode-map (kbd "M-.") nil)
-	 (define-key helm-gtags-mode-map (kbd "C-c s") nil)
 	 (define-key helm-gtags-mode-map (kbd "C-c t") nil)
-	 (define-key helm-gtags-mode-map (kbd "C-c w") 'helm-gtags-find-symbol)
+	 (define-key helm-gtags-mode-map (kbd "C-c s") 'helm-gtags-find-symbol)
+	 (define-key helm-gtags-mode-map (kbd "C-c r") 'helm-gtags-find-rtag)
+	 (define-key helm-gtags-mode-map (kbd "C-c f") 'helm-gtags-parse-file)
+	 (define-key helm-gtags-mode-map (kbd "C-c g") 'helm-gtags-find-pattern)
 	 (define-key helm-gtags-mode-map (kbd "C-\\") 'helm-gtags-dwim)
 	 (define-key helm-gtags-mode-map (kbd "C-<") 'helm-gtags-previous-history)
 	 (define-key helm-gtags-mode-map (kbd "C->") 'helm-gtags-next-history)
@@ -818,78 +857,18 @@
 (add-hook 'helm-update-hook
 		  (lambda ()
 			(setq truncate-lines t)))
-
-;; cflow 只能显示calling tree
-;; (autoload 'cflow-mode "cflow-mode")
-
-;; (setq auto-mode-alist (append auto-mode-alist
-;; 							  '(("\\.cflow$" . cflow-mode))))
-;; (defvar cmd nil nil)
-;; (defvar cflow-buf nil nil)
-;; (defvar cflow-buf-name nil nil)
-
-;; (defun yyc/cflow-function (function-name)
-;;   "Get call graph of inputed function. "
-;; 										;(interactive "sFunction name:\n")
-;;   (interactive (list (car (senator-jump-interactive "Function name: "
-;;                                                     nil nil nil))))
-;;   (setq cmd (format "cflow  -bT --number --main=%s %s" function-name buffer-file-name))
-;;   (setq cflow-buf-name (format "**cflow-%s:%s**"
-;;                                (file-name-nondirectory buffer-file-name)
-;;                                function-name))
-;;   (setq cflow-buf (get-buffer-create cflow-buf-name))
-;;   (set-buffer cflow-buf)
-;;   (setq buffer-read-only nil)
-;;   (erase-buffer)
-;;   (insert (shell-command-to-string cmd))
-;;   (pop-to-buffer cflow-buf)
-;;   (goto-char (point-min))
-;;   (cflow-mode)
-;;   (toggle-truncate-lines 1)
-;;   )
-
-;; (global-set-key (kbd "<C-f11>") 'yyc/cflow-function)
-
-;; cscope 不能识别extern "C"包裹的函数
-;; (require 'xcscope )
-;; (cscope-setup)
-;; (require 'rscope )
-(eval-after-load "xcscope"
-  '(progn
-	 (setq cscope-suppress-user-symbol-prompt t)
-	 (define-key cscope-minor-mode-keymap [(shift button3)] nil)
-	 (define-key cscope-minor-mode-keymap [mouse-3] nil)
-	 (define-key cscope-minor-mode-keymap [S-mouse-3] nil)))
-
-
-(defadvice cscope-call (before cscope-call-mru activate)
-  ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  (window-configuration-to-register :prev-win-layout))
-
-(defadvice cscope-bury-buffer (after cscope-bury-buffer-after activate)
-  ""
-  (jump-to-register :prev-win-layout))
-
-(defun rscope-all-symbol-assignments-fset (symbol)
-  "10 -> 9"
-  (interactive (rscope-interactive
-				(list (cons "Find all assignments of symbol: " (current-word)))))
-  (rscope-handle-query (concat "9" symbol "\n")))
-
-(fset 'rscope-all-symbol-assignments 'rscope-all-symbol-assignments-fset)
+;; 自定义的mru
+(defvar semantic-tags-location-ring (make-ring 30))
 
 ;; flycheck
-(defvar package-user-dir "")			;防止check lisp出错
+;; (defvar package-user-dir "")			;防止check lisp出错
 (autoload 'flycheck-mode "flycheck" nil t)
 (global-set-key (kbd "M-g l") 'flycheck-list-errors)
 (global-set-key (kbd "<M-f5>") (lambda () "" (interactive)
 								 ;; (require 'irony-cdb nil t)
-								 ;; (require 'irony-eldoc )
 								 ;; (irony-mode)
 								 ;; (irony--mode-exit)
 								 (unless flycheck-mode (flycheck-mode 1))
-								 ;; (eldoc-mode 0)
 								 (flycheck-buffer)
 								 ))
 
@@ -897,8 +876,8 @@
 (eval-after-load "cc-mode"
   '(progn
 	 (require 'irony-cdb nil t)
-	 ;; (require 'irony-eldoc )
-	 ;; (eldoc-mode 0)
+	 (require 'irony-eldoc )
+	 (eldoc-mode 0)
 	 ))
 
 (eval-after-load "irony"
@@ -910,21 +889,19 @@
 		 'irony-completion-at-point-async))
 	 (add-hook 'irony-mode-hook 'my-irony-mode-hook)
 	 (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-	 ;; (add-hook 'irony-mode-hook 'irony-eldoc)
+	 (add-hook 'irony-mode-hook 'irony-eldoc)
 	 (setq w32-pipe-read-delay 0)
 	 (setq process-adaptive-read-buffering nil)
 	 (require 'flycheck-irony )
 	 (add-to-list 'flycheck-checkers 'irony)
 	 (fset 'irony--send-parse-request 'irony--send-parse-request-fset)
 	 (require 'irony-cdb nil t)
-	 ;; (require 'irony-eldoc )
-	 ;; (eldoc-mode 0)
+	 (require 'irony-eldoc )
+	 (eldoc-mode 0)
 	 ))
-
 
 (defun irony--send-parse-request-fset (request callback &rest args)
   "Send a request that acts on the current buffer to irony-server.
-
 This concerns mainly irony-server commands that do some work on a
 translation unit for libclang, the unsaved buffer data are taken
 care of."
@@ -949,7 +926,6 @@ care of."
 	   ;; buffers to communicate with processes are full (see
 	   ;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Input-to-Processes.html).
 	   (message "send buffer")
-
 	   (process-send-string process
 							(format "%s\n%s\n%s\n%d\n%s\n"
 									(combine-and-quote-strings argv)
@@ -960,6 +936,23 @@ care of."
 ;; 行号性能改善
 (require 'nlinum )
 (global-nlinum-mode 1)
+;; Preset `nlinum-format' for minimum width.
+(defun my-nlinum-mode-hook ()
+  (when nlinum-mode
+    (setq-local nlinum-format
+                (concat "%" (number-to-string
+                             ;; Guesstimate number of buffer lines.
+                             (ceiling (log (max 1 (/ (buffer-size) 80)) 10)))
+                        "d"))))
+(add-hook 'nlinum-mode-hook #'my-nlinum-mode-hook)
+;; 避免 “ERROR: Invalid face: linum” error
+(defun initialize-nlinum (&optional frame)
+  (require 'nlinum)
+  (add-hook 'prog-mode-hook 'nlinum-mode))
+(when (daemonp)
+  (add-hook 'window-setup-hook 'initialize-nlinum)
+  (defadvice make-frame (around toggle-nlinum-mode compile activate)
+	(nlinum-mode -1) ad-do-it (nlinum-mode 1)))
 
 ;; lua mode
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
@@ -977,7 +970,14 @@ care of."
 (require 'vlf-setup)
 (eval-after-load "vlf"
   '(progn
-	 (define-key vlf-prefix-map (kbd "C-c v") vlf-mode-map)))
+	 (setq vlf-tune-enabled 'stats)
+	 (define-key vlf-prefix-map (kbd "C-c j") vlf-mode-map)))
+
+(defadvice vlf (after vlf-after activate)
+  ""
+  (remove-dos-eol)
+  (nlinum-mode 1)
+  (anzu-mode 1))
 
 ;; ace
 (define-key cua--cua-keys-keymap [(meta v)] nil)
@@ -999,22 +999,26 @@ care of."
 ;; 查看diff
 (require 'diff-hl-margin )
 (global-diff-hl-mode)
+;; (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
 ;; (autoload 'diff-hl-dired-mode "diff-hl-margin" nil t)
 ;; (autoload 'turn-on-diff-hl-mode "diff-hl-margin" nil t)
-
+(autoload 'diff-hl-flydiff-mode "diff-hl-flydiff" nil t)
+;; (diff-hl-flydiff-mode 1)
 ;; (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
 ;; (add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode)
 (defun diff-hl-changes-fset ()
   (let* ((file buffer-file-name)
          (backend (vc-backend file)))
     (when backend
-      (let ((state (if (eq 'SVN backend)
-					   (vc-svn-state file)
-					 (vc-state file backend))))
+      (let ((state (cond
+					((eq 'SVN backend) (vc-svn-state file))
+					((eq 'Git backend) (vc-git-state file))
+					(t (vc-state file backend))
+					)))
         (cond
-		 ((diff-hl-modified-p state)
-		  (let* (diff-auto-refine-mode res)
-			(with-current-buffer (diff-hl-changes-buffer file backend)
+         ((diff-hl-modified-p state)
+          (let* (diff-auto-refine-mode res)
+            (with-current-buffer (diff-hl-changes-buffer file backend)
               (goto-char (point-min))
               (unless (eobp)
                 (ignore-errors
@@ -1046,17 +1050,15 @@ care of."
 (add-hook 'grep-setup-hook 'wgrep-setup)
 (setq wgrep-enable-key "r")
 
-;; refactor
-;; (autoload 'srefactor-refactor-at-point "srefactor" nil t)
-;; (global-set-key (kbd "C-.") 'srefactor-refactor-at-point)
-
-;; 括号
-(require 'autopair)
-(autopair-global-mode)
+(autoload 'wgrep-pt-setup "wgrep-pt")
+(add-hook 'pt-search-mode-hook 'wgrep-pt-setup)
 
 ;; mode line
 (require 'rich-minority)
 (rich-minority-mode 1)
+
+;; pt
+(autoload 'pt-regexp "pt" nil t)
 
 ;; fast silver searcher
 (autoload 'my-ag "ag" nil t)
@@ -1066,6 +1068,7 @@ care of."
 
 (global-set-key (kbd "<f9>") 'ag-this-file)
 (global-set-key (kbd "<C-f9>") 'my-ag)
+(global-set-key (kbd "<S-f6>") 'vc-git-grep) ;速度最快,区分大小写
 (global-set-key (kbd "<S-f9>") 'ag-dired)
 ;; C-c C-k 停止ag-dired
 
@@ -1178,23 +1181,26 @@ care of."
 (add-hook 'magit-status-mode-hook 'my-git-commit-hook)
 (add-hook 'git-commit-mode-hook 'my-git-commit-hook)
 
-;; (require 'magit)
 (autoload 'magit-status "magit" nil t)
 (autoload 'magit-dispatch-popup "magit" nil t)
-(global-set-key (kbd "C-x t g") 'magit-blame)
-(global-set-key (kbd "C-x t l") 'magit-log-buffer-file)
+(autoload 'magit-blame "magit" nil t)
+(autoload 'magit-log-buffer-file "magit" nil t)
 
 (global-set-key (kbd "C-x g") 'magit-status)
 (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
+(global-set-key (kbd "C-x t g") 'magit-blame)
+(global-set-key (kbd "C-x t l") 'magit-log-buffer-file)
+
+;; 避免时区差8小时
+(eval-after-load "magit"
+  '(progn
+	 (defadvice magit-blame-format-time-string (before magit-blame-format-time-strin-bef activate)
+	   ""
+	   (setq tz 0))))
 
 ;; purpose
 (autoload 'purpose-mode "window-purpose" nil t)
 (global-set-key (kbd "<C-f10>") 'purpose-mode)
-
-;; func args
-;; (autoload 'fa-show "function-args" nil t)
-;; (global-set-key (kbd "<M-S-return>") 'fa-show)
-;; (autoload 'moo-jump-local "function-args" nil t)
 
 ;; 星际译王
 (defun kid-sdcv-to-buffer (&optional input)
@@ -1228,69 +1234,6 @@ care of."
 
 (global-set-key (kbd "<M-f11>") 'kid-sdcv-to-buffer)
 
-;; ac-clang
-;; (eval-after-load "cc-mode"
-;;   '(progn
-;; 	 ;; (setq ac-clang-debug-log-buffer-p t)
-;; 	 ;; (setq ac-clang-debug-log-buffer-size (* 1024 1024))
-;; 	 (require 'ac-clang);也受^M的影响
-;; 	 (setq ac-clang-async-autocompletion-automatically-p nil)
-;; 	 (setq ac-clang-async-autocompletion-manualtrigger-key "M-n")
-;; 	 (setq w32-pipe-read-delay 0)          ;; <- Windows Only
-;; 	 (when (ac-clang-initialize)
-;; 	   (add-hook 'c-mode-common-hook '(lambda ()
-;; 										;; (setq ac-clang-cflags CFLAGS)
-;; 										(ac-clang-activate-after-modify)
-;; 										(define-key ac-mode-map (kbd "M-.") 'ac-clang-jump-smart)
-;; 										(define-key ac-mode-map (kbd "M-,") nil)
-;; 										(define-key ac-mode-map (kbd "C-c `") 'ac-clang-diagnostics)
-;; 										(define-key ac-mode-map (kbd "M-g j") 'flymake-goto-next-error)
-;; 										(define-key ac-mode-map (kbd "M-g k") 'flymake-goto-prev-error)
-;; 										)))
-;; 	 ;; minibuf中显示flymake信息
-;; 	 ;; (custom-set-variables
-;; 	 ;;  '(help-at-pt-display-when-idle '(flymake-overlay)))
-;; 	 (fset 'ac-clang-activate 'ac-clang-activate-fset)
-
-;; 	 (defadvice ac-clang-jump-smart (before ac-clang-jump-smart-mru activate)
-;; 	   ""
-;; 	   (ring-insert semantic-tags-location-ring (point-marker)))))
-
-;; (defun ac-clang-activate-fset ()
-;;   (interactive)
-
-;;   (remove-hook 'first-change-hook 'ac-clang-activate t)
-
-;;   (unless ac-clang--activate-p
-;;     ;; (if ac-clang--activate-buffers
-;;     ;;  (ac-clang-update-cflags)
-;;     ;;   (ac-clang-initialize))
-
-;;     (setq ac-clang--activate-p t)
-;;     (setq ac-clang--session-name (buffer-file-name))
-;;     (setq ac-clang--suspend-p nil)
-;;     (setq ac-clang--ac-sources-backup ac-sources)
-;;     ;; (setq ac-sources '(ac-source-clang-async))
-;; 	(setq ac-sources (append '(ac-source-clang-async) ac-sources))
-
-;;     (push (current-buffer) ac-clang--activate-buffers)
-
-;;     (ac-clang--send-create-session-request)
-
-;; 	(while ac-clang-async-autocompletion-automatically-p
-;; 	  (local-set-key (kbd ".") 'ac-clang-async-autocomplete-autotrigger)
-;; 	  (local-set-key (kbd ">") 'ac-clang-async-autocomplete-autotrigger)
-;; 	  (local-set-key (kbd ":") 'ac-clang-async-autocomplete-autotrigger))
-;;     (local-set-key (kbd ac-clang-async-autocompletion-manualtrigger-key) 'ac-clang-async-autocomplete-manualtrigger)
-
-;;     (add-hook 'before-save-hook 'ac-clang-suspend nil t)
-;;     ;; (add-hook 'after-save-hook 'ac-clang-deactivate nil t)
-;;     ;; (add-hook 'first-change-hook 'ac-clang-activate nil t)
-;;     ;; (add-hook 'before-save-hook 'ac-clang-reparse-buffer nil t)
-;;     ;; (add-hook 'after-save-hook 'ac-clang-reparse-buffer nil t)
-;;     (add-hook 'before-revert-hook 'ac-clang-deactivate nil t)
-;;     (add-hook 'kill-buffer-hook 'ac-clang-deactivate nil t)))
-
 ;; 显示搜索index
 (require 'anzu)
 (global-anzu-mode +1)
@@ -1298,8 +1241,17 @@ care of."
 (global-set-key (kbd "M-%") 'anzu-query-replace)
 (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
 
-;; (autoload 'helm-do-pt "helm-pt" nil t)
-;; (autoload 'helm-projectile-pt "helm-pt" nil t)
+;; anzu mode-line不显示括号
+(defun anzu--update-mode-line-default-fset (here total)
+  (when anzu--state
+    (let ((status (cl-case anzu--state
+                    (search (format "%s/%d%s"
+                                    (anzu--format-here-position here total)
+                                    total (if anzu--overflow-p "+" "")))
+                    (replace-query (format "%d replace" total))
+                    (replace (format "%d/%d" here total)))))
+      (propertize status 'face 'anzu-mode-line))))
+(fset 'anzu--update-mode-line-default 'anzu--update-mode-line-default-fset)
 
 ;; tabbar
 (require 'tabbar )
@@ -1316,6 +1268,10 @@ care of."
 (autoload 'swift-mode "swift-mode" nil t)
 
 ;; ycmd
+;; 文件中不能有当前编码无法识别的字符，否则ycmd会出错
+;; 会报(wrong-type-argument number-or-marker-p nil)错误
+;; 解决办法：c-x RET f输入utf-8回车，会提示乱码的位置
+
 (autoload 'ycmd-mode "ycmd" nil t)
 (autoload 'global-ycmd-mode "ycmd" nil t)
 
@@ -1331,15 +1287,17 @@ care of."
 							  ))
 
 (global-set-key (kbd "<S-return>") 'company-ycmd)
+(global-set-key (kbd "C-.") 'ycmd-get-parent)	 
 (global-set-key (kbd "C-c p") 'ycmd-parse-buffer)
+(global-set-key (kbd "C-c t") 'ycmd-fixit)
 
 ;; -u解决hang的问题
-(set-variable 'ycmd-server-command '("python" "-u" "D:/ycmd/ycmd"))
+(set-variable 'ycmd-server-command '("python" "-u" "D:/ycmd/ycmd/"))
 (set-variable 'ycmd-global-config "~/.ycm_extra_conf.py")
-;; (set-variable 'ycmd-extra-conf-whitelist '("~/my_projects/*"))
 (setq ycmd-extra-conf-handler 'load)
+;; (setq ycmd--log-enabled t)
 (setq url-show-status nil)
-(setq ycmd-request-message-level -1)
+;; (setq ycmd-request-message-level -1)
 (setq request-message-level -1)
 (defadvice ycmd-goto (before ycmd-goto-mru activate)
   ""
@@ -1349,9 +1307,16 @@ care of."
 (eval-after-load "ycmd"
   '(progn
 	 (message "ycmd")
-	 (add-hook 'c-mode-common-hook 'ycmd-mode)
-	 (require 'company-ycmd)
+	 (global-ycmd-mode 1)
+	 (require 'company-ycmd)  
 	 (company-ycmd-setup)
+
+	 (defun company-ycmd-semantic-complete ()
+	   (interactive)
+	   (let ((ycmd-force-semantic-completion t))
+		 (company-complete)))
+	 (global-set-key (kbd "<M-S-return>") 'company-ycmd-semantic-complete)
+	 
 	 (require 'flycheck-ycmd)
 	 ;; 下面函数有bug，由于路径中存在反斜杠导致flycheck的错误无法显示
 	 (defun flycheck-ycmd--result-to-error-fset (result checker)
@@ -1366,28 +1331,18 @@ care of."
 			:message (concat .text (when (eq .fixit_available t) " (FixIt)"))
 			:checker checker
 			:level (assoc-default .kind flycheck-ycmd--level-map 'string-equal 'error)))))
-
 	 (fset 'flycheck-ycmd--result-to-error 'flycheck-ycmd--result-to-error-fset)
-	 
 	 (flycheck-ycmd-setup)
 	 (flycheck-mode 1)
-	 ;; Make sure the flycheck cache sees the parse results
-	 ;; (add-hook 'ycmd-file-parse-result-hook 'flycheck-ycmd--cache-parse-results)
-	 ;; Add the ycmd checker to the list of available checkers
-	 ;; (add-to-list 'flycheck-checkers 'ycmd)
+
 	 ;; (require 'ycmd-eldoc)
 	 ;; (add-hook 'ycmd-mode-hook 'ycmd-eldoc-setup)
 
 	 ;; (setq ycmd-force-semantic-completion t)
-	 (defun company-ycmd-complete ()
-	   (interactive)
-	   (let ((ycmd-force-semantic-completion t))
-		 (company-complete)))
-	 
-	 (global-set-key (kbd "C-.") 'ycmd-get-parent)
-
-
 	 ))
+
+;; ycmd.el中修改min_num_of_chars_for_completion为2
+;; max_diagnostics_to_display要改大
 
 ;; imenu list
 (autoload 'imenu-list-minor-mode "imenu-list" nil t)
@@ -1396,6 +1351,107 @@ care of."
 	 (setq imenu-list-focus-after-activation t)
 	 (setq imenu-list-auto-resize t)))
 (global-set-key (kbd "M-q") #'imenu-list-minor-mode)
+
+;; spacemacs
+(require 'spaceline-config)
+;; (spaceline-spacemacs-theme)
+;; (spaceline-emacs-theme)
+(spaceline-helm-mode 1)
+(spaceline-info-mode 1)
+(setq anzu-cons-mode-line-p nil)		;防止有两个anzu
+
+;; 用diminish控制minor mode的显示
+(require 'diminish)
+;; (eval-after-load "auto-complete" '(diminish 'auto-complete-mode))
+(eval-after-load "anzu" '(diminish 'anzu-mode))
+(eval-after-load "company" '(diminish 'company-mode " Comp"))
+(eval-after-load "hideif" '(diminish 'hide-ifdef-mode))
+(eval-after-load "hideshow" '(diminish 'hs-minor-mode))
+(eval-after-load "helm-gtags" '(diminish 'helm-gtags-mode))
+(eval-after-load "irony" '(diminish 'irony-mode))
+(eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
+
+;; 鼠标指向dos处时，弹出文件编码信息
+(spaceline-define-segment buffer-encoding-abbrev-mouse
+  "The line ending convention used in the buffer with mouse prompt of buffer encoding info."
+  (let ((buf-coding (format "%s" buffer-file-coding-system)))
+    (if (string-match "\\(dos\\|unix\\|mac\\)" buf-coding)
+        (setq buf-coding (match-string 1 buf-coding))
+      buf-coding)
+	(propertize buf-coding
+				'help-echo (if buffer-file-coding-system
+							   (format "Buffer coding system (%s): %s
+mouse-1: Describe coding system
+mouse-3: Set coding system"
+									   (if enable-multibyte-characters "multi-byte" "unibyte")
+									   (symbol-name buffer-file-coding-system))
+							 "Buffer coding system: none specified"))))
+
+;; 让which-func强制刷新
+(spaceline-define-segment which-function-ignore-active
+  (when (bound-and-true-p which-function-mode)
+    (let* ((current (format-mode-line which-func-current)))
+      (when (string-match "{\\(.*\\)}" current)
+        (setq current (match-string 1 current)))
+      (propertize current
+                  'local-map which-func-keymap
+                  'face 'which-func
+                  'mouse-face 'mode-line-highlight
+                  'help-echo "mouse-1: go to beginning\n\
+mouse-2: toggle rest visibility\n\
+mouse-3: go to end"))))
+
+;; 自定义theme使用上面两个segment
+(defun spaceline--theme-mod (left second-left &rest additional-segments)
+  "Convenience function for the spacemacs and emacs themes."
+  (spaceline-install `(,left
+					   anzu
+					   auto-compile
+					   ,second-left
+					   major-mode
+					   (process :when active)
+					   ((flycheck-error flycheck-warning flycheck-info)
+						:when active)
+					   (minor-modes :when active)
+					   (mu4e-alert-segment :when active)
+					   (erc-track :when active)
+					   (version-control :when active)
+					   (org-pomodoro :when active)
+					   (org-clock :when active)
+					   nyan-cat)
+
+					 `(which-function-ignore-active
+					   (python-pyvenv :fallback python-pyenv)
+					   (battery :when active)
+					   selection-info
+					   input-method
+					   ((buffer-encoding-abbrev-mouse
+						 point-position
+						 line-column)
+						:separator " | ")
+					   (global :when active)
+					   ,@additional-segments
+					   buffer-position
+					   hud))
+
+  (setq-default mode-line-format '("%e" (:eval (spaceline-ml-main)))))
+
+(defun spaceline-emacs-theme-mod (&rest additional-segments)
+  "Install a modeline close to the one used by Spacemacs, but which
+looks better without third-party dependencies.
+
+ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
+`buffer-position'."
+  (apply 'spaceline--theme-mod
+         '(((((persp-name :fallback workspace-number)
+              window-number) :separator "|")
+            buffer-modified
+            buffer-size)
+           :face highlight-face)
+         '(buffer-id remote-host)
+         additional-segments))
+
+(spaceline-emacs-theme-mod)
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin----------------------------------------------------;;
@@ -1489,7 +1545,8 @@ Replaces default behaviour of comment-dwim, when it inserts comment at the end o
 	  (comment-or-uncomment-region (line-beginning-position) (line-end-position))
 	(comment-dwim arg)))
 
-(global-set-key "\M-'" 'qiang-comment-dwim-line)
+(global-set-key "\M-'" 'qiang-comment-dwim-line) ;; 已有comment-line c-x c-;代替
+
 
 ;; 拷贝代码自动格式化默认是粘贴完后按c-m-\会格式化粘贴内容)
 (dolist (command '(yank yank-pop))
@@ -1784,7 +1841,7 @@ If FULL is t, copy full file name."
 						   'mouse-face 'highlight
 						   'face nil
 						   'action 'semantic-symref-rb-goto-match
-						   'tag tag
+						   'tag tag
 						   'line (car hits))
 			(setq text (cdr text)
 				  hits (cdr hits))))))
@@ -1891,8 +1948,6 @@ If FULL is t, copy full file name."
 	(message "Gathering References for %s ..." symbol)
 	(setq res (semantic-symref-find-text symbol))
 	(semantic-symref-produce-list-on-results res symbol)))
-;; 自定义的mru
-(defvar semantic-tags-location-ring (make-ring 30))
 
 (defun semantic-pop-tag-mark ()             
   "popup the tag save by semantic-goto-definition"   
@@ -2018,30 +2073,6 @@ If FULL is t, copy full file name."
 
 (global-set-key (kbd "C-_") 'set-c-word-mode)
 
-(defun uninterested-buffer (buffer &optional all)
-  (if all
-	  (or (eq (buffer-local-value 'major-mode buffer) 'dired-mode)
-		  (string-match-p "\*" (buffer-name buffer)))
-	(or (eq (buffer-local-value 'major-mode buffer) 'ag-mode)
-		(eq (buffer-local-value 'major-mode buffer) 'semantic-symref-results-mode)
-		(eq (buffer-local-value 'major-mode buffer) 'diff-mode)
-		(eq (buffer-local-value 'major-mode buffer) 'vc-dir-mode)
-		(eq (buffer-local-value 'major-mode buffer) 'vc-svn-log-view-mode)
-		(eq (buffer-local-value 'major-mode buffer) 'ediff-meta-mode)
-		(eq (buffer-local-value 'major-mode buffer) 'occur-mode)
-		(eq (buffer-local-value 'major-mode buffer) 'Custom-mode)
-		(eq (buffer-local-value 'major-mode buffer) 'help-mode)	
-		(string-match-p "ag dired pattern" (buffer-name buffer))
-		(string-match-p "\*vc\*" (buffer-name buffer))
-		(string-match-p "\*Backtrace\*" (buffer-name buffer))
-		(string-match-p "\*Completions\*" (buffer-name buffer))
-		(string-match-p "\*Cedet\*" (buffer-name buffer))
-		(string-match-p "\*Annotate\*" (buffer-name buffer))
-		(string-match-p "\*Compile-Log\*" (buffer-name buffer))
-		(string-match-p "\*GTAGS SELECT\*" (buffer-name buffer))
-		(string-match-p "\*Calc\*" (buffer-name buffer))
-		(string-match-p "\*magit" (buffer-name buffer))
-		)))
 (defun kill-spec-buffers ()
   ""
   (interactive)
@@ -2078,12 +2109,13 @@ If FULL is t, copy full file name."
 	(setq-local jit-lock-defer-time 5)
 	(setq-local font-lock-maximum-decoration 2)
 	(font-lock-refresh-defaults)
-	(setq semantic-idle-scheduler-idle-time 20)
-	;; (font-lock-add-keywords nil;这个不要打开，会影响性能
+	(setq-local semantic-idle-scheduler-idle-time 20)
+	(setq-local company-minimum-prefix-length 99)
+	;; (font-lock-add-keywords nil ;这个不要打开，会影响性能
 	;; 						'(("\\(\\_<\\(\\w\\|\\s_\\)+\\_>\\)[ 	]*("
 	;; 						   1  zjl-c-hl-function-call-face keep))
 	;; 						1)
-	;; (font-lock-add-keywords;这个不要打开，会影响性能
+	;; (font-lock-add-keywords ;这个不要打开，会影响性能
 	;;  nil
 	;;  '((my-c-mode-font-lock-if0 (0 shadow prepend))) 'add-to-end)
 	;; (font-lock-mode -1 )
@@ -2093,13 +2125,6 @@ If FULL is t, copy full file name."
 ;; 大文件不开semantic
 ;; (add-to-list 'semantic-inhibit-functions
 ;;              (lambda () (< (* 400 1024) (buffer-size))))
-
-(defun which-func-update-fset ()
-  ;; "Update the Which-Function mode display for all windows."
-  (walk-windows 'which-func-update-1 nil 'visible))
-;; (which-func-update-1 (selected-window)))
-
-(fset 'which-func-update 'which-func-update-fset)
 
 (defun unix-to-dos-trim-M ()
   (interactive)
@@ -2212,11 +2237,13 @@ If FULL is t, copy full file name."
 			(setq-local indent-tabs-mode nil)
 			(irony-mode)
 			(irony--mode-exit)
+			(eldoc-mode 0)
 			(company-mode 1)
 			(abbrev-mode 0)
 			;; (flycheck-mode 1)
 			(yas-glo-on)
 			(check-large-file-hook)
+			(srecode-minor-mode 1)
 			(font-lock-add-keywords nil
 									'(("\\(\\_<\\(\\w\\|\\s_\\)+\\_>\\)[ 	]*("
 									   1  zjl-c-hl-function-call-face keep))
@@ -2232,13 +2259,6 @@ If FULL is t, copy full file name."
 			(yas-glo-on)
 			(hs-minor-mode 1)
 			))
-
-(dolist (hook '(c-mode-common-hook lua-mode-hook objc-mode-hook project-buffer-mode-hook))
-  (add-hook hook
-			(lambda()
-			  (gtags-mode 1)
-			  (helm-gtags-mode 1)
-			  )))
 
 (add-hook 'dired-mode-hook
 		  (lambda ()
@@ -2283,14 +2303,23 @@ If FULL is t, copy full file name."
 (add-hook 'font-lock-mode-hook
 		  (lambda () "DOCSTRING" (interactive)
 			(remove-dos-eol)
-			(when which-function-mode
-			  (setq mode-line-misc-info (delete '(which-func-mode
-												  ("" which-func-format " ")) mode-line-misc-info))
-			  (setq mode-line-front-space (append '(which-func-mode
-													("" which-func-format " ")) mode-line-front-space))
-			  )
 			))
 
+(eval-after-load "which-func"
+  '(progn
+	 ;; 保证which-func强制刷新每个窗口
+	 (defun which-func-update-fset ()
+	   ;; "Update the Which-Function mode display for all windows."
+	   (walk-windows 'which-func-update-1 nil 'visible))
+	 ;; (which-func-update-1 (selected-window)))
+
+	 (fset 'which-func-update 'which-func-update-fset)
+
+	 ;; 让which-func在mode line前面显示
+	 (setq mode-line-misc-info (delete '(which-func-mode
+										 ("" which-func-format " ")) mode-line-misc-info))
+	 (setq mode-line-front-space (append '(which-func-mode
+										   ("" which-func-format " ")) mode-line-front-space))))
 ;;-----------------------------------------------------------热键-----------------------------------------------------------;;
 
 ;;修改搜索和保存的快捷键
