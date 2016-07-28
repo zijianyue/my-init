@@ -210,6 +210,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ac-delay 0.5)
  '(ac-disable-faces nil)
  '(ac-expand-on-auto-complete nil)
  '(ac-ignore-case t)
@@ -704,21 +705,7 @@
 (autoload 'fci-mode "fill-column-indicator" "" t)
 (global-set-key (kbd "C-:") 'fci-mode)
 (setq fci-rule-column 120)
-;; (defun fci-all-window-refresh ()
-;;   (setq proced-buf-list nil)	;保存已经处理过的buf
-;;   (walk-windows
-;;    #'(lambda (w)
-;; 	   (select-window w)
-;; 	   (if (or (eq major-mode 'c-mode)
-;; 			   (eq major-mode 'c++-mode))
-;; 		   (progn 
-;; 			 (unless (and (memq (window-buffer) proced-buf-list)
-;; 						  (>= (window-width w) fci-rule-column))
-;; 			   (push (window-buffer) proced-buf-list)
-;; 			   (turn-on-fci-mode)
-;; 			   (if (< (window-width w) fci-rule-column)
-;; 				   (turn-off-fci-mode))))))
-;;    0))
+
 (eval-after-load "fill-column-indicator"
   '(progn
 	 ;; 避免破坏 auto complete
@@ -755,28 +742,6 @@
 	 (add-hook 'company-completion-started-hook 'company-turn-off-fci)
 	 (add-hook 'company-completion-finished-hook 'company-maybe-turn-on-fci)
 	 (add-hook 'company-completion-cancelled-hook 'company-maybe-turn-on-fci)
-
-	 ;; 根据窗口分割情况刷新FCI
-
-	 ;; (defadvice split-window-right (after split-window-right-fci activate)
-	 ;;   ""
-	 ;;   (fci-all-window-refresh))
-
-	 ;; (defadvice delete-other-windows (after delete-other-windows-fci activate)
-	 ;;   ""
-	 ;;   (fci-all-window-refresh))
-
-	 ;; (defadvice mouse-delete-window (after mouse-delete-window-fci activate)
-	 ;;   ""
-	 ;;   (fci-all-window-refresh))
-
-	 ;; (defadvice delete-window (after delete-window-fci activate)
-	 ;;   ""
-	 ;;   (fci-all-window-refresh))
-
-	 ;; (defadvice switch-to-buffer (after switch-to-buffer-fci activate)
-	 ;;   ""
-	 ;;   (fci-all-window-refresh))
 	 ))
 ;; 异步copy rename文件
 (autoload 'dired-async-mode "dired-async.el" nil t)
