@@ -595,6 +595,8 @@
 		(string-match-p "\*GTAGS SELECT\*" (buffer-name buffer))
 		(string-match-p "\*Calc\*" (buffer-name buffer))
 		(string-match-p "\*magit" (buffer-name buffer))
+		(string-match-p "Ilist" (buffer-name buffer))
+		(string-match-p "log-edit-files" (buffer-name buffer))
 		)))
 
 (defun rjs-pre-command-fset ()
