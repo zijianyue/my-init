@@ -210,7 +210,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ac-delay 0.5)
+ '(ac-delay 0.7)
  '(ac-disable-faces nil)
  '(ac-expand-on-auto-complete nil)
  '(ac-ignore-case t)
@@ -349,6 +349,14 @@
  '(switch-window-shortcut-style (quote (quote qwerty)))
  '(tab-width 4)
  '(tabbar-cycle-scope (quote tabs))
+ '(tabbar-ruler-excluded-buffers
+   (quote
+	("*Messages*" "*Completions*" "*ESS*" "*Packages*" "*log-edit-files*" "*helm-mini*" "*helm-mode-describe-variable*" "*helm for files*")))
+ '(tabbar-ruler-fancy-close-image t)
+ '(tabbar-ruler-fancy-current-tab-separator (quote curve))
+ '(tabbar-ruler-fancy-tab-separator (quote chamfer))
+ '(tabbar-ruler-pad-selected nil)
+ '(tabbar-ruler-tab-height nil)
  '(tool-bar-mode nil)
  '(undo-outer-limit 20000000)
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
@@ -377,6 +385,7 @@
  '(helm-selection-line ((t (:background "light steel blue" :underline t))))
  '(tabbar-default ((t (:inherit variable-pitch :background "gray75" :foreground "gray50" :height 0.9))))
  '(tabbar-modified ((t (:inherit tabbar-default :foreground "dark red" :box (:line-width 1 :color "white" :style released-button)))))
+ '(tabbar-selected ((t (:inherit tabbar-default :foreground "#bc6ec5" :box (:line-width 1 :color "white" :style pressed-button) :weight bold))))
  '(zjl-hl-local-variable-reference-face ((t (:foreground "dark slate gray"))))
  '(zjl-hl-member-reference-face ((t (:foreground "dark goldenrod" :slant normal :weight normal)))))
 ;;-----------------------------------------------------------plugin begin-----------------------------------------------------------;;
@@ -528,7 +537,7 @@
 ;;yasnippet
 (autoload 'yas-global-mode "yasnippet" nil t)
 (autoload 'yas-minor-mode "yasnippet" nil t)
-(setq yas-snippet-dirs (concat site-lisp-dir "\\yasnippet\\snippets"))
+(setq yas-snippet-dirs "~/.emacs.d/snippets")
 
 (setq yas-glo-on nil)
 (defun yas-glo-on ()
@@ -804,6 +813,11 @@
 (eval-after-load "helm-gtags"
   '(progn
 	 (gtags-mode 1)
+	 (helm-gtags-mode 1)
+	 (add-hook 'c-mode-common-hook
+			   (lambda ()
+				 (gtags-mode 1)
+				 (helm-gtags-mode 1)))
 	 (define-key helm-gtags-mode-map (kbd "C-]") nil)
 	 (define-key helm-gtags-mode-map (kbd "C-t") nil)
 	 (define-key helm-gtags-mode-map (kbd "M-*") nil)
@@ -1221,8 +1235,9 @@ care of."
 (fset 'anzu--update-mode-line-default 'anzu--update-mode-line-default-fset)
 
 ;; tabbar
-(require 'tabbar )
-(tabbar-mode)
+;; (require 'tabbar )
+;; (tabbar-mode)
+
 (global-set-key (kbd "<C-tab>") 'tabbar-forward-tab)
 (global-set-key (kbd "<C-S-tab>") 'tabbar-backward-tab)
 
@@ -1231,8 +1246,16 @@ care of."
 			  (t "user's buffers"))))
 (setq tabbar-buffer-groups-function 'tabbar-ruler-group-user-buffers-helper-dired)
 
+(setq tabbar-ruler-use-mode-icons nil)
+(require 'tabbar-ruler )
 
-(autoload 'swift-mode "swift-mode" nil t)
+(defadvice enable-theme (after tabbar-ruler-enable-theme-after activate)
+  "Fix the tabbar faces when you change themes."
+  (tabbar-install-faces))
+
+(defadvice disable-theme (after tabbar-ruler-disable-theme-after activate)
+  "Fix the tabbar faces when you change themes."
+  (tabbar-install-faces))
 
 ;; ycmd
 ;; 文件中不能有当前编码无法识别的字符，否则ycmd会出错
@@ -1334,7 +1357,7 @@ care of."
 (eval-after-load "company" '(diminish 'company-mode " Comp"))
 (eval-after-load "hideif" '(diminish 'hide-ifdef-mode))
 (eval-after-load "hideshow" '(diminish 'hs-minor-mode))
-(eval-after-load "helm-gtags" '(diminish 'helm-gtags-mode))
+(eval-after-load "helm-gtags" '(diminish 'helm-gtags-mode " HG"))
 (eval-after-load "irony" '(diminish 'irony-mode))
 (eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
 
@@ -1442,12 +1465,6 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
   )
 
 ;; toggle hide/show #if
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            (define-key c-mode-base-map (kbd "C-{") 'my-hif-toggle-block)
-            ))
-
-;;; for hideif
 (defun my-hif-toggle-block ()
   "toggle hide/show-ifdef-block --lgfang"
   (interactive)
@@ -2216,6 +2233,7 @@ If FULL is t, copy full file name."
 									   1  zjl-c-hl-function-call-face keep))
 									1)
 			;; (superword-mode)                ;连字符不分割单词,影响move和edit，但是鼠标双击选择不管用 ，相对subword-mode
+			(define-key c-mode-base-map (kbd "C-{") 'my-hif-toggle-block)
 			))
 
 (add-hook 'emacs-lisp-mode-hook
