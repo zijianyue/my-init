@@ -14,9 +14,10 @@
 					(font-spec :family "宋体" :size 16)))
 
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+
 ;; spacemacs theme setting
 (setq spacemacs-theme-comment-bg nil)
-(setq spacemacs-theme-org-highlight t)
+(setq spacemacs-theme-org-height nil)
 ;;-----------------------------------------------------------设置-----------------------------------------------------------;;
 ;; 只有一个实例
 (server-force-delete)
@@ -30,13 +31,13 @@
 (setenv "LLVM" "C:\\Program Files (x86)\\LLVM\\bin")
 (setenv "CMAKE" "C:\\Program Files (x86)\\CMake\\bin")
 (setenv "GTAGSBIN" "c:\\gtags\\bin")
-(setenv "PYTHON" "C:\\Python34")		;用27的话ycmd可以使用semantic补全
+(setenv "PYTHON" "C:\\Python27")		;用27的话ycmd可以使用semantic补全
 (setenv "CYGWIN" "C:\\cygwin\\bin")
 (setenv "CPPCHECK" "C:\\Program Files (x86)\\Cppcheck")
 ;; (setenv "LC_ALL" "C")			   ;for diff-hl in emacs25
 ;; (setenv "GTAGSLABEL" "pygments")
 
-;; (setq python-shell-prompt-detect-enabled nil) ;用python27时需要加这个不然有warning
+(setq python-shell-prompt-detect-enabled nil) ;用python27时需要加这个不然有warning
 
 
 (setenv "PATH"
@@ -331,7 +332,7 @@
  '(save-place t nil (saveplace))
  '(semantic-c-dependency-system-include-path
    (quote
-	("C:/Program Files (x86)/Microsoft Visual Studio 8/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/PlatformSDK/Include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/atlmfc/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/SDK/v2.0/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/atlmfc/include" "C:/cygwin/usr/include" "D:/linux/linux-3.18.3/include/uapi")))
+	("C:/Program Files (x86)/Microsoft Visual Studio 8/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/PlatformSDK/Include" "C:/Program Files (x86)/Microsoft Visual Studio 8/VC/atlmfc/include" "C:/Program Files (x86)/Microsoft Visual Studio 8/SDK/v2.0/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/atlmfc/include" "C:/cygwin/usr/include")))
  '(semantic-idle-scheduler-idle-time 10)
  '(semantic-idle-scheduler-max-buffer-size 200000)
  '(semantic-idle-work-update-headers-flag t)
@@ -351,7 +352,7 @@
  '(tabbar-cycle-scope (quote tabs))
  '(tabbar-ruler-excluded-buffers
    (quote
-	("*Messages*" "*Completions*" "*ESS*" "*Packages*" "*log-edit-files*" "*helm-mini*" "*helm-mode-describe-variable*" "*helm for files*")))
+	("*Messages*" "*Completions*" "*ESS*" "*Packages*" "*log-edit-files*" "*helm-mini*" "*helm-mode-describe-variable*" "*helm for files*" "*Ilist*")))
  '(tabbar-ruler-fancy-close-image t)
  '(tabbar-ruler-fancy-current-tab-separator (quote curve))
  '(tabbar-ruler-fancy-tab-separator (quote chamfer))
@@ -806,7 +807,10 @@
 (global-set-key (kbd "<f6>") 'helm-gtags-select-path)
 (global-set-key (kbd "<f7>") 'helm-gtags-select)
 (global-set-key (kbd "<S-f5>") 'helm-gtags-create-tags)
-(global-set-key (kbd "<f5>") 'helm-gtags-update-tags)
+(global-set-key (kbd "<f5>") (lambda () "" (interactive)
+							   (helm-gtags-update-tags)
+							   (if (bound-and-true-p ycmd-mode)
+								   (ycmd-parse-buffer))))
 (global-set-key (kbd "C-\\") 'helm-gtags-dwim)
 (global-set-key (kbd "C-c r") 'helm-gtags-find-rtag)
 
@@ -1301,6 +1305,32 @@ care of."
 	 (require 'company-ycmd)  
 	 (company-ycmd-setup)
 
+	 ;; 起个定时器刷新
+	 (setq reparse-timer (run-at-time 5 3 'reparse-current-buffer))
+
+	 (defun do-reparse ()
+	   (message "do reparse and ycmd timer deactive")
+	   (ycmd--conditional-parse)
+	   (cancel-timer reparse-timer))
+
+	 (defun reparse-current-buffer ()
+	   ""
+	   (interactive "")
+	   (if ycmd-mode
+		   (progn
+			 (message "reparse ycmd timer active")
+			 (cond ((or (eq ycmd--last-status-change 'unparsed)
+						(eq ycmd--last-status-change 'errored))
+					(do-reparse))
+				   ((eq ycmd--last-status-change 'parsed)
+					(cancel-timer reparse-timer))))))
+	 
+	 ;; (add-hook 'c-mode-common-hook
+	 ;; 		   (lambda ()
+	 ;; 			 (setq reparse-timer (run-at-time 5 3 'reparse-current-buffer))
+	 ;; 			 ))
+
+	 ;; 强制使用语法补全，函数参数全局变量都能补
 	 (defun company-ycmd-semantic-complete ()
 	   (interactive)
 	   (let ((ycmd-force-semantic-completion t))
