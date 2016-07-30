@@ -62,6 +62,8 @@ flags = [
   'C:/MinGW/lib/gcc/mingw32/4.8.1/include-fixed',
   '-isystem',
   'C:/MinGW/mingw32/include',
+  '-isystem',
+  'C:/MinGW/include',
   # '-isystem',
   # 'C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include',
   # '-isystem',
