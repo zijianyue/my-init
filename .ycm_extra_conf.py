@@ -33,7 +33,9 @@ flags = [
   '-Wno-exit-time-destructors', 
   '-Wno-missing-prototypes', 
   '-Wno-padded', 
-  '-fexceptions',
+  '-fexceptions',   # 异常不退出
+  '-DNDEBUG',   # 不产生断言
+  '-nostdinc',                  # 不使用默认的系统包含路径，全部依赖自己配，比较清楚
 # THIS IS IMPORTANT! Without a "-std=<something>" flag, clang won't know which
 # language to use when compiling headers. So it will guess. Badly. So C++
 # headers will be compiled as C headers. You don't want that so ALWAYS specify
