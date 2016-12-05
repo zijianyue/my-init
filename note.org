@@ -150,7 +150,7 @@ Pygments version 2.1, (c) 2006-2015 by Georg Brandl.
 先设置(setq-default fill-column 80)，或者用快捷键c-x f，然后选中一段文字m-q
 * ycmd编译
 系统需求：CMAKE PYTHON34或27
-下载ycmd和third-party
+下载ycmd和third-party(这个目录在运行ycmd后会有python lib的cache，比如python3的，如果直接拷贝使用的话，比如ycm_core.pyd是python2编译出来的，就会报错：Ycmd error: ycm_core library compiled for Python 2 but loaded in Python 3.)
 在ycmd下新建目录ycmd-build，进去后起命令行cmake -G "Visual Studio 14" -DPATH_TO_LLVM_ROOT="C:/Program Files (x86)/LLVM" -DUSE_PYTHON2=OFF . ../cpp，成功后会生成一个VS的工程，用VS打开后编译 ycm_core ，成功后会在ycmd根目录下生成 ycm_core.pyd 和 libclang.dll ，这样emacs-ycmd就能用了
 如果有c++ runtime error 把C:\Program Files\CMake\bin下的msvcp120.dll和msvcr120.dll改名(C:\Program Files\ImageMagick-6.9.1-Q16下还有一份)，保证全局只有一份
 

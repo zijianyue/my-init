@@ -22,60 +22,46 @@ import ycm_core
 # compilation database set (by default, one is not set).
 # CHANGE THIS LIST OF FLAGS. YES, THIS IS THE DROID YOU HAVE BEEN LOOKING FOR.
 flags = [
-  '-std=c++11',
-  '-stdlib=libc++', 
-  '-Wno-deprecated-declarations', 
-  '-Wno-disabled-macro-expansion', 
-  '-Wno-float-equal', 
-  '-Wno-c++98-compat', 
-  '-Wno-c++98-compat-pedantic', 
-  '-Wno-global-constructors', 
-  '-Wno-exit-time-destructors', 
-  '-Wno-missing-prototypes', 
-  '-Wno-padded', 
-  '-fexceptions',   # 异常不退出
-  '-DNDEBUG',   # 不产生断言
-  '-nostdinc',                  # 不使用默认的系统包含路径，全部依赖自己配，比较清楚
-# THIS IS IMPORTANT! Without a "-std=<something>" flag, clang won't know which
-# language to use when compiling headers. So it will guess. Badly. So C++
-# headers will be compiled as C headers. You don't want that so ALWAYS specify
-# a "-std=<something>".
-# For a C project, you would set this to something like 'c99' instead of
-# 'c++11'.
-# ...and the same thing goes for the magic -x option which specifies the
-# language that the files to be compiled are written in. This is mostly
-# relevant for c++ headers.
-# For a C project, you would set this to 'c' instead of 'c++'.
+  # THIS IS IMPORTANT! Without a "-std=<something>" flag, clang won't know which
+  # language to use when compiling headers. So it will guess. Badly. So C++
+  # headers will be compiled as C headers. You don't want that so ALWAYS specify
+  # a "-std=<something>".
+  # For a C project, you would set this to something like 'c99' instead of
+  # 'c++11'.
+  # ...and the same thing goes for the magic -x option which specifies the
+  # language that the files to be compiled are written in. This is mostly
+  # relevant for c++ headers.
+  # For a C project, you would set this to 'c' instead of 'c++'.
+  '-std=c++03',
   '-x',
   'c++',
+  '-Weverything',
+  '-Wno-cast-qual',
+  '-Wno-gnu-zero-variadic-macro-arguments',
+  '-ferror-limit=0',
+  '-fexceptions',
+  '-DNDEBUG',
+  # '-nostdinc',
   '-I',
   '.',
   '-I',
-  'MP/em/include',
+  'inc',
   '-isystem',
-  'C:/MinGW/lib/gcc/mingw32/4.8.1/include/c++',
-  '-isystem', 
-  'c:/MinGW/lib/gcc/mingw32/4.8.1/include/c++/mingw32',
-  '-isystem', 
-  'c:/MinGW/lib/gcc/mingw32/4.8.1/include/c++/backward',
+  'C:/Program Files/Microsoft Visual Studio 11.0/VC/include',
   '-isystem',
-  'C:/MinGW/lib/gcc/mingw32/4.8.1/include',
+  'C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/atlmfc/include',
   '-isystem',
-  'C:/MinGW/lib/gcc/mingw32/4.8.1/include-fixed',
+  'C:/Program Files (x86)/Windows Kits/8.0/Include/um',
   '-isystem',
-  'C:/MinGW/mingw32/include',
+  'C:/Program Files (x86)/Windows Kits/8.0/Include/shared',
   '-isystem',
-  'C:/MinGW/include',
+  'C:/Program Files (x86)/Windows Kits/8.0/Include/winrt',
   # '-isystem',
-  # 'C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/include',
+  # 'C:\\MinGW\\include',
   # '-isystem',
-  # 'C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/atlmfc/include',
+  # 'c:\\MinGW\\lib\\gcc\\mingw32\\4.8.1\\include',
   # '-isystem',
-  # 'C:/Program Files (x86)/Windows Kits/8.1/Include/um',
-  # '-isystem',
-  # 'C:/Program Files (x86)/Windows Kits/8.1/Include/shared',
-  # '-isystem',
-  # 'C:/Program Files (x86)/Windows Kits/8.1/Include/winrt',
+  # 'C:\\MinGW\\lib\\gcc\\mingw32\\4.8.1\\include\\c++',
 ]
 
 
@@ -103,7 +89,7 @@ def MakeRelativePathsInFlagsAbsolute( flags, working_directory ):
     return list( flags )
   new_flags = []
   make_next_absolute = False
-  path_flags = [ '-isystem', '-I', '-iquote', '--sysroot=' ]
+  path_flags = [ '-isystem', '-I', '-iquote', '--sysroot=', '-include' ]
   for flag in flags:
     new_flag = flag
 
