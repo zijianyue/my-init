@@ -242,6 +242,7 @@
  '(custom-safe-themes
    (quote
 	("fa2b58bb98b62c3b8cf3b6f02f058ef7827a8e497125de0254f56e373abee088" "bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" "92cfc474738101780aafd15a378bb22476af6e8573daa8031a9e4406b69b9eb8" default)))
+ '(delete-by-moving-to-trash t)
  '(diff-hl-flydiff-delay 4)
  '(dired-dwim-target t)
  '(dired-listing-switches "-alh")
@@ -1384,7 +1385,7 @@ care of."
 (require 'diminish)
 ;; (eval-after-load "auto-complete" '(diminish 'auto-complete-mode))
 (eval-after-load "anzu" '(diminish 'anzu-mode))
-(eval-after-load "company" '(diminish 'company-mode " Comp"))
+;; (eval-after-load "company" '(diminish 'company-mode " Comp")) ;;company要动态显示补全后端
 (eval-after-load "hideif" '(diminish 'hide-ifdef-mode))
 (eval-after-load "hideshow" '(diminish 'hs-minor-mode))
 (eval-after-load "helm-gtags" '(diminish 'helm-gtags-mode " HG"))
