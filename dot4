@@ -1,0 +1,500 @@
+(require 'diminish)
+;; (eval-after-load "auto-complete" '(diminish 'auto-complete-mode))
+(eval-after-load "anzu" '(diminish 'anzu-mode))
+(eval-after-load "hideif" '(diminish 'hide-ifdef-mode))
+(eval-after-load "hideshow" '(diminish 'hs-minor-mode))
+;; (eval-after-load "helm-gtags" '(diminish 'helm-gtags-mode " HG"))
+(eval-after-load "helm-gtags" '(diminish 'helm-gtags-mode))
+(eval-after-load "ggtags" '(diminish 'ggtags-mode))
+(eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
+
+;; 鼠标指向dos处时，弹出文件编码信息
+(spaceline-define-segment buffer-encoding-abbrev-mouse
+  "The line ending convention used in the buffer with mouse prompt of buffer encoding info."
+  (let ((buf-coding (format "%s" buffer-file-coding-system)))
+    (if (string-match "\\(dos\\|unix\\|mac\\)" buf-coding)
+        (setq buf-coding (match-string 1 buf-coding))
+      buf-coding)
+	(propertize buf-coding
+				'help-echo (if buffer-file-coding-system
+							   (format "Buffer coding system (%s): %s
+mouse-1: Describe coding system
+mouse-3: Set coding system"
+									   (if enable-multibyte-characters "multi-byte" "unibyte")
+									   (symbol-name buffer-file-coding-system))
+							 "Buffer coding system: none specified"))))
+
+;; 让which-func强制刷新
+(spaceline-define-segment which-function-ignore-active
+  (when (bound-and-true-p which-function-mode)
+    (let* ((current (format-mode-line which-func-current)))
+      (when (string-match "{\\(.*\\)}" current)
+        (setq current (match-string 1 current)))
+      (propertize current
+                  'local-map which-func-keymap
+                  'face 'which-func
+                  'mouse-face 'mode-line-highlight
+                  'help-echo "mouse-1: go to beginning\n\
+mouse-2: toggle rest visibility\n\
+mouse-3: go to end"))))
+
+;; 自定义theme使用上面两个segment
+(defun spaceline--theme-mod (left second-left &rest additional-segments)
+  "Convenience function for the spacemacs and emacs themes."
+  (spaceline-install `(,left
+					   anzu
+					   auto-compile
+					   ,second-left
+					   major-mode
+					   (process :when active)
+					   ((flycheck-error flycheck-warning flycheck-info)
+						:when active)
+					   (minor-modes :when active)
+					   (mu4e-alert-segment :when active)
+					   (erc-track :when active)
+					   (version-control :when active)
+					   (org-pomodoro :when active)
+					   (org-clock :when active)
+					   nyan-cat)
+
+					 `(which-function-ignore-active
+					   (python-pyvenv :fallback python-pyenv)
+					   (battery :when active)
+					   selection-info
+					   input-method
+					   ((buffer-encoding-abbrev-mouse
+						 point-position
+						 line-column)
+						:separator " | ")
+					   (global :when active)
+					   ,@additional-segments
+					   buffer-position
+					   hud))
+
+  (setq-default mode-line-format '("%e" (:eval (spaceline-ml-main)))))
+
+(defun spaceline-emacs-theme-mod (&rest additional-segments)
+  "Install a modeline close to the one used by Spacemacs, but which
+looks better without third-party dependencies.
+
+ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
+`buffer-position'."
+  (apply 'spaceline--theme-mod
+         '(((((persp-name :fallback workspace-number)
+              window-number) :separator "|")
+            buffer-modified
+            buffer-size)
+           :face highlight-face)
+         '(buffer-id remote-host)
+         additional-segments))
+
+(spaceline-emacs-theme-mod)
+
+;; dired中复制 剪切 粘贴
+(require 'dired-copy-paste)
+(define-key dired-mode-map "\C-w" 'dired-copy-paste-do-cut)
+(define-key dired-mode-map "\M-w" 'dired-copy-paste-do-copy)
+(define-key dired-mode-map "\C-y" 'dired-copy-paste-do-paste)
+
+;; org screenshort
+(autoload 'org-download-screenshot "org-download" nil t)
+;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
+
+;;-----------------------------------------------------------define func begin----------------------------------------------------;;
+;; 资源管理器中打开
+(defun open-in-desktop-select (&optional dired)
+  (interactive "P")
+  (let ((file (buffer-name)))
+	(if dired
+		;; (setq file (dired-get-filename 'no-dir)) ;xp
+		(setq file (replace-regexp-in-string "/" "\\\\" (dired-get-filename) )) ;win7
+	  ;; (setq file (file-name-nondirectory (buffer-file-name) )) ;xp
+	  (setq file (replace-regexp-in-string "/" "\\\\" (buffer-file-name) ))) ;win7
+	(call-process-shell-command (concat "explorer" "/select," file))
+	)
+  )
+
+
+(defun open-in-desktop-select-dired(arg)
+  (interactive "P")
+  (open-in-desktop-select t)
+  )
+
+;; toggle hide/show #if
+(defun my-hif-toggle-block ()
+  "toggle hide/show-ifdef-block --lgfang"
+  (interactive)
+  (require 'hideif)
+  (let* ((top-bottom (hif-find-ifdef-block))
+         (top (car top-bottom)))
+    (goto-char top)
+    (hif-end-of-line)
+    (setq top (point))
+    (if (hif-overlay-at top)
+        (show-ifdef-block)
+      (hide-ifdef-block))))
+
+(defun hif-overlay-at (position)
+  "An imitation of the one in hide-show --lgfang"
+  (let ((overlays (overlays-at position))
+        ov found)
+    (while (and (not found) (setq ov (car overlays)))
+      (setq found (eq (overlay-get ov 'invisible) 'hide-ifdef)
+            overlays (cdr overlays)))
+    found))
+
+;; #if 0灰色
+(defun my-c-mode-font-lock-if0 (limit)
+  (save-restriction
+	(widen)
+	(save-excursion
+	  (goto-char (point-min)) ;;性能太差
+	  ;; (goto-char (search-backward "#if 0"))
+	  (let ((depth 0) str start start-depth)
+		(while (re-search-forward "^\\s-*#\\s-*\\(if\\|else\\|endif\\)" limit 'move)
+		  (setq str (match-string 1))
+		  (if (string= str "if")
+			  (progn
+				(setq depth (1+ depth))
+				(when (and (null start) (looking-at "\\s-+0"))
+				  (setq start (match-end 0)
+						start-depth depth)))
+			(when (and start (= depth start-depth))
+			  (c-put-font-lock-face start (match-beginning 0) 'window-divider)
+			  (setq start nil))
+			(when (string= str "endif")
+			  (setq depth (1- depth)))))
+		(when (and start (> depth 0))
+		  (c-put-font-lock-face start (point) 'window-divider)))))
+  nil)
+
+(defun my-c-mode-common-hook-if0 ()
+  (font-lock-add-keywords
+   nil
+   '((my-c-mode-font-lock-if0 (0 shadow prepend))) 'add-to-end))
+
+(eval-after-load "cpp"
+  '(progn
+	 (defun cpp-highlight-buffer-fset (arg)
+	   "Highlight C code according to preprocessor conditionals.
+This command pops up a buffer which you should edit to specify
+what kind of highlighting to use, and the criteria for highlighting.
+A prefix arg suppresses display of that buffer."
+	   (interactive "P")
+	   (unless (or (eq t buffer-invisibility-spec)
+				   (memq 'cpp buffer-invisibility-spec))
+		 (add-to-invisibility-spec 'cpp))
+	   (setq cpp-parse-symbols nil)
+	   (cpp-parse-reset)
+	   (if (null cpp-edit-list)
+		   (cpp-edit-load))
+	   (let (cpp-state-stack)
+		 (save-excursion
+		   (goto-char (point-min))
+		   (cpp-progress-message "Parsing...")
+		   (while (re-search-forward cpp-parse-regexp nil t)
+			 (cpp-progress-message "Parsing...%d%%"
+								   (floor (* 100.0 (- (point) (point-min)))
+										  (buffer-size)))
+			 (let ((match (replace-regexp-in-string "\^M" "" (buffer-substring (match-beginning 0) (match-end 0)))))
+			   (cond ((or (string-equal match "'")
+						  (string-equal match "\""))
+					  (goto-char (match-beginning 0))
+					  (condition-case nil
+						  (forward-sexp)
+						(error (cpp-parse-error
+								"Unterminated string or character"))))
+					 ((string-equal match "/*")
+					  (or (search-forward "*/" nil t)
+						  (error "Unterminated comment")))
+					 ((string-equal match "//")
+					  (skip-chars-forward "^\n\r"))
+					 (t
+					  (end-of-line 1)
+					  (let ((from (match-beginning 1))
+							(to (1+ (point)))
+							(type (replace-regexp-in-string "\^M" "" (buffer-substring (match-beginning 2)
+													(match-end 2))))
+							(expr (replace-regexp-in-string "\^M" "" (buffer-substring (match-end 1) (point))))) ;原来的代码处理不了^M
+						(cond ((string-equal type "ifdef")
+							   (cpp-parse-open t expr from to))
+							  ((string-equal type "ifndef")
+							   (cpp-parse-open nil expr from to))
+							  ((string-equal type "if")
+							   (cpp-parse-open t expr from to))
+							  ((string-equal type "elif")
+							   (let (cpp-known-face cpp-unknown-face)
+								 (cpp-parse-close from to))
+							   (cpp-parse-open t expr from to))
+							  ((string-equal type "else")
+							   (or cpp-state-stack
+								   (cpp-parse-error "Top level #else"))
+							   (let ((entry (list (not (nth 0 (car cpp-state-stack)))
+												  (nth 1 (car cpp-state-stack))
+												  from to)))
+								 (cpp-parse-close from to)
+								 (setq cpp-state-stack (cons entry cpp-state-stack))))
+							  ((string-equal type "endif")
+							   (cpp-parse-close from to))
+							  (t
+							   (cpp-parse-error "Parser error"))))))))
+		   (message "Parsing...done"))
+		 (if cpp-state-stack
+			 (save-excursion
+			   (goto-char (nth 3 (car cpp-state-stack)))
+			   (cpp-parse-error "Unclosed conditional"))))
+	   (or arg
+		   (null cpp-parse-symbols)
+		   (cpp-parse-edit)))
+
+	 (fset 'cpp-highlight-buffer 'cpp-highlight-buffer-fset)
+	 ))
+
+(defun cpp-highlight-if-0/1 ()
+  "Modify the face of text in between #if 0 ... #endif."
+  (interactive)
+  (setq cpp-known-face '(foreground-color . "dim gray"))
+  (setq cpp-unknown-face 'default)
+  (setq cpp-face-type 'dark)
+  (setq cpp-known-writable 't)
+  (setq cpp-unknown-writable 't)
+  (setq cpp-edit-list
+        '((#("1" 0 1
+             (fontified nil))
+           nil
+           (foreground-color . "dim gray")
+           both nil)
+          (#("0" 0 1
+             (fontified nil))
+           (foreground-color . "dim gray")
+           nil
+           both nil)))
+  (cpp-highlight-buffer t))
+
+
+(defun jpk/c-mode-hook ()
+  (cpp-highlight-if-0/1)
+  (add-hook 'after-save-hook 'cpp-highlight-if-0/1 'append 'local)
+  )
+
+(add-hook 'after-revert-hook 'cpp-highlight-if-0/1)
+
+;; 添加删除注释
+(defun qiang-comment-dwim-line (&optional arg)
+  "Replacement for the comment-dwim command.
+If no region is selected and current line is not blank and we are not at the end of the line,
+then comment current line.
+Replaces default behaviour of comment-dwim, when it inserts comment at the end of the line."
+  (interactive "*P")
+  (comment-normalize-vars)
+  (if (and (not (region-active-p)) (not (looking-at "[ \t]*$")))
+	  (comment-or-uncomment-region (line-beginning-position) (line-end-position))
+	(comment-dwim arg)))
+
+(global-set-key "\M-'" 'qiang-comment-dwim-line) ;; 已有comment-line c-x c-;代替
+
+
+;; 拷贝代码自动格式化默认是粘贴完后按c-m-\会格式化粘贴内容)
+(dolist (command '(yank yank-pop))
+  (eval
+   `(defadvice ,command (after indent-region activate)
+	  (and (not current-prefix-arg)
+		   (member major-mode
+				   '(emacs-lisp-mode
+					 lisp-mode
+					 c-mode
+					 c++-mode
+					 ))
+		   (let ((mark-even-if-inactive transient-mark-mode))
+			 (indent-region (region-beginning) (region-end) nil))))))
+
+;; 跳到匹配的括号处
+(defun his-match-paren (arg)
+  "Go to the matching paren if on a paren; otherwise insert %."
+  (interactive "p")
+  (let ((prev-char (char-to-string (preceding-char)))
+		(next-char (char-to-string (following-char))))
+	(cond ((string-match "[[{(<（]" next-char) (forward-sexp 1))
+		  ((string-match "[\]})>）]" prev-char) (backward-sexp 1))
+		  )))
+
+;; 选中括号间的内容
+(defun select-match ()
+  "select between match paren"
+  (interactive)
+  (cua-set-mark)
+  (his-match-paren 1))
+
+(global-set-key (kbd "C-'") 'his-match-paren)
+(global-set-key (kbd "C-\"") 'select-match)
+
+;; 复制文件路径(支持buffer中和dired中)
+(defun copy-file-name (&optional full)
+  "Copy file name of current-buffer.
+If FULL is t, copy full file name."
+  (interactive "P")
+  (if (eq major-mode 'dired-mode)
+	  (dired-copy-filename-as-kill full)
+	(let ((file (file-name-nondirectory (buffer-file-name) )))
+	  (if full
+		  (setq file (expand-file-name file)))
+	  (if (eq full 0)
+		  (kill-new (setq file (replace-regexp-in-string "/" "\\\\" file)))
+		(kill-new file))
+	  (message "File `%s' copied." file))))
+
+;; dired下m-0 w复制全路径，并且把/换成\ ,M-9不转换
+(defadvice dired-copy-filename-as-kill(after copy-full-path activate)
+  (let ((strmod (current-kill 0)))
+	(if (eq last-command 'kill-region)
+		()
+	  (when arg
+		(if (eq arg 0)
+			(kill-new (setq strmod (replace-regexp-in-string "/" "\\\\" strmod)))
+		  (kill-new (setq strmod (car (dired-get-marked-files))))))
+	  (message "%s" strmod))))
+
+(global-set-key (kbd "<M-f3>") 'copy-file-name) ;加上任意的参数就是复制全路径，比如m-0
+(global-set-key (kbd "<C-f3>") 'open-in-desktop-select)
+
+;;剪切、复制当前行
+(defadvice kill-ring-save (before slickcopy activate compile)
+  "When called interactively with no active region, copy a single line instead."
+  (interactive
+   (if mark-active (list (region-beginning) (region-end))
+	 (list (line-beginning-position)
+		   (line-beginning-position 2)))))
+
+(defadvice kill-region (before slickcut activate compile)
+  "When called interactively with no active region, kill a single line instead."
+  (interactive
+   (if mark-active (list (region-beginning) (region-end))
+	 (list (line-beginning-position)
+		   (line-beginning-position 2)))))
+
+(defun setup-program-keybindings()
+  (interactive)
+  (local-set-key (kbd "<f12>") 'semantic-ia-fast-jump)
+  (local-set-key (kbd "<S-f12>") 'semantic-complete-jump)
+  (local-set-key (kbd "M-`") 'ia-fast-jump-other)
+  (local-set-key (kbd "<C-f12>") 'semantic-symref-just-symbol)
+  (local-set-key (kbd "<M-S-f12>") 'semantic-symref-anything)
+  (local-set-key (kbd "<C-S-f12>") 'semantic-symref)
+  (local-set-key (kbd "<M-f12>") 'semantic-analyze-proto-impl-toggle)
+  (local-set-key (kbd "<M-down>") 'senator-next-tag)
+  (local-set-key (kbd "<M-up>") 'senator-previous-tag)
+  (local-set-key (kbd "M-,") 'semantic-pop-tag-mark)
+  )
+
+;;hide ^M
+(defun remove-dos-eol ()
+  "Do not show ^M in files containing mixed UNIX and DOS line endings."
+  (interactive)
+  (setq buffer-display-table (make-display-table))
+  (aset buffer-display-table ?\^M []))
+
+;; symref加强
+(eval-after-load "cc-mode"
+  '(progn
+	 (require 'semantic/symref/list )
+	 ))
+
+
+;; 重写cedet函数 begin
+(eval-after-load "cedet-global"
+  '(progn
+	 (defun cedet-gnu-global-search-fset (searchtext texttype type scope)
+	   "add -s"
+	   (let ((flgs (cond ((eq type 'file)
+						  "-a")
+						 (t "-xa")))
+			 (scopeflgs (cond
+						 ((eq scope 'project)
+						  ""
+						  )
+						 ((eq scope 'target)
+						  "l")))
+			 (stflag (cond ((or (eq texttype 'tagname)
+								(eq texttype 'tagregexp))
+							"")
+						   ((eq texttype 'tagcompletions)
+							"c")
+						   ((eq texttype 'regexp)
+							"g")
+						   ((eq texttype 'symbolname)
+							"s")
+						   (t "r"))))
+		 (cedet-gnu-global-call (list (concat flgs scopeflgs stflag)
+									  searchtext))))
+
+	 (fset 'cedet-gnu-global-search 'cedet-gnu-global-search-fset)
+	 ))
+
+
+(defun semantic-symref-hit-to-tag-via-buffer-fset (hit searchtxt searchtype &optional open-buffers)
+  "avoid missing reference"
+  (let* ((line (car hit))
+		 (file (cdr hit))
+		 (buff (find-buffer-visiting file))
+		 (tag nil)
+		 (tagList nil)
+		 (whichFunc nil)
+		 )
+    (cond
+     ;; We have a buffer already.  Check it out.
+     (buff
+      (set-buffer buff))
+
+     ;; We have a table, but it needs a refresh.
+     ;; This means we should load in that buffer.
+     (t
+      (let ((kbuff
+			 (if open-buffers
+				 ;; Even if we keep the buffers open, don't
+				 ;; let EDE ask lots of questions.
+				 (let ((ede-auto-add-method 'never))
+				   (find-file-noselect file t))
+			   ;; When not keeping the buffers open, then
+			   ;; don't setup all the fancy froo-froo features
+			   ;; either.
+			   (semantic-find-file-noselect file t))))
+		(set-buffer kbuff)
+		(push kbuff semantic-symref-recently-opened-buffers)
+		(semantic-fetch-tags)
+		))
+     )
+
+    ;; Too much baggage in goto-line
+    ;; (goto-line line)
+    (goto-char (point-min))
+    (forward-line (1- line))
+
+    ;; Search forward for the matching text
+    (when (re-search-forward searchtxt
+							 (point-at-eol)
+							 t)
+      (goto-char (match-beginning 0))
+      )
+
+    (setq tag (semantic-current-tag))
+	(unless (zerop (current-indentation))
+	  (setq whichFunc (which-function)))
+    ;; If we are searching for a tag, but bound the tag we are looking
+    ;; for, see if it resides in some other parent tag.
+    ;;
+    ;; If there is no parent tag, then we still need to hang the originator
+    ;; in our list.
+    (when (and (eq searchtype 'symbol)
+			   (string= (semantic-tag-name tag) searchtxt))
+      (setq tag (or (semantic-current-tag-parent) tag)))
+
+	;; 找不到tag时，使用which-fuction匹配本文件所有tag来查
+	(unless tag
+	  (let ((foundFlag-p nil )
+			(i 0))
+
+		(setq tagList (semantic-fetch-tags))
+		(while (and
+				(not foundFlag-p)
+				(<= i (length tagList)))
+
