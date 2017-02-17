@@ -1,0 +1,136 @@
+
+;;; Code:
+
+
+
+(require 'cl)
+(require 'imenu-list)
+;; ================================== My STRING utils ========================
+(defun taglist-string-without-last (string n)
+  "This function truncates from the STRING last N characters."
+  (substring string 0 (max 0(- (length string) n))))
+
+(defun taglist-string-ends-with (string end)
+
+(defvar taglist-current-major-mode nil
+  "current major mode")
+
+(defface taglist-tag-type
+  '((((class color))
+     (:foreground "blue" :height 1.0))
+    ;; (t (:weight bold))
+	)
+  "Regexp matching the text identifying the file in `taglist-mode'."
+  :group 'taglist)
+
+(defvar taglist-tag-type-face 'taglist-tag-type)
+
+(defvar taglist-tag-type-re
+
+          (switch-to-buffer taglist-source-code-buffer t)
+
+          (taglist-goto-line (taglist-line tag-record))
+
+          (recenter))
+      (message "The line does not contain tag description!")
+	  (tag-list-stop-timer))))
+
+(defun taglist-matches-all (string substrings)
+  "Return non-nil if STRING contain each of SUBSTRINGS as a substring."
+  (reduce (lambda (prev part) (and prev (string-match part string))) substrings :initial-value t))
+
+(defstruct taglist
+
+(defun taglist-escape ()
+  "Kill tag list buffer."
+  (interactive)
+  (kill-buffer (current-buffer))
+  (delete-file taglist-tmp-file)
+  (switch-to-buffer taglist-source-code-buffer)
+  (tag-list-stop-timer))
+
+(defvar taglist-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (do ((k (string-to-char "a") (+ 1 k))) ((> k (string-to-char "z")))
+      (define-key
+                 taglist-actual-tags)))
+      (when line
+        (taglist-goto-line (1+ line)))))
+
+  (hl-line-mode))
+
+(defconst tag-list-buffer-name "*TagList*"
+  "Name of the buffer that is used to display imenu entries.")
+
+(defun tag-list-install-display-buffer ()
+  "Install imenu-list display settings to `display-buffer-alist'."
+  (cl-pushnew `(,(concat "^" (regexp-quote tag-list-buffer-name) "$")
+                imenu-list-display-buffer)
+              display-buffer-alist
+              :test #'equal))
+(tag-list-install-display-buffer)
+(defvar tag-list--timer nil)
+
+(defun tag-list-start-timer ()
+  (tag-list-stop-timer)
+  (setq tag-list--timer
+        (run-with-idle-timer 1 t #'tag-list-update-safe)))
+
+(defun tag-list-stop-timer ()
+  (when tag-list--timer
+    (cancel-timer tag-list--timer)
+    (setq tag-list--timer nil)))
+
+(defun tag-list-update-safe ()
+  "Call `imenu-list-update', return nil if an error occurs."
+  (ignore-errors (tag-list-update)))
+
+(defun tag-list-update ()
+  "docstring"
+  (if (or (minibufferp (current-buffer))
+		  (string-equal "*" (substring (buffer-name) 0 1)))
+	  (error "invalid buffer"))
+  (unless (eq (current-buffer) (get-buffer tag-list-buffer-name))
+	(setq taglist-current-line (line-number-at-pos))
+	(if (eq taglist-source-code-buffer (current-buffer))
+		(progn
+		  (with-current-buffer (current-buffer)
+			(set-buffer (get-buffer tag-list-buffer-name))
+			(message "update list")
+			(with-selected-window (get-buffer-window (get-buffer tag-list-buffer-name))
+			  (taglist-highlight-current-tag)))
+		  )
+	  (progn
+		(with-current-buffer (current-buffer)
+		  (message "create list")
+		  (setq taglist-source-code-buffer (current-buffer))
+		  (setq taglist-tmp-file (make-temp-file "taglist."))
+		  (setq taglist-current-major-mode major-mode)
+		  (write-region (point-min) (point-max) taglist-tmp-file)
+		  (set-buffer (get-buffer tag-list-buffer-name))
+		  (with-selected-window (get-buffer-window (get-buffer tag-list-buffer-name))
+			(taglist-mode-init))))
+	  )))
+
+;;;###autoload
+(defun taglist-list-tags ()
+  "Show tag list of current buffer in a newly created buffer.
+This function is recommended to be bound to some convinient hotkey."
+  (interactive)
+  ;; (message "taglist-ctags-variant = %s" (taglist-ctags-variant))
+    )
+  (setq taglist-source-code-buffer (current-buffer))
+  (setq taglist-current-line (line-number-at-pos))
+  (setq taglist-current-major-mode major-mode)
+  (setq taglist-tmp-file (make-temp-file "taglist."))
+  (write-region (point-min) (point-max) taglist-tmp-file)
+  ;; (switch-to-buffer (get-buffer-create (concat (buffer-name (current-buffer)) " tag list")) t)
+  (pop-to-buffer (get-buffer-create tag-list-buffer-name))
+  (tag-list-start-timer)
+
+  (taglist-mode))
+
+
+(defun taglist-mode-init ()
+  "Initialize tag list mode."
