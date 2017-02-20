@@ -27,25 +27,41 @@
 
 (defvar taglist-tag-type-re
 
+    (if (and tag-record (= 0 (taglist-line tag-record)))
+        (setq tag-record (nth (line-number-at-pos) taglist-actual-tags)))
+
+    (if (and tag-record (taglist-line tag-record))
+        (progn
+          ;; (kill-buffer (current-buffer))
+
           (switch-to-buffer taglist-source-code-buffer t)
 
           (taglist-goto-line (taglist-line tag-record))
 
-          (recenter))
-      (message "The line does not contain tag description!")
-	  (tag-list-stop-timer))))
+          (recenter)
+		  
+		  (with-current-buffer (current-buffer)
+			(set-buffer (get-buffer tag-list-buffer-name))
+			(unless (eq taglist-search-string "")
+			  (with-selected-window (get-buffer-window (get-buffer tag-list-buffer-name))
+				(setq taglist-search-string "")
+				(taglist-search-string-updated)
+				(taglist-highlight-current-tag)
+				)))
+		  )
+      (message "The line does not contain tag description!"))))
 
 (defun taglist-matches-all (string substrings)
   "Return non-nil if STRING contain each of SUBSTRINGS as a substring."
   (reduce (lambda (prev part) (and prev (string-match part string))) substrings :initial-value t))
 
-(defstruct taglist
+  (define-key map (char-to-string key) (taglist-make-key-function key)))
 
 (defun taglist-escape ()
   "Kill tag list buffer."
   (interactive)
   (kill-buffer (current-buffer))
-  (delete-file taglist-tmp-file)
+  ;; (delete-file taglist-tmp-file)
   (switch-to-buffer taglist-source-code-buffer)
   (tag-list-stop-timer))
 
@@ -54,9 +70,28 @@
     (suppress-keymap map)
     (do ((k (string-to-char "a") (+ 1 k))) ((> k (string-to-char "z")))
       (define-key
+    (define-key map (kbd "<RET>") 'taglist-jump-to-tag)
+    (define-key map (kbd "<backspace>") 'taglist-backspace-pressed)
+    ;; Cause M-v doesn't work!!!
+    ;; (define-key map (kbd "<ESC>") 'taglist-escape)
+    (define-key map (kbd "C-q") 'taglist-escape)
+    (define-key map (kbd "M-q") 'taglist-escape)
+    ;; (define-key map "\C-v" 'scroll-up)
+    ;; (define-key map "\M-v" 'scroll-down)
+    map)
+  "Keymap for `taglist-mode'.")
+
+(defcustom ctags-executable-directory nil
+  "If non-nil the directory to search global executables."
+  :type '(choice (const :tag "Unset" nil) directory)
+    ;; (message "found tag-line = %d" tag-line)
+
+    (let ((line (position-if
+                 (lambda (item) (= tag-line (taglist-line item)))
                  taglist-actual-tags)))
       (when line
-        (taglist-goto-line (1+ line)))))
+		(unless (eq (line-number-at-pos) (+ 1 line))
+		  (taglist-goto-line (1+ line))))))
 
   (hl-line-mode))
 
@@ -87,27 +122,27 @@
   (ignore-errors (tag-list-update)))
 
 (defun tag-list-update ()
-  "docstring"
+  "Refresh taglist."
   (if (or (minibufferp (current-buffer))
-		  (string-equal "*" (substring (buffer-name) 0 1)))
-	  (error "invalid buffer"))
+		  (string-equal "*" (substring (buffer-name) 0 1))
+		  (eq major-mode 'dired-mode))
+	  (error "Invalid buffer"))
   (unless (eq (current-buffer) (get-buffer tag-list-buffer-name))
 	(setq taglist-current-line (line-number-at-pos))
 	(if (eq taglist-source-code-buffer (current-buffer))
 		(progn
 		  (with-current-buffer (current-buffer)
 			(set-buffer (get-buffer tag-list-buffer-name))
-			(message "update list")
 			(with-selected-window (get-buffer-window (get-buffer tag-list-buffer-name))
 			  (taglist-highlight-current-tag)))
 		  )
 	  (progn
 		(with-current-buffer (current-buffer)
-		  (message "create list")
 		  (setq taglist-source-code-buffer (current-buffer))
-		  (setq taglist-tmp-file (make-temp-file "taglist."))
+		  ;; (setq taglist-tmp-file (make-temp-file "taglist."))
+		  (setq taglist-tmp-file (buffer-file-name))
 		  (setq taglist-current-major-mode major-mode)
-		  (write-region (point-min) (point-max) taglist-tmp-file)
+		  ;; (write-region (point-min) (point-max) taglist-tmp-file)
 		  (set-buffer (get-buffer tag-list-buffer-name))
 		  (with-selected-window (get-buffer-window (get-buffer tag-list-buffer-name))
 			(taglist-mode-init))))
@@ -118,13 +153,15 @@
   "Show tag list of current buffer in a newly created buffer.
 This function is recommended to be bound to some convinient hotkey."
   (interactive)
-  ;; (message "taglist-ctags-variant = %s" (taglist-ctags-variant))
+  (if (string= (taglist-ctags-variant) "emacs-ctags")
+      (error "taglist doesn't support emacs ctags, please install universal-ctags or exuberant-ctags!")
     )
   (setq taglist-source-code-buffer (current-buffer))
   (setq taglist-current-line (line-number-at-pos))
   (setq taglist-current-major-mode major-mode)
-  (setq taglist-tmp-file (make-temp-file "taglist."))
-  (write-region (point-min) (point-max) taglist-tmp-file)
+  (setq taglist-tmp-file (buffer-file-name))
+  ;; (setq taglist-tmp-file (make-temp-file "taglist."))
+  ;; (write-region (point-min) (point-max) taglist-tmp-file)
   ;; (switch-to-buffer (get-buffer-create (concat (buffer-name (current-buffer)) " tag list")) t)
   (pop-to-buffer (get-buffer-create tag-list-buffer-name))
   (tag-list-start-timer)
@@ -134,3 +171,4 @@ This function is recommended to be bound to some convinient hotkey."
 
 (defun taglist-mode-init ()
   "Initialize tag list mode."
+
