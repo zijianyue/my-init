@@ -11,6 +11,21 @@
   (substring string 0 (max 0(- (length string) n))))
 
 (defun taglist-string-ends-with (string end)
+                                  ("C" . ("H"))
+                                  ("H" . ("C" "CPP" "CC"))
+                                  ("cc" . ("h" "hpp")))
+  "This variable defines possible switches for `taglist-switch-h-cpp' function.
+Its format is list of (from . (to1 to2 to3...)) elements.  From and toN are
+strings which are extentions of the files.")
+(defvar tag-list--last-location nil
+  "Location from which last `tag-list-update' was done.
+Used to avoid updating if the point didn't move.")
+;;;###autoload
+(defun taglist-switch-h-cpp ()
+  "Switch header and body file according to `taglist-header-switches' var.
+The current buffer's file name extention is searched in
+`taglist-header-switches' variable to find out extention for file's counterpart,
+for example *.hpp <--> *.cpp."
 
 (defvar taglist-current-major-mode nil
   "current major mode")
@@ -19,13 +34,84 @@
   '((((class color))
      (:foreground "blue" :height 1.0))
     ;; (t (:weight bold))
-	)
+    )
   "Regexp matching the text identifying the file in `taglist-mode'."
   :group 'taglist)
 
 (defvar taglist-tag-type-face 'taglist-tag-type)
 
 (defvar taglist-tag-type-re
+;; TODO: maintain the list by ctags --list-maps and
+;; https://github.com/github/linguist/blob/master/lib/linguist/languages.yml
+
+;; format: (<file name pattern> <detected language>)
+(defvar taglist-filename-to-language-alist
+  '(
+    ("\\.lua\\'" . "lua")
+    ("\\.i\\'" . "c")
+    ("\\.lex\\'" . "c")
+    ("\\.[ch]\\'" . "c")
+    ("\\.x[bp]m\\'" . "c")
+    ("\\.xs\\'" . "c")
+    ("\\.h$" . "c++")
+
+;; major mode name map to language
+;; (add-to-list 'taglist-major-to-language-alist '("<lang>-mode" "<lang>"))
+;; format: (<major mode> <detected language>)
+(defvar taglist-major-to-language-alist
+  `(
+    ("lua-mode" "lua")
+    ("emacs-lisp-mode" "lisp")
+    ("lisp-mode" "lisp")
+    ("c-mode" "c")
+    ("c++-mode" "c++")
+    ;; rust is support at https://github.com/universal-ctags
+    ("rst-mode" "rst")
+;; e.g. tagline =  main      /path/to/src/ip46.c     38;"    f       line:38
+(defun taglist-convert-to-elements (tagline)
+  "Convert tagline to a tag(tag-name tag-line tag-type) "
+  (let ((elements (split-string tagline "\t" t)))
+    (list (car elements) (string-to-number (nth 2 elements)) (nth 3 elements))))
+
+
+(defun taglist-jump-to-tag-by-event (event)
+  "Jump to a tag, corresponding the current line in tag buffer.
+When called standing on a line of tag list, it closes the list
+buffer and sets the point to a tag, corresponding the line."
+  (interactive "e")
+  (switch-to-buffer (get-buffer tag-list-buffer-name) t)
+  (let ((tag-record (nth (1- (line-number-at-pos (posn-point (event-end event)))) taglist-actual-tags)))
+
+    (if (and tag-record (= 0 (taglist-line tag-record)))
+        (setq tag-record (nth (line-number-at-pos (posn-point (event-end event))) taglist-actual-tags)))
+
+    (if (and tag-record (taglist-line tag-record))
+        (progn
+          ;; (kill-buffer (current-buffer))
+
+          (switch-to-buffer taglist-source-code-buffer t)
+
+          (taglist-goto-line (taglist-line tag-record))
+
+          (recenter)
+
+          (with-current-buffer (current-buffer)
+            (set-buffer (get-buffer tag-list-buffer-name))
+            (unless (eq taglist-search-string "")
+              ;; (with-selected-window (get-buffer-window (get-buffer tag-list-buffer-name))
+                (setq taglist-search-string "")
+                (taglist-search-string-updated)
+                (taglist-highlight-current-tag)
+                ))
+          )
+      (message "The line does not contain tag description!"))))
+
+(defun taglist-jump-to-tag ()
+  "Jump to a tag, corresponding the current line in tag buffer.
+When called standing on a line of tag list, it closes the list
+buffer and sets the point to a tag, corresponding the line."
+  (interactive)
+
 
     (if (and tag-record (= 0 (taglist-line tag-record)))
         (setq tag-record (nth (line-number-at-pos) taglist-actual-tags)))
@@ -38,23 +124,24 @@
 
           (taglist-goto-line (taglist-line tag-record))
 
-          (recenter)
-		  
+		  (recenter)
+
 		  (with-current-buffer (current-buffer)
 			(set-buffer (get-buffer tag-list-buffer-name))
 			(unless (eq taglist-search-string "")
-			  (with-selected-window (get-buffer-window (get-buffer tag-list-buffer-name))
+			  ;; (with-selected-window (get-buffer-window (get-buffer tag-list-buffer-name))
 				(setq taglist-search-string "")
 				(taglist-search-string-updated)
 				(taglist-highlight-current-tag)
-				)))
+				))
 		  )
-      (message "The line does not contain tag description!"))))
+	  (message "The line does not contain tag description!"))))
 
 (defun taglist-matches-all (string substrings)
   "Return non-nil if STRING contain each of SUBSTRINGS as a substring."
   (reduce (lambda (prev part) (and prev (string-match part string))) substrings :initial-value t))
 
+(defstruct taglist
   (define-key map (char-to-string key) (taglist-make-key-function key)))
 
 (defun taglist-escape ()
@@ -70,7 +157,14 @@
     (suppress-keymap map)
     (do ((k (string-to-char "a") (+ 1 k))) ((> k (string-to-char "z")))
       (define-key
+        (taglist-make-key-function k)))
+
+    (taglist-key-itself map (string-to-char " "))
+    (taglist-key-itself map (string-to-char "_"))
+
     (define-key map (kbd "<RET>") 'taglist-jump-to-tag)
+    (define-key map [mouse-2] 'taglist-jump-to-tag-by-event)
+    (define-key map [mouse-3] 'taglist-jump-to-tag-by-event)
     (define-key map (kbd "<backspace>") 'taglist-backspace-pressed)
     ;; Cause M-v doesn't work!!!
     ;; (define-key map (kbd "<ESC>") 'taglist-escape)
@@ -90,10 +184,14 @@
                  (lambda (item) (= tag-line (taglist-line item)))
                  taglist-actual-tags)))
       (when line
-		(unless (eq (line-number-at-pos) (+ 1 line))
-		  (taglist-goto-line (1+ line))))))
+        (unless (eq (line-number-at-pos) (+ 1 line))
+          (with-selected-window (get-buffer-window (get-buffer tag-list-buffer-name))
+            (taglist-goto-line (1+ line))
+            (hl-line-mode 1))
+          ))))
 
-  (hl-line-mode))
+  ;; (hl-line-mode)
+  )
 
 (defconst tag-list-buffer-name "*TagList*"
   "Name of the buffer that is used to display imenu entries.")
@@ -109,11 +207,13 @@
 
 (defun tag-list-start-timer ()
   (tag-list-stop-timer)
+  (add-hook 'after-save-hook 'tag-list-update-after-save-safe)
   (setq tag-list--timer
         (run-with-idle-timer 1 t #'tag-list-update-safe)))
 
 (defun tag-list-stop-timer ()
   (when tag-list--timer
+    (remove-hook 'after-save-hook 'tag-list-update-after-save-safe)
     (cancel-timer tag-list--timer)
     (setq tag-list--timer nil)))
 
@@ -124,29 +224,57 @@
 (defun tag-list-update ()
   "Refresh taglist."
   (if (or (minibufferp (current-buffer))
-		  (string-equal "*" (substring (buffer-name) 0 1))
-		  (eq major-mode 'dired-mode))
-	  (error "Invalid buffer"))
+          (string-equal "*" (substring (buffer-name) 0 1))
+          (eq major-mode 'dired-mode))
+      (error "Invalid buffer"))
+  (setq location (point-marker))
+  (unless (and tag-list--last-location
+               (marker-buffer tag-list--last-location)
+               (= location tag-list--last-location))
+    (setq tag-list--last-location location)
+    (unless (eq (current-buffer) (get-buffer tag-list-buffer-name))
+      (setq taglist-current-line (line-number-at-pos))
+      (if (eq taglist-source-code-buffer (current-buffer))
+          (progn
+            (with-current-buffer (current-buffer)
+              (set-buffer (get-buffer tag-list-buffer-name))
+              ;; (with-selected-window (get-buffer-window (get-buffer tag-list-buffer-name))
+              (taglist-highlight-current-tag))
+            )
+        (progn
+          (with-current-buffer (current-buffer)
+            (setq taglist-source-code-buffer (current-buffer))
+            ;; (setq taglist-tmp-file (make-temp-file "taglist."))
+            (setq taglist-tmp-file (buffer-file-name))
+            (setq taglist-current-major-mode major-mode)
+            ;; (write-region (point-min) (point-max) taglist-tmp-file)
+            (set-buffer (get-buffer tag-list-buffer-name))
+            ;; (with-selected-window (get-buffer-window (get-buffer tag-list-buffer-name))
+            (taglist-mode-init)))
+        ))))
+
+(defun tag-list-update-after-save-safe()
+  (ignore-errors (tag-list-update-after-save)))
+(defun tag-list-update-after-save ()
+  "Refresh taglist."
+  (if (or (minibufferp (current-buffer))
+          (string-equal "*" (substring (buffer-name) 0 1))
+          (eq major-mode 'dired-mode))
+      (error "Invalid buffer"))
+  (setq detected-language (taglist-detect-language))
+  (unless detected-language
+    (error "Unsupported buffer"))
   (unless (eq (current-buffer) (get-buffer tag-list-buffer-name))
-	(setq taglist-current-line (line-number-at-pos))
-	(if (eq taglist-source-code-buffer (current-buffer))
-		(progn
-		  (with-current-buffer (current-buffer)
-			(set-buffer (get-buffer tag-list-buffer-name))
-			(with-selected-window (get-buffer-window (get-buffer tag-list-buffer-name))
-			  (taglist-highlight-current-tag)))
-		  )
-	  (progn
-		(with-current-buffer (current-buffer)
-		  (setq taglist-source-code-buffer (current-buffer))
-		  ;; (setq taglist-tmp-file (make-temp-file "taglist."))
-		  (setq taglist-tmp-file (buffer-file-name))
-		  (setq taglist-current-major-mode major-mode)
-		  ;; (write-region (point-min) (point-max) taglist-tmp-file)
-		  (set-buffer (get-buffer tag-list-buffer-name))
-		  (with-selected-window (get-buffer-window (get-buffer tag-list-buffer-name))
-			(taglist-mode-init))))
-	  )))
+    (setq taglist-current-line (line-number-at-pos))
+    (with-current-buffer (current-buffer)
+      (setq taglist-source-code-buffer (current-buffer))
+      ;; (setq taglist-tmp-file (make-temp-file "taglist."))
+      (setq taglist-tmp-file (buffer-file-name))
+      (setq taglist-current-major-mode major-mode)
+      ;; (write-region (point-min) (point-max) taglist-tmp-file)
+      (set-buffer (get-buffer tag-list-buffer-name))
+      ;; (with-selected-window (get-buffer-window (get-buffer tag-list-buffer-name))
+        (taglist-mode-init))))
 
 ;;;###autoload
 (defun taglist-list-tags ()
@@ -172,3 +300,16 @@ This function is recommended to be bound to some convinient hotkey."
 (defun taglist-mode-init ()
   "Initialize tag list mode."
 
+  (make-local-variable 'taglist-all-tags)
+  ;; subset of taglist-all-tags that contain taglist-search string in the name string
+  (make-local-variable 'taglist-actual-tags)
+  ;; overlays used to highligh search string matches in tag names
+  (make-local-variable 'taglist-overlays)
+  (make-local-variable 'taglist-current-language)
+  (setq tag-list--last-location nil)
+  (set (make-local-variable 'font-lock-defaults) taglist-font-lock-defaults)
+  ;; (message "current-line = %d" taglist-current-line)
+  (setq taglist-overlays nil)
+  (setq taglist-search-string "")
+
+  (setq taglist-all-tags
