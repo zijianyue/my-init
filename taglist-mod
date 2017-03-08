@@ -67,6 +67,38 @@ for example *.hpp <--> *.cpp."
     ("c++-mode" "c++")
     ;; rust is support at https://github.com/universal-ctags
     ("rst-mode" "rst")
+    ;; beta language
+    ("beta" "BETA;f:fragment;s:slot;v:pattern")
+
+    ;; c language
+    ("c" "C;c:classes;d:macro definitions;g:enumeration names;\
+n:namespaces;s:structure names;t:typedefs;\
+u:union names;v:variable definitions;f:function definitions;p:function prototype")
+
+    ;; c++ language
+    ("c++" "C++;n:namespace;v:variable;d:macro;t:typedef;\
+c:class;g:enum;s:struct;u:union;f:function;p:function prototype")
+
+    ;; c# language
+    ("cs" "C#;d:macro;t:typedef;n:namespace;c:class;E:event;\
+g:enum;s:struct;i:interface;p:properties;m:method")
+
+    ;; cobol language
+                              "--format=2"
+                              "--excmd=number"
+                              "--fields=nks"
+                              "--sort=no"
+                              (concat "--language-force=" ctags-language)
+                              (concat "--" ctags-language "-kinds=" ctags-lang-kinds)
+                              (if (or (equal ctags-language "C")
+                                      (equal ctags-language "C++"))
+                                  (concat "--" ctags-language "-kinds=+px"))
+                              taglist-tmp-file
+                              )))
+         "\n" t)
+      (insert (concat "Warnning: " (buffer-name taglist-source-code-buffer) " doesn't exist on your disk, you should save it first!\n"))
+      nil)))
+
 ;; e.g. tagline =  main      /path/to/src/ip46.c     38;"    f       line:38
 (defun taglist-convert-to-elements (tagline)
   "Convert tagline to a tag(tag-name tag-line tag-type) "
@@ -111,7 +143,6 @@ buffer and sets the point to a tag, corresponding the line."
 When called standing on a line of tag list, it closes the list
 buffer and sets the point to a tag, corresponding the line."
   (interactive)
-
 
     (if (and tag-record (= 0 (taglist-line tag-record)))
         (setq tag-record (nth (line-number-at-pos) taglist-actual-tags)))
