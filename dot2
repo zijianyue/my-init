@@ -1,0 +1,500 @@
+  ;; (cscope-set-initial-directory (file-name-directory root-file))
+  (message "Known EDE Project Created." ))
+
+(defun create-unknown-ede-project(&optional select)
+  (interactive "P")
+  (if select
+	  (setq root-file (read-file-name "Open a root file in proj: "))
+	(setq root-file "./GTAGS"))
+  (create-spec-ede-project root-file nil)
+  ;; (find-sln root-file)
+  ;; (cscope-set-initial-directory (file-name-directory root-file))
+  (message "UnKnown EDE Project Created." ))
+
+(global-set-key (kbd "C-c e") 'create-known-ede-project)
+(global-set-key (kbd "C-c u") 'create-unknown-ede-project)
+
+(create-spec-ede-project "e:/projects/tempspace/test4c/GTAGS" nil)
+(create-spec-ede-project "e:/projects/eNavi2_800X480_ChangeUI/GTAGS" t)
+(create-spec-ede-project "e:/projects/Clarion_13MY_Dev_For_MM/GTAGS" t)
+
+;;auto-complete
+(autoload 'auto-complete-mode "auto-complete-config" nil t)
+;; (require 'auto-complete-config)
+;; (require 'pos-tip)
+
+(eval-after-load "auto-complete-config"
+  '(progn
+	 (setq ac-fuzzy-enable t)
+	 (setq ac-quick-help-prefer-pos-tip t)
+	 (setq ac-trigger-commands
+		   (cons 'backward-delete-char-untabify ac-trigger-commands))
+	 (setq ac-trigger-commands
+		   (cons 'autopair-backspace ac-trigger-commands))
+	 (global-set-key (kbd "C-x /") 'ac-complete-filename)
+	 (global-set-key (kbd "M-RET") 'auto-complete)
+
+	 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
+	   (setq-local ac-sources (delete 'ac-source-gtags ac-sources))
+	   (setq-local ac-sources (delete 'ac-source-words-in-same-mode-buffers ac-sources))
+	   (setq-local ac-sources (delete 'ac-source-abbrev ac-sources))
+	   (setq-local ac-sources (append '(ac-source-semantic) ac-sources))
+	   (setq-local ac-sources (append '(ac-source-semantic-raw) ac-sources)) ;;会干扰->成员的补全
+	   ;; (setq-local ac-sources (append '(ac-source-imenu) ac-sources)) ;;会干扰->成员的补全
+	   )
+
+	 (define-key ac-completing-map  (kbd "M-s") 'ac-isearch)
+	 (ac-config-default) 
+	 (add-to-list 'ac-modes 'objc-mode)
+	 ;; (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
+	 ))
+
+;; company
+(autoload 'company-mode "company" nil t)
+(autoload 'global-company-mode "company" nil t)
+
+(eval-after-load "company"
+  '(progn
+	 (setq company-async-timeout 15)
+	 ;; (add-hook 'after-init-hook 'global-company-mode)
+	 ;; (global-set-key (kbd "<S-return>") 'company-complete-common)
+
+	 ;; (push '(company-capf :with company-semantic :with company-yasnippet :with company-dabbrev-code) company-backends)
+	 (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
+	 (define-key company-active-map (kbd "M-s") 'company-filter-candidates)
+	 (defun toggle-company-complete-id (&optional args)
+	   (interactive "P")
+	   (message "company complete id afte %s char" args)
+	   (if args
+		   (setq-local company-minimum-prefix-length args)
+		 (progn
+		   (if (eq company-minimum-prefix-length 99)
+			   (progn
+				 (setq-local company-minimum-prefix-length 3))
+			 (progn
+			   (setq-local company-minimum-prefix-length 99))))
+		 ))
+	 ))
+
+;;yasnippet
+(autoload 'yas-global-mode "yasnippet" nil t)
+(autoload 'yas-minor-mode "yasnippet" nil t)
+(setq yas-snippet-dirs "~/.emacs.d/snippets")
+
+(setq yas-glo-on nil)
+(defun yas-glo-on ()
+  (interactive "P")
+  (unless yas-glo-on (yas-global-mode 1))
+  (setq yas-glo-on t)
+  )
+
+;; sln解析
+(autoload 'find-sln "sln-mode" nil t)
+(eval-after-load "project-buffer-mode"
+  '(progn
+	 (require 'project-buffer-mode+)
+	 (project-buffer-mode-p-setup)
+	 (require 'project-buffer-occur)
+	 (define-key project-buffer-mode-map [?r] 'project-buffer-occur);; 要想全局搜索需要加C-u
+	 (define-key project-buffer-mode-map [?m] 'project-buffer-occur-case-sensitive)
+	 ;; (define-key global-map (kbd "<M-f6>") 'project-buffer-mode-p-go-to-attached-project-buffer)
+	 ;; (define-key global-map (kbd "<C-f6>") 'project-buffer-mode-p-run-project-buffer-build-action)
+	 ))
+
+;; (global-set-key (kbd "C-c l") 'find-sln)
+
+;; 前进、后退
+(require 'recent-jump-small)
+(setq rjs-mode-line-format nil)
+(recent-jump-small-mode)
+(global-set-key (kbd "<M-left>") 'recent-jump-small-backward)
+(global-set-key (kbd "<M-right>") 'recent-jump-small-forward)
+;; (add-to-list 'rjs-command-ignore 'mwheel-scroll)
+(add-to-list 'rjs-command-ignore 'mouse-drag-region)
+
+(defvar rjs-command-ignore-last
+  '(recent-jump-backward
+    recent-jump-forward
+    recent-jump-small-backward
+    recent-jump-small-forward
+	mwheel-scroll
+	mouse-drag-region))
+
+(defun is-mwheeling()
+  (and (eq last-command 'mwheel-scroll) (eq this-command 'mwheel-scroll)))
+
+(defun uninterested-buffer (buffer &optional all)
+  (if all
+	  (or (eq (buffer-local-value 'major-mode buffer) 'dired-mode)
+		  (string-match-p "\*" (buffer-name buffer)))
+	(or (eq (buffer-local-value 'major-mode buffer) 'ag-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'semantic-symref-results-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'diff-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'vc-dir-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'vc-svn-log-view-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'ediff-meta-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'occur-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'Custom-mode)
+		(eq (buffer-local-value 'major-mode buffer) 'help-mode)	
+		(string-match-p "ag dired pattern" (buffer-name buffer))
+		(string-match-p "\*vc\*" (buffer-name buffer))
+		(string-match-p "\*Backtrace\*" (buffer-name buffer))
+		(string-match-p "\*Completions\*" (buffer-name buffer))
+		(string-match-p "\*Cedet\*" (buffer-name buffer))
+		(string-match-p "\*Annotate\*" (buffer-name buffer))
+		(string-match-p "\*Compile-Log\*" (buffer-name buffer))
+		(string-match-p "\*GTAGS SELECT\*" (buffer-name buffer))
+		(string-match-p "\*Calc\*" (buffer-name buffer))
+		(string-match-p "\*magit" (buffer-name buffer))
+		(string-match-p "Ilist" (buffer-name buffer))
+		(string-match-p "log-edit-files" (buffer-name buffer))
+		)))
+
+(defun rjs-pre-command-fset ()
+  "每个命令执行前执行这个函数"
+  (unless (or (active-minibuffer-window) isearch-mode (uninterested-buffer (current-buffer) t) (is-mwheeling))
+    (unless (memq this-command rjs-command-ignore)
+      (let ((position (list (buffer-file-name) (current-buffer) (point))))
+		;; (princ (format " this %S pos:%S" this-command position))
+        (unless rjs-position-before
+          (setq rjs-position-before position))
+        (setq rjs-position-pre-command position))
+      (if (memq last-command '(recent-jump-small-backward recent-jump-small-forward))
+          (progn
+            (let ((index (1- rjs-index)) (list nil))
+              (while (> index 0)
+                (push (ring-ref rjs-ring index) list)
+                (setq index (1- index)))
+              (while list
+                (ring-insert rjs-ring (car list))
+                (pop list))))))))
+
+
+(defun rjs-post-command-fset ()
+  "每个命令执行后执行这个函数"
+  (unless (or (active-minibuffer-window) isearch-mode (uninterested-buffer (current-buffer) t) (is-mwheeling))
+	(unless (memq this-command rjs-command-ignore)
+	  (let ((position (list (buffer-file-name) (current-buffer) (point))))
+		;; (princ (format " last %S this %S pos:%S pre:%S before:%S" last-command this-command position rjs-position-pre-command rjs-position-before))
+		(if (eq this-command 'mwheel-scroll)
+			(rj-insert-point rjs-ring position))
+		(if (or (and rjs-position-pre-command
+					 (rj-insert-big-jump-point rjs-ring rjs-line-threshold rjs-column-threshold rjs-position-pre-command position rjs-position-pre-command))
+				(and rjs-position-before
+					 (rj-insert-big-jump-point rjs-ring rjs-line-threshold rjs-column-threshold rjs-position-before position rjs-position-before)))
+			(setq rjs-position-before nil)))))
+  (setq rjs-position-pre-command nil))
+
+(defun recent-jump-small-backward-fset (arg)
+  "跳到命令执行前的位置"
+  (interactive "p")
+  (let ((index rjs-index)
+        (last-is-rjs (memq last-command '(recent-jump-small-backward recent-jump-small-forward))))
+    (if (ring-empty-p rjs-ring)
+        (message (if (> arg 0) "Can't backward, ring is empty" "Can't forward, ring is empty"))
+      (if last-is-rjs
+          (setq index (+ index arg))
+        (setq index arg)
+		(unless (uninterested-buffer (current-buffer) t)
+		  (unless (memq last-command rjs-command-ignore-last)
+			(let ((position (list (buffer-file-name) (current-buffer) (point))))
+			  (setq rj-position-before nil)
+			  (unless (rj-insert-big-jump-point rjs-ring rjs-line-threshold rjs-column-threshold (ring-ref rjs-ring 0) position)
+				(ring-remove rjs-ring 0)
+				(ring-insert rjs-ring position))))))
+      (if (>= index (ring-length rjs-ring))
+          (message "Can't backward, reach bottom of ring")
+        (if (<= index -1)
+            (message "Can't forward, reach top of ring")
+          (let* ((position (ring-ref rjs-ring index))
+				 (file (nth 0 position))
+				 (buffer (nth 1 position)))
+            (if (not (or file (buffer-live-p buffer)))
+                (progn
+                  (ring-remove rjs-ring index)
+                  (message "要跳转的位置所在的buffer为无文件关联buffer, 但该buffer已被删除"))
+              (if file
+                  (find-file (nth 0 position))
+                (assert (buffer-live-p buffer))
+                (switch-to-buffer (nth 1 position)))
+              (goto-char (nth 2 position))
+              (setq rjs-index index))))))))
+
+(fset 'rjs-pre-command 'rjs-pre-command-fset)
+(fset 'rjs-post-command 'rjs-post-command-fset)
+(fset 'recent-jump-small-backward 'recent-jump-small-backward-fset)
+
+;; bookmark
+(autoload 'bm-toggle   "bm" "Toggle bookmark in current buffer." t)
+(autoload 'bm-next     "bm" "Goto bookmark."                     t)
+(autoload 'bm-previous "bm" "Goto previous bookmark."            t)
+(autoload 'bm-toggle-cycle-all-buffers "bm" nil  t)
+
+(global-set-key (kbd "<C-f2>") 'bm-toggle)
+(global-set-key (kbd "<f2>")   'bm-next)
+(global-set-key (kbd "<S-f2>") 'bm-previous)
+(setq bm-cycle-all-buffers t)
+(defface bm-face
+  '((((class grayscale)
+      (background light)) (:background "DimGray"))
+    (((class grayscale)
+      (background dark))  (:background "LightGray"))
+    (((class color)
+      (background light)) (:background "peach puff"))
+    (((class color)
+      (background dark))  (:background "dark slate gray")))
+  "Face used to highlight current line."
+  :group 'bm)
+
+;; 更多的语法高亮
+(defface zjl-c-hl-function-call-face
+  '((t (:foreground "SpringGreen4" :bold t)))
+  "*Face used for link privilege indicator (l) in dired buffers."
+  :group 'zjl-c-faces)
+(defvar zjl-c-hl-function-call-face 'zjl-c-hl-function-call-face)
+
+
+;; 显示列竖线
+(autoload 'fci-mode "fill-column-indicator" "" t)
+(global-set-key (kbd "C-:") 'fci-mode)
+(setq fci-rule-column 120)
+
+(eval-after-load "fill-column-indicator"
+  '(progn
+	 ;; 避免破坏 auto complete
+	 (defun sanityinc/fci-enabled-p () (symbol-value 'fci-mode))
+
+	 (defvar sanityinc/fci-mode-suppressed nil)
+	 (make-variable-buffer-local 'sanityinc/fci-mode-suppressed)
+
+	 (defadvice popup-create (before suppress-fci-mode activate)
+	   "Suspend fci-mode while popups are visible"
+	   (let ((fci-enabled (sanityinc/fci-enabled-p)))
+		 (when fci-enabled
+		   (setq sanityinc/fci-mode-suppressed fci-enabled)
+		   (turn-off-fci-mode))))
+
+	 (defadvice popup-delete (after restore-fci-mode activate)
+	   "Restore fci-mode when all popups have closed"
+	   (when (and sanityinc/fci-mode-suppressed
+				  (null popup-instances))
+		 (setq sanityinc/fci-mode-suppressed nil)
+		 (turn-on-fci-mode)))
+
+	 ;; 避免和company冲突
+	 (defvar-local company-fci-mode-on-p nil)
+
+	 (defun company-turn-off-fci (&rest ignore)
+	   (when (boundp 'fci-mode)
+		 (setq company-fci-mode-on-p fci-mode)
+		 (when fci-mode (fci-mode -1))))
+
+	 (defun company-maybe-turn-on-fci (&rest ignore)
+	   (when company-fci-mode-on-p (fci-mode 1)))
+
+	 (add-hook 'company-completion-started-hook 'company-turn-off-fci)
+	 (add-hook 'company-completion-finished-hook 'company-maybe-turn-on-fci)
+	 (add-hook 'company-completion-cancelled-hook 'company-maybe-turn-on-fci)
+	 ))
+;; 异步copy rename文件
+(autoload 'dired-async-mode "dired-async.el" nil t)
+
+;; helm系列
+(autoload 'helm-show-kill-ring "helm-config" nil t)
+(autoload 'helm-semantic-or-imenu "helm-config" nil t)
+(autoload 'helm-for-files "helm-config" nil t)
+(autoload 'helm-resume "helm-config" nil t)
+(autoload 'helm-M-x "helm-config" nil t)
+(autoload 'helm-find-files "helm-config" nil t)
+
+
+(autoload 'helm-gtags-mode "helm-gtags" nil t)
+(autoload 'helm-gtags-select "helm-gtags" nil t)
+(autoload 'helm-gtags-select-path "helm-gtags" nil t)
+(autoload 'helm-gtags-find-tag "helm-gtags" nil t)
+(autoload 'helm-gtags-find-files "helm-gtags" nil t)
+(autoload 'helm-gtags-create-tags "helm-gtags" nil t)
+(autoload 'helm-gtags-update-tags "helm-gtags" nil t)
+(autoload 'helm-gtags-dwim "helm-gtags" nil t)
+(autoload 'helm-gtags-find-rtag "helm-gtags" nil t)
+
+(autoload 'gtags-find-file "gtags" nil t)
+
+(define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
+
+(autoload 'helm-occur "helm-gtags" nil t)
+(autoload 'helm-swoop "helm-swoop" nil t)
+(autoload 'helm-swoop-from-isearch "helm-swoop" nil t)
+
+(autoload 'helm-ag-this-file "helm-ag" nil t)
+
+
+(eval-after-load "helm"
+  '(progn
+	 (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebihnd tab to do persistent action
+	 (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
+	 (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
+	 (define-key helm-map (kbd "<f12>") 'helm-buffer-run-kill-buffers) ;默认是M-D, M-spc是mark, M-a是全选， M-m是toggle mark
+	 ))
+
+(eval-after-load "helm-files"
+  '(progn
+	 (define-key helm-find-files-map (kbd "<C-backspace>") 'backward-kill-word)
+	 (define-key helm-read-file-map (kbd "<C-backspace>") 'backward-kill-word)
+	 ))
+
+(global-set-key (kbd "C-S-k") 'helm-all-mark-rings)
+(global-set-key (kbd "C-S-v") 'helm-show-kill-ring)
+(global-set-key (kbd "<apps>") 'helm-semantic-or-imenu)
+(global-set-key (kbd "<C-apps>") 'helm-for-files)
+(global-set-key (kbd "<S-apps>") 'helm-resume)
+(global-set-key (kbd "<M-apps>") 'helm-ag-this-file)
+(global-set-key (kbd "M-]") 'helm-swoop)
+(global-set-key (kbd "M-X") 'helm-M-x)
+(global-set-key (kbd "C-x f") 'helm-find-files)
+
+(global-set-key (kbd "C-c b") 'helm-gtags-find-files)
+(global-set-key (kbd "C-c B") 'gtags-find-file)
+(global-set-key (kbd "C-c d") 'helm-gtags-find-tag)
+(global-set-key (kbd "<f6>") 'helm-gtags-select-path)
+(global-set-key (kbd "<f7>") 'helm-gtags-select)
+;; (global-set-key (kbd "<S-f5>") 'helm-gtags-create-tags)
+(global-set-key (kbd "<f5>") 'helm-gtags-update-tags) ;c-u 全局刷新 ，c-u c-u 创建
+
+(global-set-key (kbd "C-\\") 'helm-gtags-dwim)
+(global-set-key (kbd "C-c r") 'helm-gtags-find-rtag)
+
+(eval-after-load "helm-gtags"
+  '(progn
+	 (gtags-mode 1)
+     (remove-hook 'after-save-hook 'gtags-auto-update)
+	 (helm-gtags-mode 1)
+	 (add-hook 'c-mode-common-hook
+			   (lambda ()
+				 (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+				   (ggtags-mode 1))))
+	 (ggtags-mode 1)
+	 (defadvice helm-gtags--update-tags-command(before helm-gtags-update-tags-bef activate)
+	   (if (bound-and-true-p ycmd-mode)
+		   (progn
+			 (unless (ycmd-running?) (ycmd-open))
+			 (ycmd-parse-buffer)))
+	   ;; (semantic-force-refresh)
+	   )
+	 
+	 (add-hook 'c-mode-common-hook
+			   (lambda ()
+				 (gtags-mode 1)
+				 (helm-gtags-mode 1)))
+	 (define-key helm-gtags-mode-map (kbd "C-]") nil)
+	 (define-key helm-gtags-mode-map (kbd "C-t") nil)
+	 (define-key helm-gtags-mode-map (kbd "M-*") nil)
+	 (define-key helm-gtags-mode-map (kbd "M-,") nil)
+	 (define-key helm-gtags-mode-map (kbd "M-.") nil)
+	 (define-key helm-gtags-mode-map (kbd "C-c t") nil)
+	 (define-key helm-gtags-mode-map (kbd "C-c s") 'helm-gtags-find-symbol)
+	 (define-key helm-gtags-mode-map (kbd "C-c r") 'helm-gtags-find-rtag)
+	 (define-key helm-gtags-mode-map (kbd "C-c f") 'helm-gtags-parse-file)
+	 (define-key helm-gtags-mode-map (kbd "C-c g") 'helm-gtags-find-pattern)
+	 (define-key helm-gtags-mode-map (kbd "C-\\") 'helm-gtags-dwim)
+	 (define-key helm-gtags-mode-map (kbd "C-|") 'helm-gtags-find-tag-other-window)
+	 (define-key helm-gtags-mode-map (kbd "C-M-,") 'helm-gtags-show-stack)
+	 ))
+
+(add-hook 'helm-update-hook
+		  (lambda ()
+			(setq truncate-lines t)))
+;; 自定义的mru
+(defvar semantic-tags-location-ring (make-ring 30))
+
+;; flycheck
+;; (defvar package-user-dir "")			;防止check lisp出错
+(autoload 'flycheck-mode "flycheck" nil t)
+(autoload 'global-flycheck-mode "flycheck" nil t)
+
+(global-set-key (kbd "M-g l") 'flycheck-list-errors)
+(global-set-key (kbd "<M-f5>") (lambda () "" (interactive)
+								 (require 'flycheck)
+								 (unless flycheck-mode (flycheck-mode 1))
+								 (flycheck-buffer)
+								 ))
+
+;; 行号性能改善
+(require 'nlinum )
+(global-nlinum-mode 1)
+;; Preset `nlinum-format' for minimum width.
+(defun my-nlinum-mode-hook ()
+  (when nlinum-mode
+    (setq-local nlinum-format
+                (concat "%" (number-to-string
+                             ;; Guesstimate number of buffer lines.
+                             (ceiling (log (max 1 (/ (buffer-size) 80)) 10)))
+                        "d"))))
+(add-hook 'nlinum-mode-hook #'my-nlinum-mode-hook)
+;; 避免 “ERROR: Invalid face: linum” error
+(defun initialize-nlinum (&optional frame)
+  (require 'nlinum)
+  (add-hook 'prog-mode-hook 'nlinum-mode))
+(when (daemonp)
+  (add-hook 'window-setup-hook 'initialize-nlinum)
+  (defadvice make-frame (around toggle-nlinum-mode compile activate)
+	(nlinum-mode -1) ad-do-it (nlinum-mode 1)))
+
+;; lua mode
+(autoload 'lua-mode "lua-mode" "Lua editing mode." t)
+(add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
+(add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
+
+;; markdown mode
+(autoload 'markdown-mode "markdown-mode"
+  "Major mode for editing Markdown files" t)
+(add-to-list 'auto-mode-alist '("\\.text\\'" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+
+;; 打开大文件
+(require 'vlf-setup)
+(eval-after-load "vlf"
+  '(progn
+	 (setq vlf-tune-enabled 'stats)
+	 (define-key vlf-prefix-map (kbd "C-c j") vlf-mode-map)))
+
+(defadvice vlf (after vlf-after activate)
+  ""
+  (remove-dos-eol)
+  (nlinum-mode 1)
+  (anzu-mode 1))
+
+;; ace
+(define-key cua--cua-keys-keymap [(meta v)] nil)
+(autoload 'ace-window "ace-window" nil t)
+(autoload 'ace-jump-char-mode "ace-jump-mode" nil t)
+
+(eval-after-load "ace-window"
+  '(progn
+	 (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))))
+
+(eval-after-load "ace-jump-mode"
+  '(progn
+	 (setq ace-jump-mode-move-keys (loop for i from ?a to ?z collect i))))
+
+(global-set-key (kbd "M-v") 'ace-window)
+(global-set-key (kbd "M-j") 'ace-jump-char-mode)
+
+
+;; 查看diff
+
+(require 'diff-hl-margin )
+;; (global-diff-hl-mode)
+;; (autoload 'diff-hl-dired-mode "diff-hl-dired" nil t)
+;; (autoload 'global-diff-hl-mode "diff-hl-margin" nil t)
+;; (autoload 'diff-hl-mode "diff-hl" nil t)
+;; (autoload 'turn-on-diff-hl-mode "diff-hl" nil t)
+(autoload 'diff-hl-flydiff-mode "diff-hl-flydiff" nil t)
+;; (diff-hl-flydiff-mode 1)
+;; (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
+;; (add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode)
+(eval-after-load "diff-hl"
+  '(progn
+	 (setq vc-git-diff-switches '("--histogram"))
+	 (defun diff-hl-changes-fset ()
