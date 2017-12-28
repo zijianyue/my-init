@@ -1,0 +1,500 @@
+								(type (cond ((zerop deletes) 'insert)
+											((zerop inserts) 'delete)
+											(t 'change))))
+						   (when (eq type 'delete)
+							 (setq len 1)
+							 (cl-incf line))
+						   (push (list line len type) res))))))
+				 (nreverse res)))
+			  ((eq state 'added)
+			   `((1 ,(line-number-at-pos (point-max)) insert)))
+			  ((eq state 'removed)
+			   `((1 ,(line-number-at-pos (point-max)) delete))))))))
+	 (fset 'diff-hl-changes 'diff-hl-changes-fset)
+	 ))
+
+(defun toggle-git-backend ()
+  "docstring"
+  (interactive)
+  (if (memq 'Git vc-handled-backends)
+      (setq vc-handled-backends (delq 'Git vc-handled-backends))
+    (progn (add-to-list 'vc-handled-backends 'Git)
+           (cond ((eq major-mode 'dired-mode)
+                  (revert-buffer))
+                 ((and (not (eq major-mode 'vc-dir-mode))
+                    ;; (not (vc-backend buffer-file-name))
+                    )
+                  (reopen-file))))))
+(global-set-key (kbd "M-g h") 'toggle-git-backend)
+(defadvice diff-hl-mode(around diff-hl-mode-ar activate)
+  (if (not diff-hl-mode)
+      (progn
+        (setq vc-handled-backends (append '(Git) vc-handled-backends))
+        (if (and (not (eq major-mode 'vc-dir-mode))
+                 ;; (not (vc-backend buffer-file-name))
+                 )
+            (reopen-file))
+        ad-do-it
+        (setq vc-handled-backends (delq 'Git vc-handled-backends)))
+    (progn
+      (setq vc-handled-backends (delq 'Git vc-handled-backends)))))
+
+(defadvice global-diff-hl-mode(before global-diff-hl-mode-bef activate)
+  (if (not global-diff-hl-mode)
+      (progn
+        (add-to-list 'vc-handled-backends 'Git)
+        (ad-deactivate 'diff-hl-mode)
+        (if (and (not (eq major-mode 'vc-dir-mode))
+                 ;; (not (vc-backend buffer-file-name))
+                 )
+            (reopen-file)))
+    (progn
+      (setq vc-handled-backends (delq 'Git vc-handled-backends)))))
+;; wgrep
+(autoload 'wgrep-setup "wgrep")
+(add-hook 'grep-setup-hook 'wgrep-setup)
+(setq wgrep-enable-key "r")
+
+(autoload 'wgrep-pt-setup "wgrep-pt")
+(add-hook 'pt-search-mode-hook 'wgrep-pt-setup)
+
+;; pt
+(autoload 'pt-regexp "pt" nil t)
+
+;; fast silver searcher
+(autoload 'my-ag "ag" nil t)
+(autoload 'ag-this-file "ag" nil t)
+(autoload 'ag-dired "ag" nil t)
+(autoload 'ag-dired-regexp "ag" nil t)
+
+(global-set-key (kbd "<f9>") 'ag-this-file)
+(global-set-key (kbd "<C-f9>") 'my-ag)
+(global-set-key (kbd "<S-f6>") 'vc-git-grep) ;速度最快,区分大小写
+(global-set-key (kbd "<S-f9>") 'ag-dired)
+;; C-c C-k 停止ag-dired
+
+(autoload 'wgrep-ag-setup "wgrep-ag")
+(add-hook 'ag-mode-hook 'wgrep-ag-setup)
+
+(eval-after-load "ag"
+  '(progn
+	 (require 'grep )
+	 (defun my-ag (string directory)
+	   ""
+	   (interactive (list (grep-read-regexp)
+						  (read-directory-name "Directory: ")))
+	   (ag/search string directory))
+
+	 (defun my-ag-project (string)
+	   ""
+	   (interactive (list (grep-read-regexp)))
+	   (ag/search string (ag/project-root default-directory)))
+	 
+	 (defun ag-this-file (string file-regex directory)
+	   ""
+	   (interactive (list (grep-read-regexp)
+						  (setq file-regex (list :file-regex
+												 (concat "/" (file-name-nondirectory (buffer-file-name) ) "$")))
+						  (setq directory default-directory)))
+	   (setq arg-bak ag-arguments)
+	   (add-to-list 'ag-arguments "-u")
+	   (apply #'ag/search string directory file-regex)
+	   (setq ag-arguments arg-bak))
+
+	 (defun ag/kill-process-fset ()
+	   ""
+	   (interactive)
+	   (let ((ag (get-buffer-process (current-buffer))))
+		 (and ag (eq (process-status ag) 'run)
+			  ;; (eq (process-filter ag) (function find-dired-filter))
+			  (condition-case nil
+				  (delete-process ag)
+				(error nil)))))
+	 (fset 'ag/kill-process 'ag/kill-process-fset)
+
+	 (defun ag-dired-regexp-fset (dir regexp)
+	   ""
+	   (interactive "DDirectory: \nsFile regexp: ")
+	   (let* ((dired-buffers dired-buffers) ;; do not mess with regular dired buffers
+			  (orig-dir dir)
+			  (dir (file-name-as-directory (expand-file-name dir)))
+			  (buffer-name (if ag-reuse-buffers
+							   "*ag dired*"
+							 (format "*ag dired pattern:%s dir:%s*" regexp dir)))
+			  (cmd (concat ag-executable " --nocolor -ui -g \"" regexp "\" "
+						   (shell-quote-argument dir)
+						   " | grep -v \"^$\" | sed 's:\\\\:\\\\\\\\:g' | xargs -I '{}' ls "
+						   dired-listing-switches " '{}' &")))
+		 (with-current-buffer (get-buffer-create buffer-name)
+		   (switch-to-buffer (current-buffer))
+		   (widen)
+		   (kill-all-local-variables)
+		   (if (fboundp 'read-only-mode)
+			   (read-only-mode -1)
+			 (setq buffer-read-only nil))
+		   (let ((inhibit-read-only t)) (erase-buffer))
+		   (setq default-directory dir)
+		   (run-hooks 'dired-before-readin-hook)
+		   (shell-command cmd (current-buffer))
+		   (insert "  " dir ":\n")
+		   (insert "  " cmd "\n")
+		   (dired-mode dir)
+		   (let ((map (make-sparse-keymap)))
+			 (set-keymap-parent map (current-local-map))
+			 (define-key map "\C-c\C-k" 'ag/kill-process)
+			 (use-local-map map))
+		   (set (make-local-variable 'dired-sort-inhibit) t)
+		   (set (make-local-variable 'revert-buffer-function)
+				`(lambda (ignore-auto noconfirm)
+				   (ag-dired-regexp ,orig-dir ,regexp)))
+		   (if (fboundp 'dired-simple-subdir-alist)
+			   (dired-simple-subdir-alist)
+			 (set (make-local-variable 'dired-subdir-alist)
+				  (list (cons default-directory (point-min-marker)))))
+		   (let ((proc (get-buffer-process (current-buffer))))
+			 (set-process-filter proc #'ag/dired-filter)
+			 (set-process-sentinel proc #'ag/dired-sentinel)
+			 ;; Initialize the process marker; it is used by the filter.
+			 (move-marker (process-mark proc) 1 (current-buffer)))
+		   (setq mode-line-process '(":%s")))))
+	 
+	 (fset 'ag-dired-regexp 'ag-dired-regexp-fset)
+
+	 (defvar ag-search-cnt 0 "search cnt")
+	 (defun ag/buffer-name-fset (search-string directory regexp)
+	   "Return a buffer name formatted according to ag.el conventions."
+	   (cond
+		(ag-reuse-buffers "*ag search*")
+		(regexp (format "*ag regexp:%s %d*" search-string (setq ag-search-cnt (1+ ag-search-cnt))))
+		(:else (format "*ag:%s %d*" search-string (setq ag-search-cnt (1+ ag-search-cnt))))))
+	 (fset 'ag/buffer-name 'ag/buffer-name-fset)
+	 ))
+
+;; magit
+;; 环境变量PATH里面一定要有C:\Program Files\Git\cmd, 不能有C:\Program Files\TortoiseGit\bin，否则git命令在shell里不好使
+(setenv "GIT_ASKPASS" "git-gui--askpass") ;解决git push不提示密码的问题
+(setenv "SSH_ASKPASS" "git-gui--askpass")
+(setenv "GIT_SSH" "c:/Program Files (x86)/PuTTY/plink.exe")
+;; 要想保存密码不用每次输入得修改.git-credentials和.gitconfig
+;; 解决magit和服务器的乱码问题，不需要在.gitconfig中改118n的配置(比如配置成gb2312)
+(defun my-git-commit-hook ()
+  (set-buffer-file-coding-system 'utf-8-unix))
+
+(defun my-git-commit-hook-gbk ()
+  (set-buffer-file-coding-system 'chinese-gbk-unix))
+
+;; 删除自带的git支持，在触发相关命令时再打开
+(setq-default vc-handled-backends (delq 'Git vc-handled-backends))
+
+(add-hook 'magit-mode-hook 'my-git-commit-hook)
+(add-hook 'magit-status-mode-hook 'my-git-commit-hook)
+(add-hook 'git-commit-mode-hook 'my-git-commit-hook)
+(add-hook 'magit-log-mode-hook
+		  (lambda ()
+			(setq truncate-lines nil)))
+;; (add-hook 'magit-revision-mode-hook 'my-git-commit-hook-gbk)
+
+(autoload 'magit-status "magit" nil t)
+(autoload 'magit-dispatch-popup "magit" nil t)
+(autoload 'magit-blame "magit" nil t)
+(autoload 'magit-log-buffer-file "magit" nil t)
+
+(global-set-key (kbd "C-x g") 'magit-status)
+(global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
+(global-set-key (kbd "C-x t g") 'magit-blame)
+(global-set-key (kbd "C-x t l") 'magit-log-buffer-file)
+
+;; 避免时区差8小时
+(eval-after-load "magit"
+  '(progn
+	 (defadvice magit-blame-format-time-string (before magit-blame-format-time-strin-bef activate)
+	   ""
+	   (setq tz 0))
+	 ;; magit-git-output-coding-system默认值改为nil防止diff乱码，但是会影响stash和blame，所以在这临时改为utf-8
+	 ;; (defadvice magit-insert-stashes (around magit-insert-stashes-ar activate)
+	 ;;   ""
+	 ;;   (setq magit-git-output-coding-system 'utf-8)
+	 ;;   ad-do-it
+	 ;;   (setq magit-git-output-coding-system nil)
+	 ;;   )
+     ;; (defadvice magit-git-wash (around magit-git-wash-ar activate)
+	 ;;   ""
+     ;;   (if (eq washer 'magit-diff-wash-diffs)
+     ;;       (progn
+     ;;         (message "git-diff")
+     ;;         (setq magit-git-output-coding-system 'nil)))
+     ;;   ad-do-it
+	 ;;   (setq magit-git-output-coding-system 'utf-8)
+	 ;;   )
+     
+     (defadvice magit-insert-diff (around magit-insert-diff-ar activate)
+	   ""
+	   (setq magit-git-output-coding-system 'nil)
+	   ad-do-it
+	   (setq magit-git-output-coding-system 'utf-8)
+	   )
+     (defadvice magit-insert-revision-diff (around magit-insert-revision-diff-ar activate)
+	   ""
+	   (setq magit-git-output-coding-system 'nil)
+	   ad-do-it
+	   (setq magit-git-output-coding-system 'utf-8)
+	   )
+     (defadvice magit-insert-unstaged-changes (around magit-insert-unstaged-changes-ar activate)
+	   ""
+	   (setq magit-git-output-coding-system 'nil)
+	   ad-do-it
+	   (setq magit-git-output-coding-system 'utf-8)
+	   )
+     (defadvice magit-insert-staged-changes (around magit-insert-staged-changes-ar activate)
+	   ""
+	   (setq magit-git-output-coding-system 'nil)
+	   ad-do-it
+	   (setq magit-git-output-coding-system 'utf-8)
+	   )
+     (defadvice magit-stash-insert-section (around magit-stash-insert-section-ar activate)
+	   ""
+	   (setq magit-git-output-coding-system 'nil)
+	   ad-do-it
+	   (setq magit-git-output-coding-system 'utf-8)
+	   )
+     (defadvice magit-merge-preview-refresh-buffer (around magit-merge-preview-refresh-buffer-ar activate)
+	   ""
+	   (setq magit-git-output-coding-system 'nil)
+	   ad-do-it
+	   (setq magit-git-output-coding-system 'utf-8)
+	   )
+
+
+     
+	 ;; (defadvice magit-rev-format (around magit-rev-format-ar activate)
+	 ;;   ""
+	 ;;   (setq magit-git-output-coding-system 'utf-8)
+	 ;;   ad-do-it
+	 ;;   (setq magit-git-output-coding-system nil)
+	 ;;   )
+	 ;; (defadvice magit-blame (around magit-blame-ar activate)
+	 ;;   ""
+	 ;;   (setq-local magit-git-output-coding-system 'utf-8)
+	 ;;   ad-do-it
+	 ;;   ;; (setq magit-git-output-coding-system nil)
+	 ;;   )
+
+	 (remove-hook 'magit-refs-sections-hook 'magit-insert-tags)
+	 (remove-hook 'server-switch-hook 'magit-commit-diff) ;提交时不显示差异，如需显示敲c-c c-d
+	 ))
+
+;; purpose
+(autoload 'purpose-mode "window-purpose" nil t)
+(autoload 'purpose-toggle-window-buffer-dedicated "window-purpose"nil t)
+(global-set-key (kbd "<C-f10>") 'purpose-mode)
+(global-set-key (kbd "<C-S-f10>") 'purpose-toggle-window-buffer-dedicated)
+
+;; 星际译王
+(defun kid-sdcv-to-buffer (&optional input)
+  (interactive "P")
+  (let ((word (if mark-active
+                  (buffer-substring-no-properties (region-beginning) (region-end))
+				(current-word nil t))))
+	(if input
+		(setq word (read-string (format "Search the dictionary for (default %s): " word)
+								nil nil word)))
+    
+    (set-buffer (get-buffer-create "*sdcv*"))
+    (buffer-disable-undo)
+    (erase-buffer)
+	(message "searching for %s ..." word)
+
+    (let ((process (start-process  "sdcv" "*sdcv*"  "sdcv" "-n" "--utf8-input" "--utf8-output" word)))
+      (set-process-sentinel
+       process
+       (lambda (process signal)
+         (when (memq (process-status process) '(exit signal))
+           (unless (string= (buffer-name) "*sdcv*")
+             (setq kid-sdcv-window-configuration (current-window-configuration))
+             (switch-to-buffer-other-window "*sdcv*")
+             (local-set-key (kbd "RET") 'kid-sdcv-to-buffer)
+             (local-set-key (kbd ",") (lambda ()
+                                        (interactive)
+										(quit-window t))));; quit-window t 可以关闭窗口并恢复原先窗口布局,但是buffer被kill
+           (goto-char (point-min))
+		   (open-line 1)))))))
+
+(global-set-key (kbd "<M-f11>") 'kid-sdcv-to-buffer)
+
+;; 显示搜索index
+(require 'anzu)
+(global-anzu-mode +1)
+(setq anzu-search-threshold 200) ;;防止大文件搜索时很卡
+(global-set-key (kbd "M-%") 'anzu-query-replace)
+(global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
+
+;; anzu mode-line不显示括号
+(defun anzu--update-mode-line-default-fset (here total)
+  (when anzu--state
+    (let ((status (cl-case anzu--state
+                    (search (format "%s/%d%s"
+                                    (anzu--format-here-position here total)
+                                    total (if anzu--overflow-p "+" "")))
+                    (replace-query (format "%d replace" total))
+                    (replace (format "%d/%d" here total)))))
+      (propertize status 'face 'anzu-mode-line))))
+(fset 'anzu--update-mode-line-default 'anzu--update-mode-line-default-fset)
+
+;; tabbar
+(global-set-key (kbd "<C-tab>") 'tabbar-forward-tab)
+(global-set-key (kbd "<C-S-tab>") 'tabbar-backward-tab)
+
+(setq tabbar-ruler-use-mode-icons nil)
+
+(require 'tabbar-ruler)
+(copy-face 'font-lock-function-name-face 'tabbar-selected)
+;; 防止undo后标签颜色不恢复
+;; (add-hook 'post-command-hook 'after-modifying-buffer);;这个是在每个命令执行后
+(defadvice undo(after undo-after activate)
+  (on-modifying-buffer)
+  )
+(defadvice redo(after redo-after activate)
+  (on-modifying-buffer)
+  )
+(add-hook 'after-revert-hook 'on-modifying-buffer)
+
+(defadvice tabbar-buffer-close-tab(after tabbar-buffer-close-tab-after activate)
+  (tabbar-display-update)
+  )
+(defun tabbar-ruler-group-user-buffers-helper-dired ()
+  (list (cond ((string-equal "*" (substring (buffer-name) 0 1)) "emacs's buffers")
+			  (t "user's buffers"))))
+(setq tabbar-buffer-groups-function 'tabbar-ruler-group-user-buffers-helper-dired)
+
+;; 切换主题后刷新tabbar背景色
+(defadvice enable-theme(after enable-theme-after activate)
+  (tabbar-install-faces)
+  (copy-face 'font-lock-function-name-face 'tabbar-selected)
+  )
+(defadvice disable-theme(after disable-theme-after activate)
+  (tabbar-install-faces)
+  (copy-face 'font-lock-function-name-face 'tabbar-selected)
+  )
+(defadvice make-frame-command(after make-frame-command-after activate)
+  (tabbar-install-faces)
+  (copy-face 'font-lock-function-name-face 'tabbar-selected)
+  )
+;; ycmd
+;; 文件中不能有当前编码无法识别的字符，否则ycmd会出错
+;; 会报(wrong-type-argument number-or-marker-p nil)错误
+;; 解决办法：c-x RET f输入utf-8回车，会提示乱码的位置
+
+;; 标准加载方式
+;; (require 'ycmd)
+;; (add-hook 'after-init-hook #'global-ycmd-mode)
+;; (require 'company-ycmd)
+;; (company-ycmd-setup)
+;; (require 'flycheck-ycmd)
+;; (flycheck-ycmd-setup)
+
+;; (autoload 'ycmd-mode "ycmd" nil t)
+;; (autoload 'global-ycmd-mode "ycmd" nil t)
+
+(global-set-key (kbd "M-.") (lambda () "" (interactive)
+							  (require 'ycmd )
+							  (unless (ycmd-running-p) (ycmd-open))
+							  (unless ycmd-mode (ycmd-mode 1))
+							  (ycmd-goto-imprecise)
+							  ))
+;; (global-set-key (kbd "M-.") 'ycmd-goto-imprecise)
+(global-set-key (kbd "M-p") (lambda () "" (interactive)
+							  (require 'ycmd )
+							  (unless (ycmd-running-p) (ycmd-open))
+							  (unless ycmd-mode (ycmd-mode 1))
+							  (ycmd-get-type t)
+							  ))
+;; (global-set-key (kbd "M-p") 'ycmd-get-type)
+(global-set-key (kbd "C-.") (lambda () "" (interactive)
+							  (require 'ycmd )
+							  (unless (ycmd-running-p) (ycmd-open))
+							  (unless ycmd-mode (ycmd-mode 1))
+							  (ycmd-get-parent)
+							  ))
+(global-set-key (kbd "<S-return>") 'company-ycmd)
+(global-set-key (kbd "C-c p") 'ycmd-get-type)
+(global-set-key (kbd "C-c o") 'ycmd-goto)
+
+(global-set-key (kbd "C-c t") 'ycmd-fixit)
+
+(eval-after-load "company-ycmd"
+  '(progn
+	 ;; 让company-ycmd能够在字符串和注释中补全
+	 (defun company-ycmd--prefix-fset ()
+	   "Prefix-command handler for the company backend."
+	   (and ycmd-mode
+			buffer-file-name
+			(ycmd-running-p)
+			;; (or (not (company-in-string-or-comment))
+			;; 	(company-ycmd--in-include))
+			(or (company-grab-symbol-cons "\\.\\|->\\|::\\|/" 2)
+				'stop)))
+	 (fset 'company-ycmd--prefix 'company-ycmd--prefix-fset)))
+
+(eval-after-load "ycmd"
+  '(progn
+	 (defun ycmd--options-contents-fset (hmac-secret)
+	   ""
+	   (let ((hmac-secret (base64-encode-string hmac-secret))
+			 (global-config (or ycmd-global-config ""))
+			 (extra-conf-whitelist (or ycmd-extra-conf-whitelist []))
+			 (confirm-extra-conf (if (eq ycmd-extra-conf-handler 'load) 0 1))
+			 (gocode-binary-path (or ycmd-gocode-binary-path ""))
+			 (godef-binary-path (or ycmd-godef-binary-path ""))
+			 (rust-src-path (or ycmd-rust-src-path ""))
+			 (racerd-binary-path (or ycmd-racerd-binary-path ""))
+			 (python-binary-path (or ycmd-python-binary-path "")))
+		 `((filepath_completion_use_working_dir . 0)
+		   (auto_trigger . 1)
+		   (min_num_of_chars_for_completion . 2) ;写死2，保证server2个就可以补全
+		   (min_num_identifier_candidate_chars . 0)
+		   (semantic_triggers . ())
+		   (filetype_specific_completion_to_disable (gitcommit . 1))
+		   (collect_identifiers_from_comments_and_strings . 0)
+		   (max_num_identifier_candidates . ,ycmd-max-num-identifier-candidates)
+		   (extra_conf_globlist . ,extra-conf-whitelist)
+		   (global_ycm_extra_conf . ,global-config)
+		   (confirm_extra_conf . ,confirm-extra-conf)
+		   (max_diagnostics_to_display . 1000) ;原来是30
+		   (auto_start_csharp_server . 1)
+		   (auto_stop_csharp_server . 1)
+		   (use_ultisnips_completer . 1)
+		   (csharp_server_port . 0)
+		   (hmac_secret . ,hmac-secret)
+		   (server_keep_logfiles . 1)
+		   (gocode_binary_path . ,gocode-binary-path)
+		   (godef_binary_path . ,godef-binary-path)
+		   (rust_src_path . ,rust-src-path)
+		   (racerd_binary_path . ,racerd-binary-path)
+		   (python_binary_path . ,python-binary-path))))
+	 (fset 'ycmd--options-contents 'ycmd--options-contents-fset)
+	 ))
+
+;; -u解决hang的问题
+(set-variable 'ycmd-server-command '("c:/python27/python.exe" "-u" "D:/ycmd-master/ycmd"))
+
+(set-variable 'ycmd-global-config "C:/Users/g00280886/AppData/Roaming/global_config.py")
+(setq ycmd-extra-conf-handler 'load)
+;; (setq ycmd--log-enabled t)
+(setq url-show-status nil)
+;; (setq ycmd-request-message-level -1)
+(setq request-message-level -1)
+
+(defadvice ycmd-goto (before ycmd-goto-mru activate)
+  ""
+  (message "ycmd-goto")
+  (ring-insert semantic-tags-location-ring (point-marker)))
+
+(defadvice ycmd-goto-imprecise (before ycmd-goto-imprecise-mru activate)
+  ""
+  (message "ycmd-goto")
+  (ring-insert semantic-tags-location-ring (point-marker)))
+
+(eval-after-load "ycmd"
+  '(progn
+	 (message "ycmd")
+	 (global-ycmd-mode 1)
