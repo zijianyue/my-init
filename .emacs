@@ -34,6 +34,7 @@
 (setenv "PYTHON" "C:\\Python27")		;用27的话ycmd可以使用semantic补全
 (setenv "CYGWIN" "C:\\cygwin\\bin")
 (setenv "CPPCHECK" "C:\\Program Files (x86)\\Cppcheck")
+;; (setenv "IMAGEMAGICK" "C:\\Program Files\\ImageMagick-7.0.7-Q16")
 ;; (setenv "LC_ALL" "C")			   ;for diff-hl in emacs25
 ;; (setenv "GTAGSLABEL" "pygments")
 
@@ -60,6 +61,8 @@
 		 path-separator
 		 (getenv "CPPCHECK")
 		 path-separator
+		 ;; (getenv "IMAGEMAGICK")
+		 ;; path-separator
 		 (getenv "PATH")))
 
 (add-to-list 'exec-path (getenv "MINGW") t)
@@ -70,6 +73,7 @@
 (add-to-list 'exec-path (getenv "PYTHON") t)
 (add-to-list 'exec-path (getenv "CYGWIN") t)
 (add-to-list 'exec-path (getenv "CPPCHECK") t)
+;; (add-to-list 'exec-path (getenv "IMAGEMAGICK") t)
 
 
 (defvar site-lisp-dir)
@@ -228,8 +232,8 @@
  '(bookmark-save-flag 1)
  '(bookmark-sort-flag nil)
  '(column-number-mode t)
- '(company-idle-delay 0.9)
- '(company-irony-ignore-case t)
+ '(company-idle-delay 0)
+ '(company-minimum-prefix-length 2)
  '(company-show-numbers t)
  '(company-tooltip-align-annotations t)
  '(company-transformers (quote (company-sort-by-occurrence)))
@@ -302,9 +306,6 @@
  '(imenu-max-item-length 120)
  '(imenu-max-items 1000)
  '(inhibit-startup-screen t)
- '(irony-completion-trigger-commands
-   (quote
-	(self-insert-command newline-and-indent c-context-line-break c-electric-brace c-electric-paren c-electric-pound c-electric-semi&comma c-electric-star)))
  '(isearch-allow-scroll t)
  '(jit-lock-context-time 1.5)
  '(jit-lock-defer-time 0.5)
@@ -316,9 +317,13 @@
 	 ("/usr/lib/" . "c:/cygwin/lib/")
 	 ("/" . "c:/cygwin/"))))
  '(make-backup-files nil)
+ '(menu-bar-mode nil)
  '(mode-require-final-newline nil)
  '(moo-select-method (quote helm))
  '(mouse-wheel-progressive-speed nil)
+ '(org-download-image-dir "d:/org/screenshot")
+ '(org-download-screenshot-file "d:/org/screenshot.png")
+ '(org-download-screenshot-method "convert clipboard: %s")
  '(org-log-done (quote time))
  '(org-src-fontify-natively t)
  '(password-cache-expiry nil)
@@ -328,7 +333,7 @@
  '(recentf-auto-cleanup 600)
  '(rm-blacklist
    (quote
-	(" hl-p" " yas" " hs" " Ifdef" " pair" " HelmGtags" " GG" " company" " ElDoc" " Irony" " AC" " FA" " GitGutter" " Gtags" " Anzu")))
+	(" hl-p" " yas" " hs" " Ifdef" " pair" " HelmGtags" " GG" " company" " ElDoc" " AC" " FA" " GitGutter" " Gtags" " Anzu")))
  '(rscope-keymap-prefix "p")
  '(save-place t nil (saveplace))
  '(semantic-c-dependency-system-include-path
@@ -353,10 +358,8 @@
  '(tabbar-cycle-scope (quote tabs))
  '(tabbar-ruler-excluded-buffers
    (quote
-	("*Messages*" "*Completions*" "*ESS*" "*Packages*" "*log-edit-files*" "*helm-mini*" "*helm-mode-describe-variable*" "*helm for files*" "*Ilist*")))
+	("*Messages*" "*Completions*" "*ESS*" "*Packages*" "*log-edit-files*" "*helm-mini*" "*helm-mode-describe-variable*" "*helm for files*" "*helm M-x*" "*Ilist*")))
  '(tabbar-ruler-fancy-close-image t)
- '(tabbar-ruler-fancy-current-tab-separator (quote curve))
- '(tabbar-ruler-fancy-tab-separator (quote chamfer))
  '(tabbar-ruler-pad-selected nil)
  '(tabbar-ruler-tab-height nil)
  '(tool-bar-mode nil)
@@ -370,6 +373,28 @@
  '(winner-mode t)
  '(ycmd-confirm-fixit nil)
  '(ycmd-delete-process-delay 40)
+ '(ycmd-file-type-map
+   (quote
+	((c++-mode "cpp")
+	 (c-mode "c")
+	 (caml-mode "ocaml")
+	 (csharp-mode "cs")
+	 (d-mode "d")
+	 (erlang-mode "erlang")
+	 (go-mode "go")
+	 (js-mode "javascript")
+	 (js2-mode "javascript")
+	 (lua-mode "lua")
+	 (objc-mode "objc")
+	 (perl-mode "perl")
+	 (cperl-mode "perl")
+	 (php-mode "php")
+	 (python-mode "python")
+	 (ruby-mode "ruby")
+	 (rust-mode "rust")
+	 (scala-mode "scala")
+	 (tuareg-mode "ocaml")
+	 (typescript-mode "typescript"))))
  '(ycmd-idle-change-delay 3)
  '(ycmd-keepalive-period 3000)
  '(ycmd-parse-conditions (quote (save buffer-focus)))
@@ -385,9 +410,6 @@
  '(dired-async-mode-message ((t (:foreground "chocolate"))))
  '(helm-lisp-show-completion ((t (:background "navajo white"))))
  '(helm-selection-line ((t (:background "light steel blue" :underline t))))
- '(tabbar-default ((t (:inherit variable-pitch :background "gray75" :foreground "gray50" :height 0.9))))
- '(tabbar-modified ((t (:inherit tabbar-default :foreground "dark red" :box (:line-width 1 :color "white" :style released-button)))))
- '(tabbar-selected ((t (:inherit tabbar-default :foreground "#bc6ec5" :box (:line-width 1 :color "white" :style pressed-button) :weight bold))))
  '(zjl-hl-local-variable-reference-face ((t (:foreground "dark slate gray"))))
  '(zjl-hl-member-reference-face ((t (:foreground "dark goldenrod" :slant normal :weight normal)))))
 ;;-----------------------------------------------------------plugin begin-----------------------------------------------------------;;
@@ -480,28 +502,30 @@
 (create-spec-ede-project "e:/projects/Clarion_13MY_Dev_For_MM/GTAGS" t)
 
 ;;auto-complete
-(require 'auto-complete-config)
-(setq ac-fuzzy-enable t)
-(require 'pos-tip)
-(setq ac-quick-help-prefer-pos-tip t)
-(setq ac-trigger-commands
-      (cons 'backward-delete-char-untabify ac-trigger-commands))
-(setq ac-trigger-commands
-      (cons 'autopair-backspace ac-trigger-commands))
-(global-set-key (kbd "C-x /") 'ac-complete-filename)
-(global-set-key (kbd "M-RET") 'auto-complete)
-
-(defadvice ac-cc-mode-setup(after my-ac-setup activate)
-  (setq-local ac-sources (delete 'ac-source-gtags ac-sources))
-  (setq-local ac-sources (delete 'ac-source-words-in-same-mode-buffers ac-sources))
-  (setq-local ac-sources (delete 'ac-source-abbrev ac-sources))
-  (setq-local ac-sources (append '(ac-source-semantic) ac-sources))
-  (setq-local ac-sources (append '(ac-source-semantic-raw) ac-sources)) ;;会干扰->成员的补全
-  ;; (setq-local ac-sources (append '(ac-source-imenu) ac-sources)) ;;会干扰->成员的补全
-  )
+(autoload 'auto-complete-mode "auto-complete-config" nil t)
+;; (require 'auto-complete-config)
+;; (require 'pos-tip)
 
 (eval-after-load "auto-complete-config"
   '(progn
+	 (setq ac-fuzzy-enable t)
+	 (setq ac-quick-help-prefer-pos-tip t)
+	 (setq ac-trigger-commands
+		   (cons 'backward-delete-char-untabify ac-trigger-commands))
+	 (setq ac-trigger-commands
+		   (cons 'autopair-backspace ac-trigger-commands))
+	 (global-set-key (kbd "C-x /") 'ac-complete-filename)
+	 (global-set-key (kbd "M-RET") 'auto-complete)
+
+	 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
+	   (setq-local ac-sources (delete 'ac-source-gtags ac-sources))
+	   (setq-local ac-sources (delete 'ac-source-words-in-same-mode-buffers ac-sources))
+	   (setq-local ac-sources (delete 'ac-source-abbrev ac-sources))
+	   (setq-local ac-sources (append '(ac-source-semantic) ac-sources))
+	   (setq-local ac-sources (append '(ac-source-semantic-raw) ac-sources)) ;;会干扰->成员的补全
+	   ;; (setq-local ac-sources (append '(ac-source-imenu) ac-sources)) ;;会干扰->成员的补全
+	   )
+
 	 (define-key ac-completing-map  (kbd "M-s") 'ac-isearch)
 	 (ac-config-default) 
 	 (add-to-list 'ac-modes 'objc-mode)
