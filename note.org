@@ -1,3 +1,19 @@
+#+ATTR_LATEX: :environment cn-article
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [UTF8,a4paper]
+#+LATEX_HEADER: \usepackage[BoldFont,SlantFont,CJKsetspaces,CJKchecksingle]{xeCJK}
+#+LATEX_HEADER: \XeTeXlinebreaklocale "zh"
+#+LATEX_HEADER: \XeTeXlinebreakskip = 0pt plus 1pt
+#+LATEX_HEADER: \setmainfont[Mapping=tex-text]{Times New Roman}
+#+LATEX_HEADER: \setsansfont[Mapping=tex-text]{Arial}
+#+LATEX_HEADER: \setmonofont{Courier New}
+#+LATEX_HEADER: \setCJKmainfont{DFKai-SB}
+#+LATEX_HEADER: \setCJKmonofont{MingLiU}
+#+LATEX_HEADER: \usepackage{listings}
+
+#+LATEX_HEADER: \tolerance=1000
+#+LATEX_HEADER: \date{\today}
+#+LATEX_HEADER: \title{Org导出中文PDF}
 * emacs
 ** srecode编辑模式C-c c-c是确认修改生效
 ** dired中S即dired-do-symlink可以给exe创建快捷方式（symlink or soft link），并放到指定位置。
@@ -76,7 +92,8 @@
 *** <M-home>和<M-end>可以将其他窗口的光标移到开始或结尾
 
 ** dynamic-library-alist显示依赖的dll
-** buffer中插入变量值 (insert (format "[%s] " (car hits)))
+** buffer中插入变量值 
+(insert (format "[%s] " (car hits)))
 ** 查看diff时，apply hunk可以把变更给取消
 ** 搭建emacs编译环境时
 把C:\MinGW\msys\1.0\etc下的fstab.sample改名为fstab
@@ -153,6 +170,3 @@ Pygments version 2.1, (c) 2006-2015 by Georg Brandl.
 下载ycmd和third-party(这个目录在运行ycmd后会有python lib的cache，比如python3的，如果直接拷贝使用的话，比如ycm_core.pyd是python2编译出来的，就会报错：Ycmd error: ycm_core library compiled for Python 2 but loaded in Python 3.)
 在ycmd下新建目录ycmd-build，进去后起命令行cmake -G "Visual Studio 14" -DPATH_TO_LLVM_ROOT="C:/Program Files (x86)/LLVM" -DUSE_PYTHON2=ON . ../cpp，成功后会生成一个VS的工程，用VS打开后编译 ycm_core ，成功后会在ycmd根目录下生成 ycm_core.pyd 和 libclang.dll ，这样emacs-ycmd就能用了
 如果有c++ runtime error 把C:\Program Files\CMake\bin下的msvcp120.dll和msvcr120.dll改名(C:\Program Files\ImageMagick-6.9.1-Q16下还有一份)，保证全局只有一份
-
-#+DOWNLOADED: d:/org/screenshot.png @ 2017-12-27 21:34:10
-[[file:d:/org/screenshot/ycmd编译/screenshot_2017-12-27_21-34-10.png]]
