@@ -244,6 +244,7 @@ c-l刷新即可
 #+END_SRC
 
 (4) org文件保存成utf-8
+(5) org-download-image-dir用默认设置，也就是图片要保存到org文件当前目录下，否则导出pdf会失败
 
 
 *** org中输入代码段
