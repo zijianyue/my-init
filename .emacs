@@ -40,7 +40,6 @@
 
 (setq python-shell-prompt-detect-enabled nil) ;用python27时需要加这个不然有warning
 
-
 (setenv "PATH"
 		(concat
 		 (getenv "MSYS")
