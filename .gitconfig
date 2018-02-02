@@ -22,3 +22,6 @@
 	clean = git lfs clean %f
 	smudge = git lfs smudge %f
 	required = true
+[http]
+  sslVerify = false
+  proxy = http://username:password@proxy-url:8080
