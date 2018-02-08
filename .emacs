@@ -50,6 +50,7 @@
 (setenv "CPPCHECK" "C:\\Program Files (x86)\\Cppcheck")
 (setenv "PDFLATEX" "F:\\CTEX\\MiKTeX\\miktex\\bin")
 (setenv "PYTHONIOENCODING" "utf-8")     ;防止raw_input出错
+(setenv "GITCMD" "C:\\Program Files\\Git\\cmd")
 
 ;; (setenv "LC_ALL" "C")			   ;for diff-hl in emacs25
 ;; (setenv "GTAGSLABEL" "pygments")
@@ -59,6 +60,8 @@
 
 (setenv "PATH"
 		(concat
+         (getenv "GITCMD")
+		 path-separator
 		 (getenv "PYTHON")
 		 path-separator
 		 (getenv "MSYS")
@@ -81,6 +84,7 @@
 		 path-separator
 		 (getenv "PATH")))
 
+(add-to-list 'exec-path (getenv "GITCMD") t)
 (add-to-list 'exec-path (getenv "PYTHON") t)
 (add-to-list 'exec-path (getenv "MINGW") t)
 (add-to-list 'exec-path (getenv "MSYS") t)
@@ -134,8 +138,8 @@
 (eval-after-load "srecode/map"
   '(progn
      (setq srecode-map-load-path (list (expand-file-name "~/.emacs.d/.srecode/")
-                                       (srecode-map-base-template-dir)
-                                       ))))
+								  (srecode-map-base-template-dir)
+								  ))))
 (semantic-mode t)
 (global-ede-mode t)
 (setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
@@ -291,7 +295,8 @@
  '(helm-semantic-display-style
    (quote
     ((python-mode . semantic-format-tag-summarize)
-     (c-mode . semantic-format-tag-uml-prototype-default)
+     (c-mode . semantic-format-tag-uml-prototype)
+     (c++-mode . semantic-format-tag-uml-prototype)
      (emacs-lisp-mode . semantic-format-tag-abbreviate-emacs-lisp-mode))))
  '(helm-truncate-lines t t)
  '(hide-ifdef-shadow t)
@@ -455,7 +460,6 @@
 (setq stl-base-dir-14 "c:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include")
 
 ;; 设置成c++文件类型
-(add-to-list 'auto-mode-alist (cons stl-base-dir 'c++-mode))
 (add-to-list 'auto-mode-alist (cons stl-base-dir-14 'c++-mode))
 
 ;; (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
@@ -506,37 +510,6 @@
 (create-spec-ede-project "e:/projects/eNavi2_800X480_ChangeUI/GTAGS" t)
 (create-spec-ede-project "e:/projects/Clarion_13MY_Dev_For_MM/GTAGS" t)
 
-;;auto-complete
-(autoload 'auto-complete-mode "auto-complete-config" nil t)
-;; (require 'auto-complete-config)
-;; (require 'pos-tip)
-
-(eval-after-load "auto-complete-config"
-  '(progn
-	 (setq ac-fuzzy-enable t)
-	 (setq ac-quick-help-prefer-pos-tip t)
-	 (setq ac-trigger-commands
-		   (cons 'backward-delete-char-untabify ac-trigger-commands))
-	 (setq ac-trigger-commands
-		   (cons 'autopair-backspace ac-trigger-commands))
-	 (global-set-key (kbd "C-x /") 'ac-complete-filename)
-	 (global-set-key (kbd "M-RET") 'auto-complete)
-
-	 (defadvice ac-cc-mode-setup(after my-ac-setup activate)
-	   (setq-local ac-sources (delete 'ac-source-gtags ac-sources))
-	   (setq-local ac-sources (delete 'ac-source-words-in-same-mode-buffers ac-sources))
-	   (setq-local ac-sources (delete 'ac-source-abbrev ac-sources))
-	   (setq-local ac-sources (append '(ac-source-semantic) ac-sources))
-	   (setq-local ac-sources (append '(ac-source-semantic-raw) ac-sources)) ;;会干扰->成员的补全
-	   ;; (setq-local ac-sources (append '(ac-source-imenu) ac-sources)) ;;会干扰->成员的补全
-	   )
-
-	 (define-key ac-completing-map  (kbd "M-s") 'ac-isearch)
-	 (ac-config-default) 
-	 (add-to-list 'ac-modes 'objc-mode)
-	 ;; (setq-default ac-sources '(ac-source-dictionary ac-source-words-in-same-mode-buffers))
-	 ))
-
 ;; company
 (autoload 'company-mode "company" nil t)
 (autoload 'global-company-mode "company" nil t)
@@ -544,8 +517,7 @@
 (eval-after-load "company"
   '(progn
 	 (setq company-async-timeout 15)
-	 ;; (add-hook 'after-init-hook 'global-company-mode)
-	 ;; (global-set-key (kbd "<S-return>") 'company-complete-common)
+	 (global-set-key (kbd "<S-return>") 'company-complete)
 
 	 ;; (push '(company-capf :with company-semantic :with company-yasnippet :with company-dabbrev-code) company-backends)
 	 (define-key company-active-map (kbd "<tab>") 'company-complete-common-or-cycle)
@@ -567,7 +539,7 @@
 ;;yasnippet 手动开启通过 yas-global-mode，会自动加载资源，如果执行yas-minor-mode，还需要执行yas-reload-all加载资源
 (autoload 'yas-global-mode "yasnippet" nil t)
 (autoload 'yas-minor-mode "yasnippet" nil t)
-(setq yas-snippet-dirs "~/.emacs.d/snippets")
+;; (setq yas-snippet-dirs "~/.emacs.d/snippets")
 
 ;; sln解析
 (autoload 'find-sln "sln-mode" nil t)
@@ -589,9 +561,7 @@
 (setq rjs-mode-line-format nil)
 (recent-jump-small-mode)
 (global-set-key (kbd "<M-left>") 'recent-jump-small-backward)
-(global-set-key (kbd "C--") 'recent-jump-small-backward)
 (global-set-key (kbd "<M-right>") 'recent-jump-small-forward)
-(global-set-key (kbd "C-_") 'recent-jump-small-forward)
 
 ;; (add-to-list 'rjs-command-ignore 'mwheel-scroll)
 (add-to-list 'rjs-command-ignore 'mouse-drag-region)
@@ -729,14 +699,6 @@
       (background dark))  (:background "dark slate gray")))
   "Face used to highlight current line."
   :group 'bm)
-
-;; 更多的语法高亮
-(defface zjl-c-hl-function-call-face
-  '((t (:foreground "SpringGreen4" :bold t)))
-  "*Face used for link privilege indicator (l) in dired buffers."
-  :group 'zjl-c-faces)
-(defvar zjl-c-hl-function-call-face 'zjl-c-hl-function-call-face)
-
 
 ;; 显示列竖线
 (autoload 'fci-mode "fill-column-indicator" "" t)
@@ -1030,8 +992,8 @@
            (cond ((eq major-mode 'dired-mode)
                   (revert-buffer))
                  ((and (not (eq major-mode 'vc-dir-mode))
-                       ;; (not (vc-backend buffer-file-name))
-                       )
+                    ;; (not (vc-backend buffer-file-name))
+                    )
                   (reopen-file))))))
 (global-set-key (kbd "M-g h") 'toggle-git-backend)
 (defadvice diff-hl-mode(around diff-hl-mode-ar activate)
@@ -1425,7 +1387,6 @@
 							  (unless ycmd-mode (ycmd-mode 1))
 							  (ycmd-get-parent)
 							  ))
-(global-set-key (kbd "<S-return>") 'company-ycmd)
 (global-set-key (kbd "C-c p") 'ycmd-get-type)
 (global-set-key (kbd "C-c o") 'ycmd-goto)
 
@@ -1494,16 +1455,6 @@
 ;; (setq ycmd-request-message-level -1)
 (setq request-message-level -1)
 
-(defadvice ycmd-goto (before ycmd-goto-mru activate)
-  ""
-  (message "ycmd-goto")
-  (ring-insert semantic-tags-location-ring (point-marker)))
-
-(defadvice ycmd-goto-imprecise (before ycmd-goto-imprecise-mru activate)
-  ""
-  (message "ycmd-goto")
-  (ring-insert semantic-tags-location-ring (point-marker)))
-
 (eval-after-load "ycmd"
   '(progn
 	 (message "ycmd")
@@ -1566,12 +1517,13 @@
 	 (flycheck-ycmd-setup)
 	 (global-flycheck-mode 1)
 
-	 (require 'ycmd-eldoc)
-     (add-hook 'ycmd-mode-hook 'ycmd-eldoc-setup)
-     (global-eldoc-mode 1)
-     (unless (< (* 150 1024) (buffer-size))
-       (ycmd-eldoc-mode +1))
-     
+     (unless (featurep 'lsp-mode)
+       (require 'ycmd-eldoc)
+       (add-hook 'ycmd-mode-hook 'ycmd-eldoc-mode)
+       (global-eldoc-mode 1)
+       (unless (< (* 150 1024) (buffer-size))
+         (ycmd-eldoc-mode +1)))
+
 	 ;; (setq ycmd-force-semantic-completion t)
 	 ))
 (defadvice ycmd-mode(after ycmd-mode-after activate)
@@ -1757,16 +1709,74 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 ;; cquery 全面的开发工具
 (with-eval-after-load 'lsp-mode
   (require 'lsp-flycheck)
-  (require 'cquery)
-  (setq cquery-executable "F:/cquery/cquery/build/release/bin/cquery.exe")
-  (setq cquery-extra-init-params '(:index (:comments 2 :builtinTypes t) :cacheFormat "msgpack"))
-  (setq cquery-extra-args '("--log-stdin-stdout-to-stderr" "--log-file=/tmp/cq.log"))
-;;;; enable semantic highlighting:
-  (setq cquery-sem-highlight-method 'overlay)
-  (setq cquery-sem-highlight-method 'font-lock)
-  (cquery-use-default-rainbow-sem-highlight))
+  (global-flycheck-mode t)
+  
+  (yas-global-mode t)
+  (require 'company-lsp)
+  (push 'company-lsp company-backends)
+  (global-company-mode t)
+  (setq company-lsp-async t)
+  (setq company-lsp-cache-candidates t)
+  (setq company-lsp-enable-recompletion t) ;比如第一次补全出std::，会继续补
+  ;; (require 'lsp-imenu)
+  ;; (add-hook 'lsp-after-open-hook 'lsp-enable-imenu)
+  ;; (require 'lsp-ui)
+  ;; (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+  ;; (setq lsp-ui-doc-enable nil)
+  ;; (setq lsp-ui-flycheck-enable nil)
+  ;; (setq lsp-ui-imenu-enable nil)
+  ;; (setq lsp-ui-peek-enable nil)
+  ;; (setq lsp-ui-sideline-enable nil)
 
-(autoload 'lsp-mode "lsp-mode" nil t)
+  (require 'helm-xref)
+  (setq xref-show-xrefs-function 'helm-xref-show-xrefs)
+  (require 'ivy-xref)
+  ;; (setq xref-show-xrefs-function #'ivy-xref-show-xrefs)
+  (global-set-key (kbd "C-c C-r") 'ivy-resume)
+  (define-key ivy-minibuffer-map (kbd "C-M-m") 'ivy-partial-or-done)
+  (define-key ivy-minibuffer-map (kbd "TAB") 'ivy-call)
+
+  (global-set-key (kbd "M-.") 'xref-find-definitions)
+  ;; (global-set-key (kbd "M-,") 'xref-pop-marker-stack)
+
+  ;; 以下是在xref中定义的快捷键
+;;;(define-key esc-map "?" #'xref-find-references)
+;;;(define-key esc-map [?\C-.] #'xref-find-apropos)
+;;;(define-key ctl-x-4-map "." #'xref-find-definitions-other-window)
+;;;(define-key ctl-x-5-map "." #'xref-find-definitions-other-frame)
+  (add-hook 'c-mode-common-hook
+            (lambda ()
+              (remove-function (local 'eldoc-documentation-function) 'ycmd-eldoc--documentation-function)))
+  )
+(autoload 'lsp-cquery-enable "cquery" nil t)
+(with-eval-after-load 'cquery
+  (setq cquery-executable "f:/cquery/cquery/build/release/bin/cquery")
+  ;; (setq cquery-extra-init-params '(:index (:comments 2) :cacheFormat "msgpack")) ;; msgpack占用空间小，但是查看困难，并且结构体变更，要手动更新索引
+  ;; (setq cquery-extra-init-params '(:indexWhitelist ("COMMON/include" "MPLS" "OPEN_SRC/protobuf-c-1.2.1") :indexBlacklist (".")))
+  ;; (setq cquery-extra-init-params '(:indexBlacklist ("DIRA" "DIRB")))
+
+  ;; (setq cquery-extra-args '("--log-stdin-stdout-to-stderr" "--log-file=/tmp/cq.log"))
+;;;; enable semantic highlighting:
+  ;; (setq cquery-sem-highlight-method 'overlay)
+  ;; (setq cquery-sem-highlight-method 'font-lock)
+  (add-hook 'c-mode-common-hook 'lsp-cquery-enable)
+  (define-key cquery-call-tree-mode-map (kbd "SPC") 'cquery-call-tree-look)
+  (define-key cquery-call-tree-mode-map [mouse-1] 'ignore )
+  (define-key cquery-call-tree-mode-map [mouse-3] 'cquery-call-tree-toggle-expand )
+  (define-key cquery-call-tree-mode-map (kbd "n") (lambda () "" (interactive)
+                                                    (forward-line 1)
+                                                    (back-to-indentation)))
+  (define-key cquery-call-tree-mode-map (kbd "p") (lambda () "" (interactive)
+                                                    (forward-line -1)
+                                                    (back-to-indentation)))
+  ;; (cquery-use-default-rainbow-sem-highlight)
+  ;; 其他功能
+  ;; (cquery-xref-find-custom "$cquery/base")
+  ;; (cquery-xref-find-custom "$cquery/callers")
+  ;; (cquery-xref-find-custom "$cquery/derived")
+  ;; (cquery-xref-find-custom "$cquery/vars")
+  )
+
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
 
 ;;-----------------------------------------------------------define func begin----------------------------------------------------;;
@@ -1813,137 +1823,144 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
     found))
 
 ;; #if 0灰色
-(defun my-c-mode-font-lock-if0 (limit)
-  (save-restriction
-	(widen)
-	(save-excursion
-	  (goto-char (point-min)) ;;性能太差
-	  ;; (goto-char (search-backward "#if 0"))
-	  (let ((depth 0) str start start-depth)
-		(while (re-search-forward "^\\s-*#\\s-*\\(if\\|else\\|endif\\)" limit 'move)
-		  (setq str (match-string 1))
-		  (if (string= str "if")
-			  (progn
-				(setq depth (1+ depth))
-				(when (and (null start) (looking-at "\\s-+0"))
-				  (setq start (match-end 0)
-						start-depth depth)))
-			(when (and start (= depth start-depth))
-			  (c-put-font-lock-face start (match-beginning 0) 'window-divider)
-			  (setq start nil))
-			(when (string= str "endif")
-			  (setq depth (1- depth)))))
-		(when (and start (> depth 0))
-		  (c-put-font-lock-face start (point) 'window-divider)))))
-  nil)
+;; (defun my-c-mode-font-lock-if0 (limit)
+;;   (save-restriction
+;; 	(widen)
+;; 	(save-excursion
+;; 	  (goto-char (point-min)) ;;性能太差
+;; 	  ;; (goto-char (search-backward "#if 0"))
+;; 	  (let ((depth 0) str start start-depth)
+;; 		(while (re-search-forward "^\\s-*#\\s-*\\(if\\|else\\|endif\\)" limit 'move)
+;; 		  (setq str (match-string 1))
+;; 		  (if (string= str "if")
+;; 			  (progn
+;; 				(setq depth (1+ depth))
+;; 				(when (and (null start) (looking-at "\\s-+0"))
+;; 				  (setq start (match-end 0)
+;; 						start-depth depth)))
+;; 			(when (and start (= depth start-depth))
+;; 			  (c-put-font-lock-face start (match-beginning 0) 'window-divider)
+;; 			  (setq start nil))
+;; 			(when (string= str "endif")
+;; 			  (setq depth (1- depth)))))
+;; 		(when (and start (> depth 0))
+;; 		  (c-put-font-lock-face start (point) 'window-divider)))))
+;;   nil)
 
-(defun my-c-mode-common-hook-if0 ()
-  (font-lock-add-keywords
-   nil
-   '((my-c-mode-font-lock-if0 (0 shadow prepend))) 'add-to-end))
+;; (defun my-c-mode-common-hook-if0 ()
+;;   (font-lock-add-keywords
+;;    nil
+;;    '((my-c-mode-font-lock-if0 (0 shadow prepend))) 'add-to-end))
 
-(eval-after-load "cpp"
-  '(progn
-	 (defun cpp-highlight-buffer-fset (arg)
-	   ""
-	   (interactive "P")
-	   (unless (or (eq t buffer-invisibility-spec)
-				   (memq 'cpp buffer-invisibility-spec))
-		 (add-to-invisibility-spec 'cpp))
-	   (setq cpp-parse-symbols nil)
-	   (cpp-parse-reset)
-	   (if (null cpp-edit-list)
-		   (cpp-edit-load))
-	   (let (cpp-state-stack)
-		 (save-excursion
-		   (goto-char (point-min))
-		   (cpp-progress-message "Parsing...")
-		   (while (re-search-forward cpp-parse-regexp nil t)
-			 (cpp-progress-message "Parsing...%d%%"
-								   (floor (* 100.0 (- (point) (point-min)))
-										  (buffer-size)))
-			 (let ((match (replace-regexp-in-string "\^M" "" (buffer-substring (match-beginning 0) (match-end 0)))))
-			   (cond ((or (string-equal match "'")
-						  (string-equal match "\""))
-					  (goto-char (match-beginning 0))
-					  (condition-case nil
-						  (forward-sexp)
-						(error (cpp-parse-error
-								"Unterminated string or character"))))
-					 ((string-equal match "/*")
-					  (or (search-forward "*/" nil t)
-						  (error "Unterminated comment")))
-					 ((string-equal match "//")
-					  (skip-chars-forward "^\n\r"))
-					 (t
-					  (end-of-line 1)
-					  (let ((from (match-beginning 1))
-							(to (1+ (point)))
-							(type (replace-regexp-in-string "\^M" "" (buffer-substring (match-beginning 2)
-                                                                                       (match-end 2))))
-							(expr (replace-regexp-in-string "\^M" "" (buffer-substring (match-end 1) (point))))) ;原来的代码处理不了^M
-						(cond ((string-equal type "ifdef")
-							   (cpp-parse-open t expr from to))
-							  ((string-equal type "ifndef")
-							   (cpp-parse-open nil expr from to))
-							  ((string-equal type "if")
-							   (cpp-parse-open t expr from to))
-							  ((string-equal type "elif")
-							   (let (cpp-known-face cpp-unknown-face)
-								 (cpp-parse-close from to))
-							   (cpp-parse-open t expr from to))
-							  ((string-equal type "else")
-							   (or cpp-state-stack
-								   (cpp-parse-error "Top level #else"))
-							   (let ((entry (list (not (nth 0 (car cpp-state-stack)))
-												  (nth 1 (car cpp-state-stack))
-												  from to)))
-								 (cpp-parse-close from to)
-								 (setq cpp-state-stack (cons entry cpp-state-stack))))
-							  ((string-equal type "endif")
-							   (cpp-parse-close from to))
-							  (t
-							   (cpp-parse-error "Parser error"))))))))
-		   (message "Parsing...done"))
-		 (if cpp-state-stack
-			 (save-excursion
-			   (goto-char (nth 3 (car cpp-state-stack)))
-			   (cpp-parse-error "Unclosed conditional"))))
-	   (or arg
-		   (null cpp-parse-symbols)
-		   (cpp-parse-edit)))
+;; (eval-after-load "cpp"
+;;   '(progn
+;; 	 (defun cpp-highlight-buffer-fset (arg)
+;; 	   ""
+;; 	   (interactive "P")
+;; 	   (unless (or (eq t buffer-invisibility-spec)
+;; 				   (memq 'cpp buffer-invisibility-spec))
+;; 		 (add-to-invisibility-spec 'cpp))
+;; 	   (setq cpp-parse-symbols nil)
+;; 	   (cpp-parse-reset)
+;; 	   (if (null cpp-edit-list)
+;; 		   (cpp-edit-load))
+;; 	   (let (cpp-state-stack)
+;; 		 (save-excursion
+;; 		   (goto-char (point-min))
+;; 		   (cpp-progress-message "Parsing...")
+;; 		   (while (re-search-forward cpp-parse-regexp nil t)
+;; 			 (cpp-progress-message "Parsing...%d%%"
+;; 								   (floor (* 100.0 (- (point) (point-min)))
+;; 										  (buffer-size)))
+;; 			 (let ((match (replace-regexp-in-string "\^M" "" (buffer-substring (match-beginning 0) (match-end 0)))))
+;; 			   (cond ((or (string-equal match "'")
+;; 						  (string-equal match "\""))
+;; 					  (goto-char (match-beginning 0))
+;; 					  (condition-case nil
+;; 						  (forward-sexp)
+;; 						(error (cpp-parse-error
+;; 								"Unterminated string or character"))))
+;; 					 ((string-equal match "/*")
+;; 					  (or (search-forward "*/" nil t)
+;; 						  (error "Unterminated comment")))
+;; 					 ((string-equal match "//")
+;; 					  (skip-chars-forward "^\n\r"))
+;; 					 (t
+;; 					  (end-of-line 1)
+;; 					  (let ((from (match-beginning 1))
+;; 							(to (1+ (point)))
+;; 							(type (replace-regexp-in-string "\^M" "" (buffer-substring (match-beginning 2)
+;; 													(match-end 2))))
+;; 							(expr (replace-regexp-in-string "\^M" "" (buffer-substring (match-end 1) (point))))) ;原来的代码处理不了^M
+;; 						(cond ((string-equal type "ifdef")
+;; 							   (cpp-parse-open t expr from to))
+;; 							  ((string-equal type "ifndef")
+;; 							   (cpp-parse-open nil expr from to))
+;; 							  ((string-equal type "if")
+;; 							   (cpp-parse-open t expr from to))
+;; 							  ((string-equal type "elif")
+;; 							   (let (cpp-known-face cpp-unknown-face)
+;; 								 (cpp-parse-close from to))
+;; 							   (cpp-parse-open t expr from to))
+;; 							  ((string-equal type "else")
+;; 							   (or cpp-state-stack
+;; 								   (cpp-parse-error "Top level #else"))
+;; 							   (let ((entry (list (not (nth 0 (car cpp-state-stack)))
+;; 												  (nth 1 (car cpp-state-stack))
+;; 												  from to)))
+;; 								 (cpp-parse-close from to)
+;; 								 (setq cpp-state-stack (cons entry cpp-state-stack))))
+;; 							  ((string-equal type "endif")
+;; 							   (cpp-parse-close from to))
+;; 							  (t
+;; 							   (cpp-parse-error "Parser error"))))))))
+;; 		   (message "Parsing...done"))
+;; 		 (if cpp-state-stack
+;; 			 (save-excursion
+;; 			   (goto-char (nth 3 (car cpp-state-stack)))
+;; 			   (cpp-parse-error "Unclosed conditional"))))
+;; 	   (or arg
+;; 		   (null cpp-parse-symbols)
+;; 		   (cpp-parse-edit)))
 
-	 (fset 'cpp-highlight-buffer 'cpp-highlight-buffer-fset)
-	 ))
+;; 	 (fset 'cpp-highlight-buffer 'cpp-highlight-buffer-fset)
+;; 	 ))
 
-(defun cpp-highlight-if-0/1 ()
-  "Modify the face of text in between #if 0 ... #endif."
-  (interactive)
-  (setq cpp-known-face '(foreground-color . "dim gray"))
-  (setq cpp-unknown-face 'default)
-  (setq cpp-face-type 'dark)
-  (setq cpp-known-writable 't)
-  (setq cpp-unknown-writable 't)
-  (setq cpp-edit-list
-        '((#("1" 0 1
-             (fontified nil))
-           nil
-           (foreground-color . "dim gray")
-           both nil)
-          (#("0" 0 1
-             (fontified nil))
-           (foreground-color . "dim gray")
-           nil
-           both nil)))
-  (cpp-highlight-buffer t))
+;; (defun cpp-highlight-if-0/1 ()
+;;   "Modify the face of text in between #if 0 ... #endif."
+;;   (interactive)
+;;   (setq cpp-known-face '(foreground-color . "dim gray"))
+;;   (setq cpp-unknown-face 'default)
+;;   (setq cpp-face-type 'dark)
+;;   (setq cpp-known-writable 't)
+;;   (setq cpp-unknown-writable 't)
+;;   (setq cpp-edit-list
+;;         '((#("1" 0 1
+;;              (fontified nil))
+;;            nil
+;;            (foreground-color . "dim gray")
+;;            both nil)
+;;           (#("0" 0 1
+;;              (fontified nil))
+;;            (foreground-color . "dim gray")
+;;            nil
+;;            both nil)))
+;;   (cpp-highlight-buffer t))
 
 
-(defun jpk/c-mode-hook ()
-  (cpp-highlight-if-0/1)
-  (add-hook 'after-save-hook 'cpp-highlight-if-0/1 'append 'local)
-  )
+;; (defun jpk/c-mode-hook ()
+;;   (cpp-highlight-if-0/1)
+;;   (add-hook 'after-save-hook 'cpp-highlight-if-0/1 'append 'local)
+;;   )
 
-(add-hook 'after-revert-hook 'cpp-highlight-if-0/1)
+;; (add-hook 'after-revert-hook 'cpp-highlight-if-0/1)
+
+;; 预定义宏
+;; (setq hide-ifdef-define-alist 
+;;       '( (list-name-1 GPATH_* HAVE_FUNC_2) 
+;;          (list-name-2 HAVE_HEADER_1) ) ) 
+;; (add-hook 'hide-ifdef-mode-hook 
+;;           '(lambda () (hide-ifdef-use-define-alist 'list-name-1) ) ) 
 
 ;; 添加删除注释
 (defun qiang-comment-dwim-line (&optional arg)
@@ -2049,7 +2066,6 @@ If FULL is t, copy full file name."
   (local-set-key (kbd "<M-f12>") 'semantic-analyze-proto-impl-toggle)
   (local-set-key (kbd "<M-down>") 'senator-next-tag)
   (local-set-key (kbd "<M-up>") 'senator-previous-tag)
-  (local-set-key (kbd "M-,") 'semantic-pop-tag-mark)
   )
 
 ;;hide ^M
@@ -2411,32 +2427,23 @@ If FULL is t, copy full file name."
 	  (set-marker marker nil nil))))
 
 (dolist (command '(semantic-ia-fast-jump semantic-complete-jump helm-gtags-dwim helm-gtags-find-rtag helm-gtags-find-tag helm-gtags-select helm-gtags-select-path
-                                         semantic-decoration-include-visit my-ag ag-this-file occur rgrep gtags-find-tag-by-event
-                                         semantic-analyze-proto-impl-toggle semantic-decoration-include-visit ff-find-other-file))
+                                         semantic-decoration-include-visit my-ag ag-this-file occur rgrep gtags-find-tag-by-event ycmd-goto ycmd-goto-imprecise
+                                         semantic-analyze-proto-impl-toggle semantic-decoration-include-visit ff-find-other-file semantic-symref-just-symbol
+                                         semantic-symref-anything semantic-symref-fset xref-find-definitions xref-find-apropos xref-find-references))
   (eval
    `(defadvice ,command (before jump-mru activate)
       (ring-insert semantic-tags-location-ring (point-marker))
-      (window-configuration-to-register :prev-win-layout))))
-
+      (unless (featurep 'evil-jumps)
+        (require 'evil))
+      (when (featurep 'evil-jumps)
+        (evil--jumps-push))
+      (window-configuration-to-register :prev-win-layout)
+      )))
+         
 
 (defadvice helm-gtags-find-tag-other-window (after helm-gtags-tag-other-back activate)
   ""
   (select-window (previous-window)))
-
-(defadvice semantic-symref-just-symbol (before semantic-symref-just-symbol-mru activate)
-  ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  (window-configuration-to-register :prev-win-layout))
-
-(defadvice semantic-symref-anything (before semantic-symref-anything-mru activate)
-  ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  (window-configuration-to-register :prev-win-layout))
-
-(defadvice semantic-symref-fset (before semantic-symref-tag-mru activate)
-  ""
-  (ring-insert semantic-tags-location-ring (point-marker))
-  (window-configuration-to-register :prev-win-layout))
 
 (defadvice semantic-symref-hide-buffer (after semantic-symref-hide-buffer-after activate)
   ""
@@ -2506,9 +2513,11 @@ If FULL is t, copy full file name."
 	(setq-local font-lock-maximum-decoration 2)
 	(font-lock-refresh-defaults)
 	(setq-local semantic-idle-scheduler-idle-time 60)
-	;; (setq-local company-idle-delay 3)
-    (if (featurep 'ycmd-eldoc)
-        (setq-local ycmd-mode-hook (delq 'ycmd-eldoc-mode ycmd-mode-hook)))
+	(setq-local company-idle-delay 3)
+    ;; (if (featurep 'ycmd-eldoc)
+    ;;     (setq-local ycmd-mode-hook (delq 'ycmd-eldoc-mode ycmd-mode-hook)))
+    (if (featurep 'lsp-mode)
+        (setq-local lsp-highlight-symbol-at-point nil))
     (eldoc-mode -1)
     ;; (ad-deactivate 'yank)
     ;; (ad-deactivate 'yank-pop)
@@ -2665,6 +2674,45 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
     (if color
         (setq text (semantic--format-uml-post-colorize text tag parent)))
     text))
+(define-mode-local-override semantic-format-tag-uml-prototype
+  c++-mode (token &optional parent color)
+  "Return an UML string describing TOKEN for C and C++.
+Optional PARENT and COLOR as specified with
+`semantic-abbreviate-tag-default'."
+  ;; If we have special template things, append.
+  (concat  (semantic-format-tag-uml-prototype-default-fset token parent color)
+           (semantic-c-template-string token parent color)))
+(defun semantic-format-tag-uml-prototype-default-fset (tag &optional parent color)
+  "Return a UML style prototype for TAG.
+Optional argument PARENT is the parent type if TAG is a detail.
+Optional argument COLOR means highlight the prototype with font-lock colors."
+  (let* ((class (semantic-tag-class tag))
+         (cp (semantic-format-tag-name tag parent color))
+         (type (semantic--format-tag-uml-type tag color))
+         (prot (semantic-format-tag-uml-protection tag parent color))
+         (tag-parent-str
+          (or (when (and (semantic-tag-of-class-p tag 'function)
+                         (semantic-tag-function-parent tag))
+                (concat (semantic-tag-function-parent tag)
+                        semantic-format-parent-separator))
+              ""))
+         (argtext
+          (cond ((eq class 'function)
+                 (concat
+                  " ("
+                  (semantic--format-tag-arguments
+                   (semantic-tag-function-arguments tag)
+                   #'semantic-format-tag-uml-prototype
+                   color)
+                  ")"))
+                ((eq class 'type)
+                 "{}")))
+         (text nil))
+    (setq text (concat tag-parent-str prot cp argtext type))
+    (if color
+        (setq text (semantic--format-uml-post-colorize text tag parent)))
+    text
+    ))
 ;;-----------------------------------------------------------define func end------------------------------------------------;;
 ;;-----------------------------------------------------------hook-----------------------------------------------------------;;
 (c-add-style "gzj"
@@ -2761,7 +2809,7 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
             ;; (yas-minor-mode 1)          
 			;; (my-c-mode-common-hook-if0)
 			;; (jpk/c-mode-hook)
-			(setq-local company-idle-delay 0.5)
+			;; (setq-local company-idle-delay 0.5)
 			(check-large-file-hook)
 			;; (srecode-minor-mode 1)
 			(font-lock-add-keywords nil
@@ -2986,7 +3034,11 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
 ;; Calc
 (global-set-key (kbd "C-c a") 'calc)
 (put 'narrow-to-region 'disabled nil)
-
+;;evil jump(window-local jump)
+(autoload 'evil-jump-backward "evil" nil t)
+(global-set-key (kbd "M-,") 'evil-jump-backward)
+(global-set-key (kbd "C--") 'evil-jump-backward)
+(global-set-key (kbd "C-_") 'evil-jump-forward)
 ;; indent select region
 (global-set-key (kbd "<S-tab>") 'indent-rigidly)
 (custom-set-faces
