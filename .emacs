@@ -20,8 +20,6 @@
 ;; spacemacs theme setting
 (setq spacemacs-theme-comment-bg nil)
 (setq spacemacs-theme-org-height nil)
-;; (require 'color-theme-sanityinc-tomorrow)
-;; (require 'color-theme-sanityinc-solarized)
 ;;-----------------------------------------------------------设置-----------------------------------------------------------;;
 ;; 只有一个实例
 (server-force-delete)
@@ -51,7 +49,6 @@
 (setenv "PDFLATEX" "F:\\CTEX\\MiKTeX\\miktex\\bin")
 (setenv "PYTHONIOENCODING" "utf-8")     ;防止raw_input出错
 (setenv "GITCMD" "C:\\Program Files\\Git\\cmd")
-
 ;; (setenv "LC_ALL" "C")			   ;for diff-hl in emacs25
 ;; (setenv "GTAGSLABEL" "pygments")
 
@@ -138,8 +135,8 @@
 (eval-after-load "srecode/map"
   '(progn
      (setq srecode-map-load-path (list (expand-file-name "~/.emacs.d/.srecode/")
-								  (srecode-map-base-template-dir)
-								  ))))
+                                       (srecode-map-base-template-dir)
+                                       ))))
 (semantic-mode t)
 (global-ede-mode t)
 (setq semantic-c-obey-conditional-section-parsing-flag nil) ; ignore #ifdef
@@ -181,7 +178,6 @@
 (defadvice highlight-symbol-at-point(after highlight-symbol-at-point-after activate)
   (if global-hl-line-mode
 	  (global-hl-line-mode -1)))
-
 (setq compile-command "devenv.com projects.sln /build \"Debug|Win32\"") ;可以传sln 或vcproj编译工程
 ;; tab补全时忽略大小写
 (setq-default completion-ignore-case t)
@@ -228,7 +224,6 @@
  '(company-tooltip-align-annotations t)
  '(company-transformers (quote (company-sort-by-occurrence)))
  '(company-ycmd-request-sync-timeout 0)
- '(compilation-message-face (quote default))
  '(compilation-scroll-output t)
  '(compilation-skip-threshold 2)
  '(confirm-kill-emacs (quote y-or-n-p))
@@ -300,7 +295,6 @@
      (emacs-lisp-mode . semantic-format-tag-abbreviate-emacs-lisp-mode))))
  '(helm-truncate-lines t t)
  '(hide-ifdef-shadow t)
- '(history-window-local-history t)
  '(icomplete-show-matches-on-no-input t)
  '(ido-mode (quote both) nil (ido))
  '(imenu-max-item-length 120)
@@ -320,7 +314,6 @@
  '(mode-require-final-newline nil)
  '(moo-select-method (quote helm))
  '(mouse-wheel-progressive-speed nil)
- '(org-download-image-dir "f:/org")
  '(org-download-screenshot-file "f:/org/screenshot.png")
  '(org-download-screenshot-method "convert clipboard: %s")
  '(org-log-done (quote time))
@@ -337,7 +330,7 @@
  '(save-place t nil (saveplace))
  '(semantic-c-dependency-system-include-path
    (quote
-	("C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/atlmfc/include" "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10150.0/ucrt" "C:/Program Files (x86)/Windows Kits/8.1/Include/um" "C:/Program Files (x86)/Windows Kits/8.1/Include/shared" "C:/Program Files (x86)/Windows Kits/8.1/Include/winrt")))
+    ("C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include" "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/atlmfc/include" "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10150.0/ucrt" "C:/Program Files (x86)/Windows Kits/8.1/Include/um" "C:/Program Files (x86)/Windows Kits/8.1/Include/shared" "C:/Program Files (x86)/Windows Kits/8.1/Include/winrt")))
  '(semantic-idle-scheduler-idle-time 15)
  '(semantic-idle-scheduler-work-idle-time 600)
  '(semantic-imenu-bucketize-file nil)
@@ -992,8 +985,8 @@
            (cond ((eq major-mode 'dired-mode)
                   (revert-buffer))
                  ((and (not (eq major-mode 'vc-dir-mode))
-                    ;; (not (vc-backend buffer-file-name))
-                    )
+                       ;; (not (vc-backend buffer-file-name))
+                       )
                   (reopen-file))))))
 (global-set-key (kbd "M-g h") 'toggle-git-backend)
 (defadvice diff-hl-mode(around diff-hl-mode-ar activate)
