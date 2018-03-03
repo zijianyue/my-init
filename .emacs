@@ -2,7 +2,7 @@
 ;; 字体保证中文是英文的两倍宽
 ;; Setting English Font
 
-(package-initialize)
+;; (package-initialize)
 
 (set-face-attribute
  'default nil :font "Consolas 11")
@@ -16,7 +16,11 @@
 					charset
 					(font-spec :family "宋体" :size 16)))
 
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+;; 获取site-lisp路径
+(defvar site-lisp-directory nil)
+(setq site-lisp-directory (expand-file-name (concat data-directory "../site-lisp")))
+       
+(add-to-list 'custom-theme-load-path (concat site-lisp-directory "/spacemacs/spacemacs-theme"))
 ;; spacemacs theme setting
 (setq spacemacs-theme-comment-bg nil)
 (setq spacemacs-theme-org-height nil)
@@ -92,18 +96,11 @@
 (add-to-list 'exec-path (getenv "CPPCHECK") t)
 (add-to-list 'exec-path (getenv "PDFLATEX") t)
 
-
-(defvar site-lisp-dir)
-(if (and (eq emacs-minor-version 3)
-		 (eq emacs-major-version 24))
-	(setq site-lisp-dir (concat (getenv "emacs_dir") "\\site-lisp"))
-  (setq site-lisp-dir (concat (getenv "emacs_dir") "\\share\\emacs\\site-lisp")))
-
 ;; windows的find跟gnu 的grep有冲突
 (setq find-program (concat "\"" (getenv "MSYS") "\\find.exe\""))
 (setq grep-program "grep -nH -F")		;-F按普通字符串搜索
 ;; 默认目录
-(setq default-directory "d:/")
+;; (setq default-directory "d:/")
 
 ;; 启动mode
 (setq initial-major-mode 'text-mode)
@@ -134,7 +131,7 @@
 ;; 设置模板路径,把模板放到"~/.emacs.d/.srecode/"，避免拷来拷去
 (eval-after-load "srecode/map"
   '(progn
-     (setq srecode-map-load-path (list (expand-file-name "~/.emacs.d/.srecode/")
+     (setq srecode-map-load-path (list (concat site-lisp-directory "/srecode")
                                        (srecode-map-base-template-dir)
                                        ))))
 (semantic-mode t)
@@ -256,8 +253,6 @@
  '(flycheck-navigation-minimum-level (quote error))
  '(flymake-fringe-indicator-position (quote right-fringe))
  '(frame-resize-pixelwise t)
- '(ggtags-highlight-tag nil)
- '(ggtags-highlight-tag-delay 16)
  '(git-commit-fill-column 200)
  '(git-commit-style-convention-checks nil)
  '(git-commit-summary-max-length 200)
@@ -420,27 +415,9 @@
 	 (define-key gtags-select-mode-map (kbd "<C-mouse-1>") 'gtags-select-tag-by-event)
 	 ))
 
-;; ggtags
-(with-eval-after-load 'ggtags
-  (defalias 'ggtags-after-save-function 'ignore))
-(autoload 'ggtags-mode "ggtags" "" t)
-(eval-after-load "ggtags"
-  '(progn
-     (remove-function (local 'eldoc-documentation-function) 'ggtags-eldoc-function)
-	 (define-key ggtags-mode-map (kbd "M-.") nil)
-	 (define-key ggtags-mode-map (kbd "M-,") nil)
-	 (define-key ggtags-mode-map (kbd "C-M-.") nil)
-	 (define-key ggtags-mode-map [S-down-mouse-1] 'ignore)
-	 (define-key ggtags-mode-map [S-down-mouse-3] 'ignore)
-	 (define-key ggtags-highlight-tag-map [S-down-mouse-1] 'ignore)
-	 (define-key ggtags-highlight-tag-map [S-down-mouse-3] 'ignore)
-	 (define-key ggtags-mode-map (kbd "M-P") 'ggtags-show-definition)
-	 (setq ggtags-mode-line-project-name nil)
-	 (setq ggtags-update-on-save nil)
-	 ;; (setq imenu-create-index-function #'ggtags-build-imenu-index)
-	 ))
-
 ;; 选中单位
+;; 从git clone下来的目录名带.el，.el目录不会自动添加到load-path
+(add-to-list 'load-path (concat site-lisp-directory "/expand-region.el") ) 
 (autoload 'er/expand-region "expand-region" nil t)
 (global-set-key (kbd "M-s") 'er/expand-region)
 
@@ -532,7 +509,9 @@
 ;;yasnippet 手动开启通过 yas-global-mode，会自动加载资源，如果执行yas-minor-mode，还需要执行yas-reload-all加载资源
 (autoload 'yas-global-mode "yasnippet" nil t)
 (autoload 'yas-minor-mode "yasnippet" nil t)
-;; (setq yas-snippet-dirs "~/.emacs.d/snippets")
+(eval-after-load "yasnippet"
+  '(progn
+     (add-to-list 'yas-snippet-dirs (concat site-lisp-directory "/snippets"))))
 
 ;; sln解析
 (autoload 'find-sln "sln-mode" nil t)
@@ -797,7 +776,7 @@
 (global-set-key (kbd "C-c d") 'helm-gtags-find-tag)
 (global-set-key (kbd "<f6>") 'helm-gtags-select-path)
 (global-set-key (kbd "<f7>") 'helm-gtags-select)
-;; (global-set-key (kbd "<S-f5>") 'helm-gtags-create-tags)
+(global-set-key (kbd "<S-f5>") 'helm-gtags-create-tags) ;可以指定路径和label
 (global-set-key (kbd "<f5>") 'helm-gtags-update-tags) ;c-u 全局刷新 ，c-u c-u 创建
 
 (global-set-key (kbd "C-\\") 'helm-gtags-dwim)
@@ -808,11 +787,6 @@
 	 (gtags-mode 1)
      (remove-hook 'after-save-hook 'gtags-auto-update)
 	 (helm-gtags-mode 1)
-	 (add-hook 'c-mode-common-hook
-			   (lambda ()
-				 (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-				   (ggtags-mode 1))))
-	 (ggtags-mode 1)
 	 (defadvice helm-gtags--update-tags-command(before helm-gtags-update-tags-bef activate)
 	   (if (bound-and-true-p ycmd-mode)
 		   (progn
@@ -1519,9 +1493,7 @@
 
 	 ;; (setq ycmd-force-semantic-completion t)
 	 ))
-(defadvice ycmd-mode(after ycmd-mode-after activate)
-  (if (featurep 'ggtags)
-      (remove-function (local 'eldoc-documentation-function) 'ggtags-eldoc-function)))
+
 ;; imenu list
 (autoload 'imenu-list-smart-toggle "imenu-list" nil t)
 (global-set-key (kbd "M-Q") 'imenu-list-smart-toggle)
@@ -1544,7 +1516,6 @@
 (eval-after-load "hideshow" '(diminish 'hs-minor-mode))
 ;; (eval-after-load "helm-gtags" '(diminish 'helm-gtags-mode " HG"))
 (eval-after-load "helm-gtags" '(diminish 'helm-gtags-mode))
-(eval-after-load "ggtags" '(diminish 'ggtags-mode))
 (eval-after-load "yasnippet" '(diminish 'yas-minor-mode))
 
 ;; 鼠标指向dos处时，弹出文件编码信息
@@ -1747,16 +1718,17 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
   ;; (setq cquery-extra-init-params '(:index (:comments 2) :cacheFormat "msgpack")) ;; msgpack占用空间小，但是查看困难，并且结构体变更，要手动更新索引
   ;; (setq cquery-extra-init-params '(:indexWhitelist ("COMMON/include" "MPLS" "OPEN_SRC/protobuf-c-1.2.1") :indexBlacklist (".")))
   ;; (setq cquery-extra-init-params '(:indexBlacklist ("DIRA" "DIRB")))
+  (setq cquery-extra-init-params '(:completion (:detailedLabel t) :xref (:container t)))
 
   ;; (setq cquery-extra-args '("--log-stdin-stdout-to-stderr" "--log-file=/tmp/cq.log"))
 ;;;; enable semantic highlighting:
   ;; (setq cquery-sem-highlight-method 'overlay)
   ;; (setq cquery-sem-highlight-method 'font-lock)
   (add-hook 'c-mode-common-hook 'lsp-cquery-enable)
-  (define-key cquery-call-tree-mode-map (kbd "SPC") 'cquery-call-tree-look)
-  (define-key cquery-call-tree-mode-map [mouse-1] 'ignore )
-  (define-key cquery-call-tree-mode-map [mouse-3] 'cquery-call-tree-toggle-expand )
-  (define-key cquery-call-tree-mode-map (kbd "n") (lambda () "" (interactive)
+  (define-key cquery-tree-mode-map (kbd "SPC") 'cquery-tree-look)
+  (define-key cquery-tree-mode-map [mouse-1] 'ignore )
+  (define-key cquery-tree-mode-map [mouse-3] 'cquery-tree-toggle-expand )
+  (define-key cquery-tree-mode-map (kbd "n") (lambda () "" (interactive)
                                                     (forward-line 1)
                                                     (back-to-indentation)))
   (define-key cquery-call-tree-mode-map (kbd "p") (lambda () "" (interactive)
@@ -2815,7 +2787,6 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
 			(define-key semantic-symref-results-mode-map (kbd "s") 'symref-in-result)
             (define-key semantic-symref-results-mode-map [mouse-3] 'symref-results-right-click-event)
 			(set-default 'semantic-imenu-summary-function 'semantic-format-tag-uml-abbreviate)
-            (remove-function (local 'eldoc-documentation-function) 'ggtags-eldoc-function)
 			))
 
 (add-hook 'emacs-lisp-mode-hook
