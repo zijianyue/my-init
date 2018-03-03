@@ -331,7 +331,6 @@
  '(semantic-imenu-bucketize-file nil)
  '(semantic-lex-spp-use-headers-flag t)
  '(semantic-symref-results-summary-function (quote semantic-format-tag-abbreviate))
- '(semanticdb-default-save-directory "d:\\semanticdb")
  '(shell-completion-execonly nil)
  '(show-paren-mode t)
  '(show-paren-when-point-in-periphery t)
@@ -1672,19 +1671,19 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 
 ;; cquery 全面的开发工具
 (with-eval-after-load 'lsp-mode
-  (require 'lsp-flycheck)
-  (global-flycheck-mode t)
+  ;; (require 'lsp-flycheck)
+  ;; (global-flycheck-mode t)
   
   (yas-global-mode t)
   (require 'company-lsp)
   (push 'company-lsp company-backends)
   (global-company-mode t)
-  (setq company-lsp-async t)
-  (setq company-lsp-cache-candidates t)
-  (setq company-lsp-enable-recompletion t) ;比如第一次补全出std::，会继续补
+  ;; (setq company-lsp-async t)
+  ;; (setq company-lsp-cache-candidates t)
+  ;; (setq company-lsp-enable-recompletion t) ;比如第一次补全出std::，会继续补
   ;; (require 'lsp-imenu)
   ;; (add-hook 'lsp-after-open-hook 'lsp-enable-imenu)
-  ;; (require 'lsp-ui)
+  (require 'lsp-ui)
   ;; (add-hook 'lsp-mode-hook 'lsp-ui-mode)
   ;; (setq lsp-ui-doc-enable nil)
   ;; (setq lsp-ui-flycheck-enable nil)
@@ -1696,7 +1695,7 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
   (setq xref-show-xrefs-function 'helm-xref-show-xrefs)
   (require 'ivy-xref)
   ;; (setq xref-show-xrefs-function #'ivy-xref-show-xrefs)
-  (global-set-key (kbd "C-c C-r") 'ivy-resume)
+  ;; (global-set-key (kbd "C-c C-r") 'ivy-resume)
   (define-key ivy-minibuffer-map (kbd "C-M-m") 'ivy-partial-or-done)
   (define-key ivy-minibuffer-map (kbd "TAB") 'ivy-call)
 
@@ -1731,7 +1730,7 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
   (define-key cquery-tree-mode-map (kbd "n") (lambda () "" (interactive)
                                                     (forward-line 1)
                                                     (back-to-indentation)))
-  (define-key cquery-call-tree-mode-map (kbd "p") (lambda () "" (interactive)
+  (define-key cquery-tree-mode-map (kbd "p") (lambda () "" (interactive)
                                                     (forward-line -1)
                                                     (back-to-indentation)))
   ;; (cquery-use-default-rainbow-sem-highlight)
@@ -1740,6 +1739,19 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
   ;; (cquery-xref-find-custom "$cquery/callers")
   ;; (cquery-xref-find-custom "$cquery/derived")
   ;; (cquery-xref-find-custom "$cquery/vars")
+  (defun cquery-tree--make-prefix-fset (node number nchildren depth)
+    "."
+    (let* ((padding (if (= depth 0) "" (make-string (* 2 (- depth 1)) ?\ )))
+           (symbol (if (= depth 0)
+                       (if (cquery-tree-node-parent node)
+                           "< "
+                         "")
+                     (if (cquery-tree-node-has-children node)
+                         (if (cquery-tree-node-expanded node) "└-" "└+")
+                       (if (eq number (- nchildren 1)) "└╸" "├╸")))))
+      (concat padding (propertize symbol 'face 'cquery-tree-icon-face))))
+  (fset 'cquery-tree--make-prefix 'cquery-tree--make-prefix-fset)
+  
   )
 
 ;;-----------------------------------------------------------plugin end-----------------------------------------------------------;;
