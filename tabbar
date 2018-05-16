@@ -1,0 +1,93 @@
+;; 重新定义以下函数，防止函数未定义的错误
+(defun aquamacs-make-empty-frame-fset (parms)
+  (when aquamacs-keep-running-via-empty-frame ;; return nil otherwise
+    (let ((frame-to-delete
+           (when (and aquamacs-last-frame-empty-frame
+                      (frame-live-p aquamacs-last-frame-empty-frame)
+                      ;; (not (ns-frame-is-on-active-space-p aquamacs-last-frame-empty-frame))
+                      )
+             (prog1
+                 aquamacs-last-frame-empty-frame
+               (setq aquamacs-last-frame-empty-frame nil)))))
+      (let ((all-parms
+             (append
+              '((name . " Aquamacs")  ;; initial space hides frame from lists
+                (fullscreen . nil) (visibility . nil))
+              parms)))
+        (if (and aquamacs-last-frame-empty-frame
+                 (frame-live-p aquamacs-last-frame-empty-frame)
+                 (not (frame-iconified-p aquamacs-last-frame-empty-frame)))
+            (modify-frame-parameters aquamacs-last-frame-empty-frame
+                                     (cons '(fullscreen . nil) parms))
+          (setq aquamacs-last-frame-empty-frame (make-frame all-parms))))
+      (select-frame aquamacs-last-frame-empty-frame)
+      (raise-frame aquamacs-last-frame-empty-frame)
+      (if frame-to-delete
+          (delete-frame frame-to-delete)))
+    aquamacs-last-frame-empty-frame))
+(fset 'aquamacs-make-empty-frame 'aquamacs-make-empty-frame-fset)
+
+;; 重新定义以下函数，关闭按钮不显示图片（windows上显示效果差）
+(when (memq system-type '(windows-nt ms-dos))
+  (setq tabbar-use-images nil)
+  (defsubst tabbar-line-tab (tab)
+    "Return the display representation of tab TAB.
+That is, a propertized string used as an `header-line-format' template
+element.
+Call `tabbar-tab-label-function' to obtain a label for TAB."
+    (let* ((selected-p (tabbar-selected-p tab (tabbar-current-tabset)))
+           (close-button-image (tabbar-find-image tabbar-close-tab-button))
+           (mouse-face (if selected-p
+                           'tabbar-selected-highlight
+                         'tabbar-unselected-highlight))
+
+           (text-face (if selected-p
+                          'tabbar-selected
+                        'tabbar-unselected))
+           (close-button
+            (propertize "[x]"
+                        'tabbar-tab tab
+                        'local-map (tabbar-make-tab-keymap tab)
+                        'tabbar-action 'close-tab
+                        ;;	  'help-echo 'tabbar-help-on-tab ;; no help echo: it's redundant
+                        'mouse-face mouse-face
+                        'face text-face
+                        'pointer 'arrow
+                        ;; 'display (tabbar-normalize-image close-button-image 0 'nomask)
+                        ))
+
+           (display-label
+            (propertize (if tabbar-tab-label-function
+                            (funcall tabbar-tab-label-function tab)
+                          tab)
+                        'tabbar-tab tab
+                        'local-map (tabbar-make-tab-keymap tab)
+                        ;;	  'help-echo 'tabbar-help-on-tab ;; no help echo: it's redundant
+                        'mouse-face mouse-face
+                        'face (cond ((and selected-p
+                                          (buffer-modified-p (tabbar-tab-value tab)))
+                                     'tabbar-selected-modified)
+                                    ((and (not selected-p)
+                                          (buffer-modified-p (tabbar-tab-value tab)))
+                                     'tabbar-unselected-modified)
+                                    ((and selected-p
+                                          (not (buffer-modified-p (tabbar-tab-value tab))))
+                                     'tabbar-selected)
+                                    (t 'tabbar-unselected))
+                        'pointer 'arrow))
+           (key-label
+            (if (and tabbar-show-key-bindings (boundp 'tabbar-line-tabs) tabbar-line-tabs)
+                (let* ((mm (member tab tabbar-line-tabs) )
+                       ;; calc position (i.e., like position from cl-seq)
+                       (index (if mm (- (length tabbar-line-tabs) (length mm)))))
+                  (if (and index (fboundp (tabbar-key-command (+ 1 index))))
+                      (propertize
+                       (get (tabbar-key-command (+ 1 index)) 'label)
+                                        ;(format "%s" (+ 1 index))
+                       'mouse-face mouse-face
+                       ;; same mouse-face leads to joint mouse activation for all elements
+                       'face (list 'tabbar-key-binding text-face) ;; does not work
+                       )
+                    "")
+                  ) "")))
+      (concat close-button display-label key-label tabbar-separator-value))))
