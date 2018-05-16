@@ -1,4 +1,13 @@
-;; 重新定义以下函数，防止函数未定义的错误
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(tabbar-default ((t (:inherit nil :stipple nil :background "SystemMenuBar" :foreground "black" :box nil :strike-through nil :underline nil :slant normal :weight normal :height 0.9 :width normal :family "Consolas"))))
+ '(tabbar-selected-modified ((t (:inherit tabbar-selected :foreground "firebrick" :weight bold))))
+ '(tabbar-unselected-modified ((t (:inherit tabbar-unselected :foreground "firebrick" :weight bold))))
+ '(taglist-tag-type ((t (:foreground "dark salmon" :height 1.0)))))
+ ;; 重新定义以下函数，防止函数未定义的错误
 (defun aquamacs-make-empty-frame-fset (parms)
   (when aquamacs-keep-running-via-empty-frame ;; return nil otherwise
     (let ((frame-to-delete
