@@ -187,3 +187,6 @@ Pygments version 2.1, (c) 2006-2015 by Georg Brandl.
 
 ** 重点摘抄
 Python 对像都拥有三个特性：身份，类型和值
+
+* 26.1 sdcv不可用，需要把.stardict目录放到cygwin\home目录下
+* 26.1 .bashrc不生效，需要把.bashrc放到C:\MinGW\msys\1.0\home目录下
