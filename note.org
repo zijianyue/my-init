@@ -190,3 +190,4 @@ Python 对像都拥有三个特性：身份，类型和值
 
 * 26.1 sdcv不可用，需要把.stardict目录放到cygwin\home目录下
 * 26.1 .bashrc不生效，需要把.bashrc放到C:\MinGW\msys\1.0\home目录下
+* 26.1 .gitconfig不生效，要放到C盘根目录下
