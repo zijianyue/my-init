@@ -40,3 +40,5 @@ alias h=history
 alias ll="ls -l"
 alias ..="cd .."
 
+export http_proxy=http://usrname:password,@proxyaddress
+export https_proxy=http://usrname:password,@proxyaddress
