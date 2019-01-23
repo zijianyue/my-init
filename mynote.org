@@ -293,6 +293,21 @@ $ pip --version
  
 # upgrade pip
 $ sudo pip install --upgrade pip
+* java
+** maven 的setting.xml
+建立maven项目会需要去仓库下载一些相关的依赖包。maven默认的中央仓库是英国，所以我们把中央仓库改为maven阿里云中央仓库。
+
+修改maven根目录下的conf文件夹中的setting.xml文件，内容如下：
+  <localRepository>/Users/shangri-la/.m2/repository</localRepository>
+ <mirrors>
+    <mirror>
+      <id>alimaven</id>
+      <name>aliyun maven</name>
+      <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+      <mirrorOf>central</mirrorOf>        
+    </mirror>
+  </mirrors>
+
 * MAC使用
 ** 截屏
 如果是截取全屏，用 shift+command+3 就可以快速截取整个屏幕，截图自动保存在桌面，文件名为截取时间，格式为png
