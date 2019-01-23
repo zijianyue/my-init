@@ -281,6 +281,18 @@ I	#+INCLUDE: line
 * python 
 ** 有用的网址
 PEP 索引的网址是： http://python.org/dev/peps.
+** pip安装和升级
+# install command line tools
+$ xcode-select --install
+ 
+# if pip not installed
+$ sudo easy_install pip
+ 
+# show current pip version
+$ pip --version
+ 
+# upgrade pip
+$ sudo pip install --upgrade pip
 * MAC使用
 ** 截屏
 如果是截取全屏，用 shift+command+3 就可以快速截取整个屏幕，截图自动保存在桌面，文件名为截取时间，格式为png
