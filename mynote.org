@@ -278,6 +278,7 @@ I	#+INCLUDE: line
 #+END_SRC
 
 
+** pdf-tools 研究
 * python 
 ** 有用的网址
 PEP 索引的网址是： http://python.org/dev/peps.
@@ -313,3 +314,7 @@ $ sudo pip install --upgrade pip
 如果是截取全屏，用 shift+command+3 就可以快速截取整个屏幕，截图自动保存在桌面，文件名为截取时间，格式为png
 
 如果是截取部分屏幕，用 shift+command+4 ，此时，鼠标显示会变成一个十字光标，此时可以任意选择自己想要截取的部分屏幕，之后松开鼠标，截图就成功了，截图自动保存在桌面，文件名为截取时间，格式为png
+** 终端报错
+-bash: /etc/profile: Permission denied in Terminal
+解决办法
+sudo chmod 755 /etc/profile
