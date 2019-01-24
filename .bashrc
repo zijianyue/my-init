@@ -32,6 +32,15 @@ export PS1="[\t]\w: "
 # PATH=$PATH:`cygpath -W`
 
 # ------------------------
+# for mac
+# ------------------------
+# EMACS_HOME=/Applications/Emacs.app/Contents/MacOS
+# 在终端下打开文件,替换命令行默认的emacs
+# alias emacs="${EMACS_HOME}/Emacs -nw"
+# GUI方式打开文件
+# alias e="${EMACS_HOME}/bin/emacsclient -n"
+
+# ------------------------
 # alias
 # ------------------------
 alias h=history
