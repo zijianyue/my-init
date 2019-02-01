@@ -217,7 +217,6 @@ c-l刷新即可
 1. [ ] t1
 2. [X] t2
 
-
 *** org 导出pdf
 (1) CTeX版本: 下载地址http://www.ctex.org/CTeXDownload, 下载Full包
 
@@ -245,7 +244,6 @@ c-l刷新即可
 
 (4) org文件保存成utf-8
 (5) org-download-image-dir用默认设置，也就是图片要保存到org文件当前目录下，否则导出pdf会失败
-
 
 *** org中输入代码段
 快捷键 <s TAB
@@ -276,7 +274,6 @@ I	#+INCLUDE: line
       pstTopoGroup->ulPathNum,
       pstTopoGroup->bIsDeadLock);
 #+END_SRC
-
 
 ** pdf-tools 研究
 
@@ -333,6 +330,18 @@ For an Emacs.app CLI starter, see:
 EMACS_HOME=/Applications/Emacs.app/Contents/MacOS
 # 在终端下打开文件,替换命令行默认的emacs
 alias emacs="${EMACS_HOME}/Emacs"
+
+** mew config <2019-02-01 Fri 22:44>
+pop方式
+(setq mew-pop-user "zijianyue")  ;; (user-login-name)
+(setq mew-pop-server "pop.163.com")    ;; if not localhost
+(setq mew-pop-auth 'pass)              ;防止APOP password is not supported by this server
+debug
+(setq mew-debug t)
+ '(mew-pop-delete nil)
+
+
+
 * python 
 ** 有用的网址
 PEP 索引的网址是： http://python.org/dev/peps.
