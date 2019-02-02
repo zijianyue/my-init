@@ -306,7 +306,6 @@ StrictHostKeyChecking no
 这个选项会自动的把 想要登录的机器的SSH pub key 添加到 /root/.ssh/know_hosts 中。
 
 ** 不好用的功能 <2019-01-25 Fri 22:20>
-tabbar unselected 的face在某些主题下跟modeline inactive文字颜色不一致，但是值是一样的
 
 ** 安装brew install emacs-mac后的提示记录 <2019-01-27 Sun 23:16>
 This is YAMAMOTO Mitsuharu's "Mac port" addition to
@@ -341,6 +340,29 @@ debug
  '(mew-pop-delete nil)
 
 
+** tabbar过滤buffer <2019-02-03 Sun 00:29>
+#+BEGIN_SRC 
+ (defun tabbar-gzj-inhibit-function ()
+   ""
+   (member (buffer-name)
+           (list "*helm gtags*" "")))
+ (add-to-list 'tabbar-inhibit-functions 'tabbar-gzj-inhibit-function)
+
+ (defun tabbar-line-fset ()
+   "Return the header line templates that represent the tab bar.
+ Inhibit display of the tab bar in current window if any of the
+ `tabbar-inhibit-functions' return non-nil."
+   (cond
+    ((run-hook-with-args-until-success 'tabbar-inhibit-functions)
+     ;; Don't show the tab bar.
+     (setq header-line-format nil))
+    ((tabbar-current-tabset t)
+     ;; When available, use a cached tab bar value, else recompute it.
+     (or (tabbar-template tabbar-current-tabset)
+         (tabbar-line-format tabbar-current-tabset)))))
+
+ (fset 'tabbar-line 'tabbar-line-fset)
+#+END_SRC
 
 * python 
 ** 有用的网址
