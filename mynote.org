@@ -341,7 +341,7 @@ debug
 
 
 ** tabbar过滤buffer <2019-02-03 Sun 00:29>
-#+BEGIN_SRC 
+#+BEGIN_SRC elisp 
  (defun tabbar-gzj-inhibit-function ()
    ""
    (member (buffer-name)
@@ -364,6 +364,8 @@ debug
  (fset 'tabbar-line 'tabbar-line-fset)
 #+END_SRC
 
+** gtags 过滤 <2019-02-03 Sun 11:38>
+~/.globalrc编写skip时不要写在最前，也不要写在最后
 * python 
 ** 有用的网址
 PEP 索引的网址是： http://python.org/dev/peps.
