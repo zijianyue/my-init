@@ -1,2 +1,1 @@
-
-https://www.reddit.com/r/spacemacs/comments/et0kz8/windows_error_installing_jdtls_for_lspjava/
+https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html
