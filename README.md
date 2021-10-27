@@ -7,3 +7,6 @@ http://www.djye.com/
 https://www.cnblogs.com/theodoric008/p/9537607.html
 懒猫主页
 https://manateelazycat.github.io/index.html
+
+
+https://www.privod.me/win10%E8%97%8D%E8%8A%BD%E8%80%B3%E6%A9%9F%E6%96%B7%E6%96%B7%E7%BA%8C%E7%BA%8C/
