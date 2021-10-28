@@ -24,4 +24,7 @@
 	required = true
 [http]
   sslVerify = false
-  proxy = http://username:password@proxy-url:8080
+  proxy = http://username:password@proxy-url:8080 ; 特殊字符要转义
+[https "https://github.com"]
+  sslVerify = false
+  proxy = http://username:password@proxy-url:8080 ; 特殊字符要转义  
