@@ -11,3 +11,7 @@ https://manateelazycat.github.io/index.html
 
 https://www.privod.me/win10%E8%97%8D%E8%8A%BD%E8%80%B3%E6%A9%9F%E6%96%B7%E6%96%B7%E7%BA%8C%E7%BA%8C/
 http://www.internalrequests.org/showconfirmpage/?url=https://yifx.cc
+
+
+hosts地址更新 用switch hosts工具订阅
+https://cdn.jsdelivr.net/gh/ineo6/hosts/hosts
