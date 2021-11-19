@@ -15,3 +15,6 @@ http://www.internalrequests.org/showconfirmpage/?url=https://yifx.cc
 
 hosts地址更新 用switch hosts工具订阅
 https://cdn.jsdelivr.net/gh/ineo6/hosts/hosts
+
+
+http://m.kuwo.cn/newh5app/play_detail/142683102
