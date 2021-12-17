@@ -21,3 +21,5 @@ http://m.kuwo.cn/newh5app/play_detail/142683102
 
 待下载的音乐
 《旅人よ》
+
+https://raw.githubusercontent.com/learnhard-cn/free_proxy_ss/main/free
