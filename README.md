@@ -25,3 +25,6 @@ http://m.kuwo.cn/newh5app/play_detail/142683102
 https://raw.githubusercontent.com/learnhard-cn/free_proxy_ss/main/free
 
 https://raw.githubusercontent.com/aiboboxx/v2rayfree/main/v2
+
+
+http://192.168.0.113:1080/pac?hash=RvRwYoAXt_dvMCinEz2XnQ2&secret=1gnUhmzogSP2UF-XLFX7OD39Zy1sI53cwBSW-iQv3LM1
