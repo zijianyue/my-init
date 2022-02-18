@@ -28,3 +28,6 @@ https://raw.githubusercontent.com/aiboboxx/v2rayfree/main/v2
 
 
 http://192.168.0.113:1080/pac?hash=RvRwYoAXt_dvMCinEz2XnQ2&secret=1gnUhmzogSP2UF-XLFX7OD39Zy1sI53cwBSW-iQv3LM1
+
+
+https://manateelazycat.github.io/travel/2022/02/03/tourism-hainan.html
