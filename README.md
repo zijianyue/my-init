@@ -31,3 +31,4 @@ http://192.168.0.113:1080/pac?hash=RvRwYoAXt_dvMCinEz2XnQ2&secret=1gnUhmzogSP2UF
 
 
 https://manateelazycat.github.io/travel/2022/02/03/tourism-hainan.html
+https://github.com/colatiger/v2ray-nodes/raw/master/clash.yaml
