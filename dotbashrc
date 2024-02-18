@@ -1,0 +1,70 @@
+# .bashrc
+if [ -f ~/.Xmodmap ]; then
+    xmodmap ~/.Xmodmap
+fi
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+# Uncomment the following line if you don't like systemctl's auto-paging feature:
+# export SYSTEMD_PAGER=
+
+# User specific aliases and functions
+export PATH="/opt/cmake-3.23.2-linux-x86_64/bin:$PATH"
+export CC=$(which gcc)
+export CXX=$(which g++)
+source scl_source enable devtoolset-10 rh-git227 rh-mariadb105
+eval `/usr/bin/modulecmd bash load mpi/openmpi3-x86_64`
+
+export PATH="/opt/llvm-15.0.7/bin/:$PATH"
+export PATH="/home/gezijian/Software/gtags/bin:$PATH"
+# export PATH="/home/gezijian/Downloads/uctags-2023.10.23-linux-x86_64/bin:$PATH"
+export PATH=/usr/local/texlive/2023/bin/x86_64-linux:$PATH
+
+alias ..='cd ..'
+alias ...='cd ../..'
+# bind "set completion-ignore-case on" # 会造成告警 warning: line editing not enabled
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/Software/tree-sitter
+export LD_LIBRARY_PATH=~/Downloads/ucx-1.13.0/install/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/gezijian/Software/glog/lib64
+# export OPENAI_API_KEY="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"
+# export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfigexport PATH=$PATH:/usr/lib64/openmpi3/bin
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64/openmpi3/lib
+alias ctest="ctest -L '(smoking|golden)'"
+alias doconfig='cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=release -DGTEST=1 -DCMAKE_CXX_CLANG_TIDY="" -DYUWEI_MAKE_RELEASE=1 -DCMAKE_C_COMPILER=/opt/rh/devtoolset-10/root/usr/bin/gcc -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-10/root/usr/bin/g++'
+alias docmake_brief2='cmake --build . --parallel 2'
+alias docmake_brief10='cmake --build . --parallel 10'
+alias docmake='cmake --build . --parallel 10 --verbose'
+alias ls='ls --color=auto --group-directories-first'
+alias ll='ls -l'
+alias h='history'
+alias docmake_task='cmake --build ./LibraTask/ --parallel 10 --verbose'
+alias bco=bcompare
+alias term=gnome-terminal
+alias e=emacs
+alias sou="source ~/.bashrc"
+# export PS1='\[\e[35m\][\u\[\e[m\]@\[\e[36m\]ws-gzj \[\e[33m\]\w]\[\e[1;33m\]\$\[\e[m\] '
+export PS1='\[\e[1;36m\][\u@ws-gzj \[\e[1;32m\]\w]\[\e[1;32m\]\$\[\e[m\] '
+
+[ -n "$EAT_SHELL_INTEGRATION_DIR" ] && \
+    source "$EAT_SHELL_INTEGRATION_DIR/bash"
+# bind '"\ep": dynamic-complete-history'
+# bind '"\en": dabbrev-expand'
+
+. "$HOME/.cargo/env"
+# alias ec='emacsclient -t -a ""'
+alias ec=emacsclient
+# export EDITOR="emacsclient -c -a ''"
+# export http_proxy=http://127.0.0.1:7890
+# export https_proxy=http://127.0.0.1:7890
+alias batchcpso='cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build/LibraTask/src
+cp *.so* ~/tmpVer
+cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build/LibraModel/src
+cp *.so* ~/tmpVer
+cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build/LibraGeometry/src
+cp *.so* ~/tmpVer
+cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build/LibraInfrastructure/src/
+cp *.so* ~/tmpVer'
