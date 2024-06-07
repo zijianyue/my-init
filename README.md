@@ -19,3 +19,6 @@ http://m.kuwo.cn/newh5app/play_detail/142683102
 
 专利网站
 https://pss-system.cponline.cnipa.gov.cn/conventionalSearch
+
+大模型创业
+https://www.cnblogs.com/xiaoymin/p/18109964
