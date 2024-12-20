@@ -1,29 +1,29 @@
 if status is-interactive
     # Commands to run in interactive sessions can go here
 end
-function scl_source
-    for line in (command scl_source $argv)
-        eval $line
-    end
-end
+# function scl_source
+#     for line in (command scl_source $argv)
+#         eval $line
+#     end
+# end
 
-scl_source enable devtoolset-10 rh-git227 rh-mariadb105
+# scl_source enable devtoolset-10 rh-git227 rh-mariadb105
 
-eval /usr/bin/modulecmd bash load mpi/openmpi3-x86_64
+# eval /usr/bin/modulecmd bash load mpi/openmpi3-x86_64
 
 alias ... 'cd ../..'
-alias libratask_src_exe "sh -c 'cd ./LibraTask/src && python3 RetargetProjectDissectTests.py'"
-alias ctest "ctest -L '(smoking|golden)'"
+# alias libratask_src_exe "sh -c 'cd ./LibraTask/src && python3 RetargetProjectDissectTests.py'"
+# alias ctest "ctest -L '(smoking|golden)'"
 # alias doconfig "rm /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build;ln -s /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build-rel /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build;sh -c 'cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build;cmake .. -DCMAKE_BUILD_TYPE=release -DGTEST=1 -DCMAKE_CXX_CLANG_TIDY="" -DYUWEI_MAKE_RELEASE=1 -DPYTHON_EXECUTABLE=/usr/bin/python3 -DPYTHON_LIBRARY=/usr/lib64/libpython3.so'"
-alias doconfig "cmake .. -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=release -DWITH_FDTD_SOLVER=OFF -DCMAKE_CXX_CLANG_TIDY='' -DCMAKE_C_COMPILER=/opt/rh/devtoolset-10/root/usr/bin/gcc -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-10/root/usr/bin/g++ -DGTEST=1 -DYUWEI_MAKE_RELEASE=1 -DPYTHON_EXECUTABLE=/usr/bin/python3 -DPYTHON_LIBRARY=/usr/lib64/libpython3.so"
+# alias doconfig "cmake .. -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=release -DWITH_FDTD_SOLVER=OFF -DCMAKE_CXX_CLANG_TIDY='' -DCMAKE_C_COMPILER=/opt/rh/devtoolset-10/root/usr/bin/gcc -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-10/root/usr/bin/g++ -DGTEST=1 -DYUWEI_MAKE_RELEASE=1 -DPYTHON_EXECUTABLE=/usr/bin/python3 -DPYTHON_LIBRARY=/usr/lib64/libpython3.so"
 # alias doconfig_debug "rm /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build;ln -s /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build-dbg /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build;sh -c 'cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build;cmake .. -DCMAKE_BUILD_TYPE=debug -DGTEST=1 -DBIAS_RULE=1 -DCMAKE_CXX_CLANG_TIDY="" -DYUWEI_MAKE_RELEASE=1 -DPYTHON_EXECUTABLE=/usr/bin/python3 -DPYTHON_LIBRARY=/usr/lib64/libpython3.so'"
-alias doconfig_debug "cmake .. -DCMAKE_BUILD_TYPE=debug -G 'Unix Makefiles' -DWITH_FDTD_SOLVER=OFF -DCMAKE_CXX_CLANG_TIDY='' -DGTEST=1 -DYUWEI_MAKE_RELEASE=1 -DPYTHON_EXECUTABLE=/usr/bin/python3 -DPYTHON_LIBRARY=/usr/lib64/libpython3.so"
-alias docmake2 'cmake --build . --parallel 2'
+# alias doconfig_debug "cmake .. -DCMAKE_BUILD_TYPE=debug -G 'Unix Makefiles' -DWITH_FDTD_SOLVER=OFF -DCMAKE_CXX_CLANG_TIDY='' -DGTEST=1 -DYUWEI_MAKE_RELEASE=1 -DPYTHON_EXECUTABLE=/usr/bin/python3 -DPYTHON_LIBRARY=/usr/lib64/libpython3.so"
+# alias docmake2 'cmake --build . --parallel 2'
 # alias docmake_brief10 'cmake --build . --parallel 10'
-alias domake 'cmake --build . --parallel 4'
-alias doclear 'rm CMakeCache.txt CMakeFiles/ -rf Makefile *.cmake _deps/'
+# alias domake 'cmake --build . --parallel 4'
+# alias doclear 'rm CMakeCache.txt CMakeFiles/ -rf Makefile *.cmake _deps/'
 alias h history
-alias docmake_task 'cmake --build ./LibraTask/ --parallel 10'
+# alias docmake_task 'cmake --build ./LibraTask/ --parallel 10'
 alias bco bcompare
 alias term=gnome-terminal
 alias e=emacs
@@ -34,24 +34,24 @@ alias pullall='git submodule foreach git pull --ff-only'
 alias syncsub='git submodule update --recursive --init'
 alias ls='ls -a --color=auto --group-directories-first'
 alias ll='ls -l'
-alias batchcpso='cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build/LibraTask/src
-cp *.so* ~/tmpVer
-cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build/LibraModel/src
-cp *.so* ~/tmpVer
-cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build/LibraGeometry/src
-cp *.so* ~/tmpVer
-cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build/LibraInfrastructure/src/
-cp *.so* ~/tmpVer
-cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build/'
-alias batchcpso2='cd /home/gezijian/Yuwei/LibraPackAutoVersion/build/LibraTask/src
-cp *.so* ~/tmpVer
-cd /home/gezijian/Yuwei/LibraPackAutoVersion/build/LibraModel/src
-cp *.so* ~/tmpVer
-cd /home/gezijian/Yuwei/LibraPackAutoVersion/build/LibraGeometry/src
-cp *.so* ~/tmpVer
-cd /home/gezijian/Yuwei/LibraPackAutoVersion/build/LibraInfrastructure/src/
-cp *.so* ~/tmpVer
-cd /home/gezijian/Yuwei/LibraPackAutoVersion/build/'
+# alias batchcpso='cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build/LibraTask/src
+# cp *.so* ~/tmpVer
+# cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build/LibraModel/src
+# cp *.so* ~/tmpVer
+# cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build/LibraGeometry/src
+# cp *.so* ~/tmpVer
+# cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build/LibraInfrastructure/src/
+# cp *.so* ~/tmpVer
+# cd /home/gezijian/Yuwei/Libra/LibraPackAutoVersion/build/'
+# alias batchcpso2='cd /home/gezijian/Yuwei/LibraPackAutoVersion/build/LibraTask/src
+# cp *.so* ~/tmpVer
+# cd /home/gezijian/Yuwei/LibraPackAutoVersion/build/LibraModel/src
+# cp *.so* ~/tmpVer
+# cd /home/gezijian/Yuwei/LibraPackAutoVersion/build/LibraGeometry/src
+# cp *.so* ~/tmpVer
+# cd /home/gezijian/Yuwei/LibraPackAutoVersion/build/LibraInfrastructure/src/
+# cp *.so* ~/tmpVer
+# cd /home/gezijian/Yuwei/LibraPackAutoVersion/build/'
 # base func for vterm
 function vterm_printf;
     if begin; [  -n "$TMUX" ]  ; and  string match -q -r "screen|tmux" "$TERM"; end 
@@ -125,18 +125,20 @@ end
 alias gitdiffcolor='git diff | colordiff'
 set -x EDITOR "emacs -nw -Q"
 set -x VISUAL "$EDITOR"
+set -x NODE_OPTIONS "--max-old-space-size=4096"
+set -x HUGGING_FACE_HUB_TOKEN "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"
 # export EDITOR="emacs -nw -Q" # 这是启动终端模式的emacs，而不是一个新窗口
 # set -e http_proxy
 # set -e https_proxy
-# set -x http_proxy "http://127.0.0.1:9910"
-# set -x https_proxy "http://127.0.0.1:9910"
-export PATH="/opt/cmake-3.23.2-linux-x86_64/bin:$PATH"
-export PATH="/opt/llvm-15.0.7/bin/:$PATH"
+set -x http_proxy "http://127.0.0.1:7890"
+set -x https_proxy "http://127.0.0.1:7890"
+# export PATH="/opt/cmake-3.23.2-linux-x86_64/bin:$PATH"
+# export PATH="/opt/llvm-15.0.7/bin/:$PATH"
 set -x PATH /home/gezijian/Downloads/tools/fd-v8.7.0-x86_64-unknown-linux-musl $PATH
 set -x PATH /usr/local/texlive/2023/bin/x86_64-linux $PATH
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-eval (eval /usr/bin/conda "shell.fish" "hook" $argv)
+# eval (eval /usr/bin/conda "shell.fish" "hook" $argv)
 # <<< conda initialize <<<
 alias cirun='ctest --extra-verbose -S CTestRunnerJob.cmake'
 alias ec='emacsclient -c -a ""'
@@ -144,3 +146,28 @@ alias rimedeploy='touch ~/.config/ibus/rime/; ibus restart'
 
 # 单独执行一个用例
 # sh -c 'cd ./LibraTask/src && python3 -m unittest EdgeBiasTests.EdgeBiasTests.testcase_bias_reset_new_connect_edge';date
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+if test -f /home/gezijian/anaconda3/bin/conda
+    eval /home/gezijian/anaconda3/bin/conda "shell.fish" "hook" $argv | source
+else
+    if test -f "/home/gezijian/anaconda3/etc/fish/conf.d/conda.fish"
+        . "/home/gezijian/anaconda3/etc/fish/conf.d/conda.fish"
+    else
+        set -x PATH "/home/gezijian/anaconda3/bin" $PATH
+    end
+end
+# <<< conda initialize <<<
+set -x CUDA_VISIBLE_DEVICES 0
+# set -x OLLAMA_HOST 0.0.0.0:11434
+
+# pyenv
+pyenv init - | source
+# 下面这个容易死机
+# function ssh
+#     command ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=3 $argv
+# end
+
+set -gx OPENAI_API_KEY 'sk-7EtnqGAlL5GbKtyucs0K1HH5uUfRh85rfFTwuZc9RHucI5Hg'
+set -gx OPENAI_BASE_URL 'https://api.chatanywhere.tech/v1'
